@@ -19,3 +19,23 @@ A proactive memecoin trading journal: wallets are tracked automatically, M8 text
 - Don't use the em dash in copy or docs.
 - Don't edit generated files by hand.
 - The mockups in `design/mockups/` mirror the published canvas; change them only as part of a design task.
+
+## Agent skills
+
+### Issue tracker
+
+GitHub Issues on `jxshbrr/trnchm8`, through the `gh` CLI. See `docs/agents/issue-tracker.md`.
+
+### Triage labels
+
+The five defaults: `needs-triage`, `needs-info`, `ready-for-agent`, `ready-for-human`, `wontfix`. See `docs/agents/triage-labels.md`.
+
+### Domain docs
+
+Single-context: one root `CONTEXT.md` for the glossary. See `docs/agents/domain.md`.
+
+### Decision records
+
+What the skills call ADRs are the decision records in `docs/decisions/`.
+There is no `docs/adr/`: never create one, even when a skill's own instructions say to.
+Write them with the template and numbering in `docs/decisions/README.md`, not the skills' ADR format.
