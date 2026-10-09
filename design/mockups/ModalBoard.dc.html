@@ -1,0 +1,155 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>TrenchM8 - modals</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="anonymous">
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0}
+/* TrenchM8 motion: 120-150ms press/hover, 250-350ms UI, 600-900ms load-in. Ease-out. Fades only when reduced motion is on. */
+@keyframes tm-in{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+@keyframes tm-fade{from{opacity:0}to{opacity:1}}
+@keyframes tm-draw{to{stroke-dashoffset:0}}
+@keyframes tm-shimmer{0%{background-position:-400px 0}100%{background-position:400px 0}}
+@keyframes tm-dot{0%,80%,100%{opacity:.3;transform:translateY(0)}40%{opacity:1;transform:translateY(-3px)}}
+@keyframes tm-toast{from{opacity:0;transform:translateY(12px) scale(.98)}to{opacity:1;transform:none}}
+@keyframes tm-pop{0%{opacity:0;transform:scale(.6)}60%{opacity:1;transform:scale(1.08)}100%{transform:scale(1)}}
+@keyframes tm-spin{to{transform:rotate(360deg)}}
+@keyframes tm-pulse{0%{box-shadow:0 0 0 0 var(--tm-pulse,rgba(63,217,142,.45))}100%{box-shadow:0 0 0 10px rgba(0,0,0,0)}}
+@keyframes tm-fill{from{width:0}to{width:100%}}
+@keyframes tm-out{from{opacity:1}to{opacity:0}}
+@keyframes tm-flash{0%{background-color:var(--tm-flash,rgba(124,212,255,.22))}100%{background-color:transparent}}
+.tm-press{transition:transform .12s ease,filter .15s ease,background-color .15s ease,opacity .15s ease}
+.tm-press:hover{filter:brightness(1.12)}
+.tm-press:active{transform:scale(.97)}
+.tm-press:focus-visible,.tm-hover:focus-visible{outline:2px solid var(--tm-focus,#7CD4FF);outline-offset:2px}
+.tm-hover{transition:filter .15s ease,transform .15s ease}
+.tm-hover:hover{filter:brightness(1.18)}
+.tm-in{animation:tm-in .35s cubic-bezier(.2,.8,.2,1) both}
+.tm-fade{animation:tm-fade .6s ease both;animation-delay:var(--tm-d,0s)}
+.tm-draw{stroke-dasharray:1;stroke-dashoffset:1;animation:tm-draw .9s cubic-bezier(.2,.8,.2,1) calc(var(--tm-d,0s) + .15s) forwards}
+.tm-skel{background:linear-gradient(90deg,var(--sk1) 0%,var(--sk2) 50%,var(--sk1) 100%);background-size:800px 100%;animation:tm-shimmer 1.2s linear infinite}
+.tm-dot{display:inline-block;width:6px;height:6px;border-radius:3px;background:currentColor;animation:tm-dot 1.2s ease-in-out infinite}
+.tm-toast{animation:tm-toast .25s cubic-bezier(.2,.8,.2,1) both}
+.tm-pop{animation:tm-pop .45s cubic-bezier(.2,.8,.2,1) both}
+.tm-spin{animation:tm-spin .8s linear infinite}
+.tm-pulse{animation:tm-pulse 1.6s ease-out infinite}
+.tm-flash{animation:tm-flash 1.6s ease-out both}
+.tm-out{animation:tm-out .22s ease both;pointer-events:none}
+@media (prefers-reduced-motion:reduce){.tm-in,.tm-toast,.tm-pop{animation:tm-fade .2s ease both}.tm-draw{animation:none;stroke-dasharray:none;stroke-dashoffset:0}.tm-skel,.tm-dot,.tm-pulse,.tm-spin{animation:none}.tm-press:active{transform:none}}
+/* Tooltips: data-tip="text" (+ data-tip-pos="bottom|left|right", data-tip-wrap for long text). Desktop hover/keyboard only. */
+[data-tip]{position:relative}
+[data-tip]::after{content:attr(data-tip);position:absolute;left:50%;bottom:calc(100% + 8px);transform:translate(-50%,4px);padding:6px 10px;border-radius:10px;background:var(--tm-tip-bg,#F3F4F7);color:var(--tm-tip-fg,#12131A);font:600 12px/1.35 Manrope,system-ui,sans-serif;letter-spacing:0;text-transform:none;text-align:left;white-space:nowrap;pointer-events:none;opacity:0;visibility:hidden;transition:opacity .12s ease,transform .12s ease,visibility 0s linear .12s;z-index:80;box-shadow:0 8px 24px rgba(0,0,0,.28)}
+[data-tip]:hover::after,[data-tip]:focus-visible::after{opacity:1;visibility:visible;transform:translate(-50%,0);transition:opacity .12s ease .35s,transform .12s ease .35s,visibility 0s linear .35s}
+[data-tip-pos=bottom]::after{bottom:auto;top:calc(100% + 8px);transform:translate(-50%,-4px)}
+[data-tip-pos=left]::after{left:auto;right:calc(100% + 8px);bottom:50%;transform:translate(4px,50%)}
+[data-tip-pos=left]:hover::after,[data-tip-pos=left]:focus-visible::after{transform:translate(0,50%)}
+[data-tip-pos=right]::after{left:calc(100% + 8px);bottom:50%;transform:translate(-4px,50%)}
+[data-tip-pos=right]:hover::after,[data-tip-pos=right]:focus-visible::after{transform:translate(0,50%)}
+[data-tip-wrap]::after{white-space:normal;width:max-content;max-width:240px}
+@media (hover:none){[data-tip]::after{display:none}}
+/* Clickable rows (no inline background on the row itself) and clickable cards */
+.tm-row{transition:background-color .15s ease;cursor:pointer}
+.tm-row:hover{background-color:var(--tm-row-hover,rgba(255,255,255,.045))}
+.tm-row:active{background-color:var(--tm-row-press,rgba(255,255,255,.08))}
+.tm-lift{transition:filter .15s ease,box-shadow .15s ease;cursor:pointer}
+.tm-lift:hover{filter:brightness(1.07)}
+.tm-press[aria-disabled=true],.tm-press:disabled{opacity:.45;cursor:not-allowed;filter:none}
+.tm-press[aria-disabled=true]:active,.tm-press:disabled:active{transform:none}
+@keyframes tm-shake{0%,100%{transform:none}20%,60%{transform:translateX(-4px)}40%,80%{transform:translateX(4px)}}
+.tm-shake{animation:tm-shake .3s ease}
+@keyframes tm-sheet{from{transform:translateY(24px);opacity:0}to{transform:none;opacity:1}}
+@keyframes tm-dialog{from{transform:translateY(8px) scale(.98);opacity:0}to{transform:none;opacity:1}}
+@keyframes tm-drawer{from{transform:translateX(32px);opacity:0}to{transform:none;opacity:1}}
+.tm-sheet{animation:tm-sheet .3s cubic-bezier(.2,.8,.2,1) both}
+.tm-dialog{animation:tm-dialog .22s cubic-bezier(.2,.8,.2,1) both}
+.tm-drawer{animation:tm-drawer .28s cubic-bezier(.2,.8,.2,1) both}
+@keyframes tm-wave{0%,100%{transform:scaleY(.35)}50%{transform:scaleY(1)}}
+.tm-wave{animation:tm-wave .9s ease-in-out infinite;transform-origin:center}
+@media (prefers-reduced-motion:reduce){.tm-sheet,.tm-dialog,.tm-drawer{animation:tm-fade .2s ease both}.tm-shake,.tm-wave{animation:none}}
+</style>
+</helmet>
+<div style="width: 100%; min-height: 100%; box-sizing: border-box; padding: 56px 64px 72px 64px; background: #0D0E13; color: #F3F4F7; font-family: Manrope, system-ui, sans-serif; -webkit-font-smoothing: antialiased">
+  <header style="display: flex; flex-direction: column; gap: 8px; margin-bottom: 40px">
+    <span style="font-size: 13px; font-weight: 800; color: {{accent}}">TrenchM8 · prototype modals</span>
+    <h1 style="margin: 0; font-size: 40px; line-height: 1.1; font-weight: 800; letter-spacing: -0.02em">Modals and sheets</h1>
+    <p style="margin: 0; max-width: 820px; font-size: 16px; line-height: 1.55; font-weight: 500; color: #A9AEBE">One component, ten kinds. Centered dialog on desktop, bottom sheet on mobile. Everything here is live: type, toggle, step through checkout. Undo-able changes use a toast instead; these are for multi-step flows and things Undo can't fix.</p>
+  </header>
+  <div style="display: flex; flex-wrap: wrap; align-items: flex-start; gap: 48px 40px">
+    <figure style="margin: 0; width: 560px; display: flex; flex-direction: column; gap: 14px">
+      <figcaption style="font-size: 15px; font-weight: 800; color: #A9AEBE">Trade detail · tap any trade row</figcaption>
+      <dc-import name="Modal" modal="{{m.trade}}" layout="dialog" theme="dark" accent="{{accent}}" max-h="1100px" hint-size="560px,1060px"></dc-import>
+    </figure>
+    <figure style="margin: 0; width: 520px; display: flex; flex-direction: column; gap: 14px">
+      <figcaption style="font-size: 15px; font-weight: 800; color: #A9AEBE">Receipts · the red "3rd chase" link</figcaption>
+      <dc-import name="Modal" modal="{{m.chase}}" layout="dialog" theme="dark" accent="{{accent}}" max-h="1100px" hint-size="520px,600px"></dc-import>
+    </figure>
+    <figure style="margin: 0; width: 520px; display: flex; flex-direction: column; gap: 14px">
+      <figcaption style="font-size: 15px; font-weight: 800; color: #A9AEBE">Pick a day · calendar button on the journal</figcaption>
+      <dc-import name="Modal" modal="{{m.calendar}}" layout="dialog" theme="dark" accent="{{accent}}" max-h="1100px" hint-size="520px,600px"></dc-import>
+    </figure>
+    <figure style="margin: 0; width: 520px; display: flex; flex-direction: column; gap: 14px">
+      <figcaption style="font-size: 15px; font-weight: 800; color: #A9AEBE">Rule editor · + Add a rule, Edit, Make it a rule</figcaption>
+      <dc-import name="Modal" modal="{{m.rule}}" layout="dialog" theme="dark" accent="{{accent}}" max-h="1100px" hint-size="520px,870px"></dc-import>
+    </figure>
+    <figure style="margin: 0; width: 480px; display: flex; flex-direction: column; gap: 14px">
+      <figcaption style="font-size: 15px; font-weight: 800; color: #A9AEBE">Checkout · Pay $50 in USDC</figcaption>
+      <dc-import name="Modal" modal="{{m.checkout}}" layout="dialog" theme="dark" accent="{{accent}}" max-h="1100px" hint-size="480px,620px"></dc-import>
+    </figure>
+    <figure style="margin: 0; width: 480px; display: flex; flex-direction: column; gap: 14px">
+      <figcaption style="font-size: 15px; font-weight: 800; color: #A9AEBE">Export my data</figcaption>
+      <dc-import name="Modal" modal="{{m.export}}" layout="dialog" theme="dark" accent="{{accent}}" max-h="1100px" hint-size="480px,520px"></dc-import>
+    </figure>
+    <figure style="margin: 0; width: 520px; display: flex; flex-direction: column; gap: 14px">
+      <figcaption style="font-size: 15px; font-weight: 800; color: #A9AEBE">Edit my journal · Edit on My journal</figcaption>
+      <dc-import name="Modal" modal="{{m.edit}}" layout="dialog" theme="dark" accent="{{accent}}" max-h="1100px" hint-size="520px,560px"></dc-import>
+    </figure>
+    <figure style="margin: 0; width: 480px; display: flex; flex-direction: column; gap: 14px">
+      <figcaption style="font-size: 15px; font-weight: 800; color: #A9AEBE">Connect Discord · Settings, linked apps</figcaption>
+      <dc-import name="Modal" modal="{{m.connect}}" layout="dialog" theme="dark" accent="{{accent}}" max-h="1100px" hint-size="480px,560px"></dc-import>
+    </figure>
+    <figure style="margin: 0; width: 440px; display: flex; flex-direction: column; gap: 14px">
+      <figcaption style="font-size: 15px; font-weight: 800; color: #A9AEBE">Confirm · remove wallet, log out everywhere (light)</figcaption>
+      <dc-import name="Modal" modal="{{m.confirm}}" layout="dialog" theme="light" accent="{{accent}}" max-h="1100px" hint-size="440px,300px"></dc-import>
+    </figure>
+    <figure style="margin: 0; width: 480px; display: flex; flex-direction: column; gap: 14px">
+      <figcaption style="font-size: 15px; font-weight: 800; color: #A9AEBE">Delete account · type to confirm</figcaption>
+      <dc-import name="Modal" modal="{{m.del}}" layout="dialog" theme="dark" accent="{{accent}}" max-h="1100px" hint-size="480px,660px"></dc-import>
+    </figure>
+    <figure style="margin: 0; width: 390px; display: flex; flex-direction: column; gap: 14px">
+      <figcaption style="font-size: 15px; font-weight: 800; color: #A9AEBE">Mobile: same modals open as bottom sheets</figcaption>
+      <dc-import name="Modal" modal="{{m.sheet}}" layout="sheet" theme="dark" accent="{{accent}}" max-h="780px" hint-size="390px,780px"></dc-import>
+    </figure>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"accent":{"editor":"color","default":"#7CD4FF","options":["#7CD4FF","#FFD23F","#6495ED","#B4A5FF","#FF85C8","#FF9152","#FFB547"],"section":"Look"},"$preview":{"width":2400,"height":2900}}'>
+class Component extends DCLogic {
+  renderVals() {
+    const accent = this.props.accent ?? '#7CD4FF';
+    const m = {
+      trade: { kind: 'trade', trade: { coin: '$PEPU2' } },
+      chase: { kind: 'receipts', pattern: 'chase' },
+      calendar: { kind: 'calendar', selected: '2026-10-07' },
+      rule: { kind: 'rule' },
+      checkout: { kind: 'checkout', plan: '90', manual: true },
+      export: { kind: 'export' },
+      edit: { kind: 'editEntry', text: 'Morning was clean. Sold half of $GOBLN at 2x and cut $CHAD fast. After lunch I chased $WIFHAT after a +180% candle at 2x size, then jumped into $PEPU2 four minutes later to win it back. Same thing as Sep 18. Tomorrow: nothing new after 1 PM.' },
+      connect: { kind: 'connect', service: 'discord' },
+      confirm: { kind: 'confirm', title: 'Stop tracking Main?', body: 'Its 142 trades stay in your journal. M8 stops watching for new ones.', confirmLabel: 'Remove', danger: true },
+      del: { kind: 'deleteAccount' },
+      sheet: { kind: 'trade', trade: { coin: '$WIFHAT' } }
+    };
+    return { accent, m };
+  }
+}
+</script>
+</body>
+</html>

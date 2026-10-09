@@ -1,0 +1,516 @@
+{
+  "v": 3,
+  "attachments": {},
+  "boards": {
+    "AccentGrid.dc.html": {
+      "h": 2840,
+      "title": "Citrus night - accent options",
+      "w": 3170,
+      "x": 4650,
+      "y": 6000
+    },
+    "DcAsk.dc.html": {
+      "h": 1303,
+      "radius": 28,
+      "title": "5. Ask anything + chart (/ask)",
+      "w": 390,
+      "x": 2350,
+      "y": 8400
+    },
+    "DcInstall.dc.html": {
+      "h": 1492,
+      "radius": 28,
+      "title": "0. Add the app (Add to My Apps)",
+      "w": 390,
+      "x": 0,
+      "y": 8400
+    },
+    "DcMorning.dc.html": {
+      "h": 848,
+      "radius": 28,
+      "title": "4. Morning brief",
+      "w": 390,
+      "x": 1880,
+      "y": 8400
+    },
+    "DcNudge.dc.html": {
+      "h": 1072,
+      "radius": 28,
+      "title": "2. The nudge -> journal loop",
+      "w": 390,
+      "x": 940,
+      "y": 8400
+    },
+    "DcOnboarding.dc.html": {
+      "h": 1583,
+      "radius": 28,
+      "title": "1. Onboarding (/start)",
+      "w": 390,
+      "x": 470,
+      "y": 8400
+    },
+    "DcRecap.dc.html": {
+      "h": 974,
+      "radius": 28,
+      "title": "6. Sunday recap",
+      "w": 390,
+      "x": 2820,
+      "y": 8400
+    },
+    "DcRepeat.dc.html": {
+      "h": 1052,
+      "radius": 28,
+      "title": "7. Repeat mistake: live callout + nudge",
+      "w": 390,
+      "x": 3290,
+      "y": 8400
+    },
+    "DcRuleAlert.dc.html": {
+      "h": 973,
+      "radius": 28,
+      "title": "3. Live rule alert",
+      "w": 390,
+      "x": 1410,
+      "y": 8400
+    },
+    "Desktop.dc.html": {
+      "expand": "fill",
+      "h": 1840,
+      "title": "Journal - day detail (desktop)",
+      "w": 1440,
+      "x": 470,
+      "y": 0
+    },
+    "JournalShare.dc.html": {
+      "h": 1000,
+      "radius": 28,
+      "title": "Share a day: image card (mobile)",
+      "w": 390,
+      "x": 0,
+      "y": 3120
+    },
+    "JournalShareText.dc.html": {
+      "h": 1000,
+      "radius": 28,
+      "title": "Share a day: copy as text (mobile)",
+      "w": 390,
+      "x": 0,
+      "y": 4220
+    },
+    "Landing.dc.html": {
+      "expand": "fill",
+      "h": 4900,
+      "title": "Landing page (desktop)",
+      "w": 1440,
+      "x": 470,
+      "y": 10600
+    },
+    "LandingA.dc.html": {
+      "expand": "fill",
+      "h": 5281,
+      "title": "Landing v2 - A: The loop, live",
+      "w": 1440,
+      "x": 2380,
+      "y": 10600
+    },
+    "LandingB.dc.html": {
+      "expand": "fill",
+      "h": 4301,
+      "title": "Landing v2 - B: Chat-first",
+      "w": 1440,
+      "x": 4290,
+      "y": 10600
+    },
+    "LandingB2.dc.html": {
+      "expand": "fill",
+      "h": 5900,
+      "is_interactive": true,
+      "title": "Landing v2 - B2: chat-first, refined (press Play)",
+      "w": 1440,
+      "x": 8110,
+      "y": 10600
+    },
+    "LandingB2Mobile.dc.html": {
+      "h": 8000,
+      "is_interactive": true,
+      "radius": 28,
+      "title": "Landing v2 - B2 (mobile)",
+      "w": 390,
+      "x": 9630,
+      "y": 10600
+    },
+    "LandingC.dc.html": {
+      "expand": "fill",
+      "h": 4398,
+      "title": "Landing v2 - C: A trader's week",
+      "w": 1440,
+      "x": 6200,
+      "y": 10600
+    },
+    "LandingMobile.dc.html": {
+      "h": 7940,
+      "radius": 28,
+      "title": "Landing page (mobile)",
+      "w": 390,
+      "x": 0,
+      "y": 10600
+    },
+    "M8Chat.dc.html": {
+      "h": 1080,
+      "radius": 28,
+      "title": "M8 chat: active conversation (mobile)",
+      "w": 390,
+      "x": 5970,
+      "y": 0
+    },
+    "M8ChatFresh.dc.html": {
+      "h": 1080,
+      "radius": 28,
+      "title": "M8 chat: fresh start after a quiet gap (mobile)",
+      "w": 390,
+      "x": 5970,
+      "y": 1180
+    },
+    "M8Drawer.dc.html": {
+      "h": 1480,
+      "title": "M8 drawer over journal (desktop)",
+      "w": 1440,
+      "x": 6440,
+      "y": 0
+    },
+    "M8Expanded.dc.html": {
+      "h": 1080,
+      "title": "M8 expanded (desktop)",
+      "w": 1440,
+      "x": 6440,
+      "y": 1580
+    },
+    "M8History.dc.html": {
+      "h": 1080,
+      "radius": 28,
+      "title": "M8 conversations + search (mobile)",
+      "w": 390,
+      "x": 5970,
+      "y": 2360
+    },
+    "Main.dc.html": {
+      "h": 3020,
+      "radius": 28,
+      "title": "Journal - day detail (mobile)",
+      "w": 390,
+      "x": 0,
+      "y": 0
+    },
+    "Modal.dc.html": {
+      "h": 900,
+      "w": 520,
+      "x": 14940,
+      "y": 0
+    },
+    "ModalBoard.dc.html": {
+      "h": 3000,
+      "is_interactive": true,
+      "title": "Modals: every kind (dialog + one sheet)",
+      "w": 2400,
+      "x": 12460,
+      "y": 0
+    },
+    "ProtoDesktop.dc.html": {
+      "expand": "fill",
+      "h": 960,
+      "is_interactive": true,
+      "title": "Clickable prototype (desktop)",
+      "w": 1440,
+      "x": 8890,
+      "y": 0
+    },
+    "ProtoMobile.dc.html": {
+      "h": 844,
+      "is_interactive": true,
+      "radius": 40,
+      "title": "Clickable prototype (mobile)",
+      "w": 390,
+      "x": 8400,
+      "y": 0
+    },
+    "Settings.dc.html": {
+      "expand": "fill",
+      "h": 2340,
+      "is_interactive": true,
+      "title": "Settings + billing (desktop)",
+      "w": 1440,
+      "x": 4450,
+      "y": 0
+    },
+    "SettingsMobile.dc.html": {
+      "h": 4000,
+      "radius": 28,
+      "title": "Settings + billing (mobile)",
+      "w": 390,
+      "x": 3980,
+      "y": 0
+    },
+    "Skeleton.dc.html": {
+      "h": 844,
+      "radius": 28,
+      "title": "First-load skeleton (mobile journal)",
+      "w": 390,
+      "x": 11970,
+      "y": 0
+    },
+    "StatesBoard.dc.html": {
+      "expand": "fill",
+      "h": 4000,
+      "is_interactive": true,
+      "title": "States and motion (live reference)",
+      "w": 1440,
+      "x": 10430,
+      "y": 0
+    },
+    "Stats.dc.html": {
+      "expand": "fill",
+      "h": 3100,
+      "title": "Stats (desktop)",
+      "w": 1440,
+      "x": 2460,
+      "y": 0
+    },
+    "StatsMobile.dc.html": {
+      "h": 5300,
+      "radius": 28,
+      "title": "Stats (mobile)",
+      "w": 390,
+      "x": 1990,
+      "y": 0
+    },
+    "TgAsk.dc.html": {
+      "h": 1080,
+      "radius": 28,
+      "title": "5. Ask anything + chart",
+      "w": 390,
+      "x": 1880,
+      "y": 6000
+    },
+    "TgMorning.dc.html": {
+      "h": 900,
+      "radius": 28,
+      "title": "4. Morning brief",
+      "w": 390,
+      "x": 1410,
+      "y": 6000
+    },
+    "TgNudge.dc.html": {
+      "h": 1640,
+      "radius": 28,
+      "title": "2. The nudge -> journal loop",
+      "w": 390,
+      "x": 470,
+      "y": 6000
+    },
+    "TgOnboarding.dc.html": {
+      "h": 1780,
+      "radius": 28,
+      "title": "1. Onboarding (/start)",
+      "w": 390,
+      "x": 0,
+      "y": 6000
+    },
+    "TgRecap.dc.html": {
+      "h": 1240,
+      "radius": 28,
+      "title": "6. Sunday recap",
+      "w": 390,
+      "x": 2350,
+      "y": 6000
+    },
+    "TgRepeat.dc.html": {
+      "h": 1180,
+      "radius": 28,
+      "title": "7. Repeat mistake: live callout + nudge",
+      "w": 390,
+      "x": 3220,
+      "y": 6000
+    },
+    "TgRuleAlert.dc.html": {
+      "h": 1060,
+      "radius": 28,
+      "title": "3. Live rule alert",
+      "w": 390,
+      "x": 940,
+      "y": 6000
+    },
+    "LandingB3.dc.html": {
+      "expand": "fill",
+      "h": 6481,
+      "title": "Landing v2 - B3: editorial, night paper (Poke-style)",
+      "w": 1440,
+      "x": 10120,
+      "y": 10600
+    },
+    "LandingB3Mobile.dc.html": {
+      "h": 8000,
+      "radius": 28,
+      "title": "Landing v2 - B3 (mobile)",
+      "w": 390,
+      "x": 11660,
+      "y": 10600
+    }
+  },
+  "createdOnFiles": {
+    "at": "2026-10-07T23:30:00Z",
+    "v": 1
+  },
+  "designSystems": [],
+  "launch": {
+    "view": "canvas"
+  },
+  "notes": {
+    "accentTitle": {
+      "kind": "title1",
+      "maxW": 3170,
+      "text": "Citrus night: accent options",
+      "w": 240,
+      "x": 4650,
+      "y": 5589
+    },
+    "dcNote": {
+      "fill": "orange",
+      "maxH": 560,
+      "size": 24,
+      "text": "On Discord we get real UI: embeds (the journal card with your accent stripe), buttons, a voice picker menu, slash commands (/start, /ask, /voice) and replies only you can see. M8 still lives in a DM, and the charts and recap card are the same images as on Telegram. The Phase 0 spike picks the install path: user-installed app or joining the TrenchM8 server.",
+      "w": 340,
+      "x": 3760,
+      "y": 8400
+    },
+    "dcTitle": {
+      "kind": "title1",
+      "maxW": 4100,
+      "text": "Discord: same M8, more UI",
+      "w": 240,
+      "x": 0,
+      "y": 7989
+    },
+    "landingTitle": {
+      "kind": "title1",
+      "maxW": 1910,
+      "text": "Landing page",
+      "w": 240,
+      "x": 0,
+      "y": 10245
+    },
+    "landingV2Title": {
+      "kind": "title1",
+      "maxW": 9670,
+      "text": "Landing v2: pick a direction",
+      "w": 240,
+      "x": 2380,
+      "y": 10245
+    },
+    "modalTitle": {
+      "kind": "title1",
+      "maxW": 2400,
+      "text": "Modals and sheets",
+      "w": 240,
+      "x": 12460,
+      "y": -300
+    },
+    "protoNote": {
+      "fill": "orange",
+      "maxH": 520,
+      "size": 20,
+      "text": "Everything works. Journal: pick any day (calendar, week strip, arrows), open a trade, edit your entry, receipts, Make it a rule, Share (uses that day). Stats: 7D/30D/90D/All, chain filter, tap a calendar day to open it. Settings: pay (checkout), add/remove wallets, rules, memory, linked apps, export, delete account. M8: type or record a voice note. Hover for tooltips. Esc closes, M opens M8.",
+      "w": 390,
+      "x": 8400,
+      "y": 944
+    },
+    "protoTitle": {
+      "kind": "title1",
+      "maxW": 1930,
+      "text": "Clickable prototype: press Play",
+      "w": 240,
+      "x": 8400,
+      "y": -300
+    },
+    "statesTitle": {
+      "kind": "title1",
+      "maxW": 1930,
+      "text": "States and motion",
+      "w": 240,
+      "x": 10430,
+      "y": -300
+    },
+    "tgNote": {
+      "fill": "orange",
+      "maxH": 420,
+      "size": 24,
+      "text": "Inside Telegram we don't control bubbles, colors or fonts (each user's Telegram theme does). What we design: M8's words, the inline buttons under messages, and the images M8 sends (charts, recap cards). So chat chrome here is neutral; the brand lives in the avatar and the images.",
+      "w": 340,
+      "x": 2820,
+      "y": 6000
+    },
+    "tgTitle": {
+      "kind": "title1",
+      "maxW": 3610,
+      "text": "Telegram: where M8 lives",
+      "w": 240,
+      "x": 0,
+      "y": 5589
+    },
+    "webTitle": {
+      "kind": "title1",
+      "maxW": 7910,
+      "text": "Web: journal, stats, settings, M8 chat",
+      "w": 240,
+      "x": 0,
+      "y": -300
+    }
+  },
+  "order": [
+    "ProtoMobile.dc.html",
+    "ProtoDesktop.dc.html",
+    "Skeleton.dc.html",
+    "StatesBoard.dc.html",
+    "ModalBoard.dc.html",
+    "Main.dc.html",
+    "Desktop.dc.html",
+    "JournalShare.dc.html",
+    "JournalShareText.dc.html",
+    "StatsMobile.dc.html",
+    "Stats.dc.html",
+    "SettingsMobile.dc.html",
+    "Settings.dc.html",
+    "TgOnboarding.dc.html",
+    "TgNudge.dc.html",
+    "TgRuleAlert.dc.html",
+    "TgMorning.dc.html",
+    "TgAsk.dc.html",
+    "TgRecap.dc.html",
+    "TgRepeat.dc.html",
+    "DcInstall.dc.html",
+    "DcOnboarding.dc.html",
+    "DcNudge.dc.html",
+    "DcRuleAlert.dc.html",
+    "DcMorning.dc.html",
+    "DcAsk.dc.html",
+    "DcRecap.dc.html",
+    "DcRepeat.dc.html",
+    "LandingMobile.dc.html",
+    "Landing.dc.html",
+    "LandingA.dc.html",
+    "LandingB.dc.html",
+    "LandingC.dc.html",
+    "LandingB2.dc.html",
+    "LandingB2Mobile.dc.html",
+    "LandingB3.dc.html",
+    "LandingB3Mobile.dc.html",
+    "AccentGrid.dc.html",
+    "M8Chat.dc.html",
+    "M8Drawer.dc.html",
+    "M8ChatFresh.dc.html",
+    "M8History.dc.html",
+    "M8Expanded.dc.html",
+    "Modal.dc.html"
+  ],
+  "pages": [],
+  "title": "TrenchM8 Journal Day"
+}

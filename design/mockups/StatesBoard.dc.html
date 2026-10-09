@@ -1,0 +1,683 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>TrenchM8 - States and motion</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="anonymous">
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0}
+/* TrenchM8 motion: 120-150ms press/hover, 250-350ms UI, 600-900ms load-in. Ease-out. Fades only when reduced motion is on. */
+@keyframes tm-in{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+@keyframes tm-fade{from{opacity:0}to{opacity:1}}
+@keyframes tm-draw{to{stroke-dashoffset:0}}
+@keyframes tm-shimmer{0%{background-position:-400px 0}100%{background-position:400px 0}}
+@keyframes tm-dot{0%,80%,100%{opacity:.3;transform:translateY(0)}40%{opacity:1;transform:translateY(-3px)}}
+@keyframes tm-toast{from{opacity:0;transform:translateY(12px) scale(.98)}to{opacity:1;transform:none}}
+@keyframes tm-pop{0%{opacity:0;transform:scale(.6)}60%{opacity:1;transform:scale(1.08)}100%{transform:scale(1)}}
+@keyframes tm-spin{to{transform:rotate(360deg)}}
+@keyframes tm-pulse{0%{box-shadow:0 0 0 0 var(--tm-pulse,rgba(63,217,142,.45))}100%{box-shadow:0 0 0 10px rgba(0,0,0,0)}}
+@keyframes tm-fill{from{width:0}to{width:100%}}
+@keyframes tm-out{from{opacity:1}to{opacity:0}}
+@keyframes tm-flash{0%{background-color:var(--tm-flash,rgba(124,212,255,.22))}100%{background-color:transparent}}
+.tm-press{transition:transform .12s ease,filter .15s ease,background-color .15s ease,opacity .15s ease}
+.tm-press:hover{filter:brightness(1.12)}
+.tm-press:active{transform:scale(.97)}
+.tm-press:focus-visible,.tm-hover:focus-visible{outline:2px solid var(--tm-focus,#7CD4FF);outline-offset:2px}
+.tm-hover{transition:filter .15s ease,transform .15s ease}
+.tm-hover:hover{filter:brightness(1.18)}
+.tm-in{animation:tm-in .35s cubic-bezier(.2,.8,.2,1) both}
+.tm-fade{animation:tm-fade .6s ease both;animation-delay:var(--tm-d,0s)}
+.tm-draw{stroke-dasharray:1;stroke-dashoffset:1;animation:tm-draw .9s cubic-bezier(.2,.8,.2,1) calc(var(--tm-d,0s) + .15s) forwards}
+.tm-skel{background:linear-gradient(90deg,var(--sk1) 0%,var(--sk2) 50%,var(--sk1) 100%);background-size:800px 100%;animation:tm-shimmer 1.2s linear infinite}
+.tm-dot{display:inline-block;width:6px;height:6px;border-radius:3px;background:currentColor;animation:tm-dot 1.2s ease-in-out infinite}
+.tm-toast{animation:tm-toast .25s cubic-bezier(.2,.8,.2,1) both}
+.tm-pop{animation:tm-pop .45s cubic-bezier(.2,.8,.2,1) both}
+.tm-spin{animation:tm-spin .8s linear infinite}
+.tm-pulse{animation:tm-pulse 1.6s ease-out infinite}
+.tm-flash{animation:tm-flash 1.6s ease-out both}
+.tm-out{animation:tm-out .22s ease both;pointer-events:none}
+@media (prefers-reduced-motion:reduce){.tm-in,.tm-toast,.tm-pop{animation:tm-fade .2s ease both}.tm-draw{animation:none;stroke-dasharray:none;stroke-dashoffset:0}.tm-skel,.tm-dot,.tm-pulse,.tm-spin{animation:none}.tm-press:active{transform:none}}
+.sb-card{transition:filter .15s ease}
+.sb-row{transition:background-color .15s ease}
+.sb-row:hover{background-color:var(--sb-hover)}
+.sb-input:focus{border-color:var(--sb-accent)!important}
+/* Tooltips: data-tip="text" (+ data-tip-pos="bottom|left|right", data-tip-wrap for long text). Desktop hover/keyboard only. */
+[data-tip]{position:relative}
+[data-tip]::after{content:attr(data-tip);position:absolute;left:50%;bottom:calc(100% + 8px);transform:translate(-50%,4px);padding:6px 10px;border-radius:10px;background:var(--tm-tip-bg,#F3F4F7);color:var(--tm-tip-fg,#12131A);font:600 12px/1.35 Manrope,system-ui,sans-serif;letter-spacing:0;text-transform:none;text-align:left;white-space:nowrap;pointer-events:none;opacity:0;visibility:hidden;transition:opacity .12s ease,transform .12s ease,visibility 0s linear .12s;z-index:80;box-shadow:0 8px 24px rgba(0,0,0,.28)}
+[data-tip]:hover::after,[data-tip]:focus-visible::after{opacity:1;visibility:visible;transform:translate(-50%,0);transition:opacity .12s ease .35s,transform .12s ease .35s,visibility 0s linear .35s}
+[data-tip-pos=bottom]::after{bottom:auto;top:calc(100% + 8px);transform:translate(-50%,-4px)}
+[data-tip-pos=left]::after{left:auto;right:calc(100% + 8px);bottom:50%;transform:translate(4px,50%)}
+[data-tip-pos=left]:hover::after,[data-tip-pos=left]:focus-visible::after{transform:translate(0,50%)}
+[data-tip-pos=right]::after{left:calc(100% + 8px);bottom:50%;transform:translate(-4px,50%)}
+[data-tip-pos=right]:hover::after,[data-tip-pos=right]:focus-visible::after{transform:translate(0,50%)}
+[data-tip-wrap]::after{white-space:normal;width:max-content;max-width:240px}
+@media (hover:none){[data-tip]::after{display:none}}
+[data-tip=""]::after{display:none}
+/* Clickable rows (no inline background on the row itself) and clickable cards */
+.tm-row{transition:background-color .15s ease;cursor:pointer}
+.tm-row:hover{background-color:var(--tm-row-hover,rgba(255,255,255,.045))}
+.tm-row:active{background-color:var(--tm-row-press,rgba(255,255,255,.08))}
+.tm-lift{transition:filter .15s ease,box-shadow .15s ease;cursor:pointer}
+.tm-lift:hover{filter:brightness(1.07)}
+.tm-press[aria-disabled=true],.tm-press:disabled{opacity:.45;cursor:not-allowed;filter:none}
+.tm-press[aria-disabled=true]:active,.tm-press:disabled:active{transform:none}
+@keyframes tm-shake{0%,100%{transform:none}20%,60%{transform:translateX(-4px)}40%,80%{transform:translateX(4px)}}
+.tm-shake{animation:tm-shake .3s ease}
+@keyframes tm-sheet{from{transform:translateY(24px);opacity:0}to{transform:none;opacity:1}}
+@keyframes tm-dialog{from{transform:translateY(8px) scale(.98);opacity:0}to{transform:none;opacity:1}}
+@keyframes tm-drawer{from{transform:translateX(32px);opacity:0}to{transform:none;opacity:1}}
+.tm-sheet{animation:tm-sheet .3s cubic-bezier(.2,.8,.2,1) both}
+.tm-dialog{animation:tm-dialog .22s cubic-bezier(.2,.8,.2,1) both}
+.tm-drawer{animation:tm-drawer .28s cubic-bezier(.2,.8,.2,1) both}
+@keyframes tm-wave{0%,100%{transform:scaleY(.35)}50%{transform:scaleY(1)}}
+.tm-wave{animation:tm-wave .9s ease-in-out infinite;transform-origin:center}
+@media (prefers-reduced-motion:reduce){.tm-sheet,.tm-dialog,.tm-drawer{animation:tm-fade .2s ease both}.tm-shake,.tm-wave{animation:none}}
+</style>
+</helmet>
+<div style="--sk1: {{c.sk1}}; --sk2: {{c.sk2}}; --sb-hover: {{c.surface2}}; --sb-accent: {{tkn.ink}}; --tm-focus: {{tkn.ink}}; --tm-flash: {{tkn.flash}}; width: 100%; min-height: 100%; box-sizing: border-box; padding: 48px 56px 64px 56px; background: {{c.bg}}; color: {{c.text}}; font-family: Manrope, system-ui, sans-serif; font-variant-numeric: tabular-nums; -webkit-font-smoothing: antialiased">
+
+  <!-- Header -->
+  <header style="display: flex; align-items: flex-end; gap: 24px; margin-bottom: 28px">
+    <div style="flex-grow: 1; display: flex; flex-direction: column; gap: 8px">
+      <span style="font-size: 13px; font-weight: 800; color: {{tkn.ink}}">TrenchM8 · design reference</span>
+      <h1 style="margin: 0; font-size: 40px; line-height: 1.1; font-weight: 800; letter-spacing: -0.02em">States and motion</h1>
+      <p style="margin: 0; max-width: 760px; font-size: 16px; line-height: 1.55; font-weight: 500; color: {{c.text2}}">How the app answers every tap, so you never wonder if it heard you. Everything on this board is live: click, hover and tab through it.</p>
+    </div>
+    <div role="radiogroup" aria-label="Theme" style="display: flex; padding: 4px; border-radius: 999px; background: {{c.surface}}; border: 1px solid {{c.line}}">
+      <button class="tm-press" role="radio" aria-checked="{{th.darkOn}}" onClick="{{th.dark}}" style="height: 36px; padding: 0 16px; border: none; border-radius: 999px; background: {{th.darkBg}}; color: {{th.darkFg}}; font-family: inherit; font-size: 13px; font-weight: 800; cursor: pointer">Dark</button>
+      <button class="tm-press" role="radio" aria-checked="{{th.lightOn}}" onClick="{{th.light}}" style="height: 36px; padding: 0 16px; border: none; border-radius: 999px; background: {{th.lightBg}}; color: {{th.lightFg}}; font-family: inherit; font-size: 13px; font-weight: 800; cursor: pointer">Light</button>
+    </div>
+  </header>
+
+  <!-- Rules -->
+  <section aria-label="Motion rules" style="display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 12px; margin-bottom: 40px">
+    <sc-for list="{{rules}}" as="r" hint-placeholder-count="5">
+      <div style="display: flex; flex-direction: column; gap: 6px; padding: 16px 18px; border-radius: 20px; background: {{c.surface}}">
+        <span style="font-size: 12px; font-weight: 800; color: {{c.text3}}">{{r.k}}</span>
+        <span style="font-size: 18px; font-weight: 800">{{r.v}}</span>
+        <span style="font-size: 13px; line-height: 1.45; font-weight: 600; color: {{c.text2}}">{{r.d}}</span>
+      </div>
+    </sc-for>
+  </section>
+
+  <div style="display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 20px; align-items: stretch">
+
+    <!-- ============ 1. Loading ============ -->
+    <h2 style="grid-column: 1 / -1; margin: 0; font-size: 22px; font-weight: 800">1 · Loading <span style="font-size: 14px; font-weight: 600; color: {{c.text3}}">Show the shape, the step, or the progress. Never a bare spinner on a page.</span></h2>
+
+    <div class="sb-card" style="display: flex; flex-direction: column; gap: 14px; padding: 24px; border-radius: 24px; background: {{c.surface}}">
+      <span style="font-size: 15px; font-weight: 800">Skeleton on first load</span>
+      <span style="font-size: 13px; line-height: 1.5; font-weight: 600; color: {{c.text2}}">Same layout as the real page, so nothing jumps. Shown only on a first visit; after that the page is cached.</span>
+      <div aria-hidden="true" style="display: flex; flex-direction: column; gap: 10px; padding: 16px; border-radius: 18px; background: {{c.bg}}">
+        <div class="tm-skel" style="width: 90px; height: 12px; border-radius: 6px"></div>
+        <div class="tm-skel" style="width: 180px; height: 40px; border-radius: 10px"></div>
+        <div class="tm-skel" style="width: 100%; height: 72px; border-radius: 14px"></div>
+        <div style="display: flex; gap: 8px"><div class="tm-skel" style="flex: 1; height: 44px; border-radius: 14px"></div><div class="tm-skel" style="flex: 1; height: 44px; border-radius: 14px"></div><div class="tm-skel" style="flex: 1; height: 44px; border-radius: 14px"></div></div>
+      </div>
+    </div>
+
+    <div class="sb-card" style="display: flex; flex-direction: column; gap: 14px; padding: 24px; border-radius: 24px; background: {{c.surface}}">
+      <span style="font-size: 15px; font-weight: 800">Buttons that wait</span>
+      <span style="font-size: 13px; line-height: 1.5; font-weight: 600; color: {{c.text2}}">The button keeps its size, says what it is doing, and locks so it can't be pressed twice. Then it confirms.</span>
+      <label style="display: flex; flex-direction: column; gap: 6px; font-size: 12px; font-weight: 800; color: {{c.text3}}">
+        Wallet address
+        <input class="sb-input" value="7xKXtg2CW87d97TXJSDpbD5jBkheTqA83TZRuJosgAsU" readonly style="height: 44px; padding: 0 14px; border-radius: 14px; border: 1px solid {{c.line}}; background: {{c.bg}}; color: {{c.text}}; font-family: inherit; font-size: 13px; font-weight: 600; outline: none">
+      </label>
+      <button class="tm-press" onClick="{{wallet.click}}" aria-busy="{{wallet.busy}}" style="height: 48px; border: none; border-radius: 999px; background: {{wallet.bg}}; color: {{wallet.fg}}; display: flex; align-items: center; justify-content: center; gap: 8px; font-family: inherit; font-size: 15px; font-weight: 800; cursor: pointer">
+        <sc-if value="{{wallet.spin}}" hint-placeholder-val="{{ false }}"><span class="tm-spin" aria-hidden="true" style="width: 16px; height: 16px; border-radius: 8px; border: 2px solid rgba(21,20,14,0.25); border-top-color: #15140E"></span></sc-if>
+        <sc-if value="{{wallet.ok}}" hint-placeholder-val="{{ false }}"><svg class="tm-pop" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5"></path></svg></sc-if>
+        {{wallet.label}}
+      </button>
+    </div>
+
+    <div class="sb-card" style="display: flex; flex-direction: column; gap: 14px; padding: 24px; border-radius: 24px; background: {{c.surface}}">
+      <span style="font-size: 15px; font-weight: 800">M8 is thinking</span>
+      <span style="font-size: 13px; line-height: 1.5; font-weight: 600; color: {{c.text2}}">Name the tool that's running. Answers stream in word by word once the numbers are back.</span>
+      <div aria-live="polite" style="min-height: 112px; display: flex; flex-direction: column; gap: 10px; padding: 14px 16px; border-radius: 18px; background: {{c.bg}}">
+        <div style="align-self: flex-end; padding: 9px 13px; border-radius: 18px 18px 6px 18px; background: {{c.surface2}}; font-size: 13px; font-weight: 600">why do older coins keep costing me?</div>
+        <sc-if value="{{think.on}}" hint-placeholder-val="{{ true }}">
+          <div class="tm-in" style="display: flex; align-items: center; gap: 10px; height: 24px; color: {{c.text3}}">
+            <span aria-hidden="true" style="display: flex; gap: 4px; color: {{tkn.ink}}"><span class="tm-dot"></span><span class="tm-dot" style="animation-delay: .15s"></span><span class="tm-dot" style="animation-delay: .3s"></span></span>
+            <span style="font-size: 13px; font-weight: 700">{{think.step}}</span>
+          </div>
+        </sc-if>
+        <sc-if value="{{think.done}}" hint-placeholder-val="{{ false }}">
+          <p class="tm-in" style="margin: 0; font-size: 14px; line-height: 1.5; font-weight: 500">{{think.text}}</p>
+        </sc-if>
+      </div>
+      <button class="tm-press" onClick="{{think.run}}" style="align-self: flex-start; height: 36px; padding: 0 14px; border: 1px solid {{c.line}}; border-radius: 999px; background: transparent; color: {{c.text}}; font-family: inherit; font-size: 13px; font-weight: 800; cursor: pointer">Replay</button>
+    </div>
+
+    <div class="sb-card" style="grid-column: span 3; display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.4fr); gap: 32px; align-items: center; padding: 22px 26px; border-radius: 24px; background: {{c.surface}}">
+      <div style="display: flex; flex-direction: column; gap: 8px">
+        <span style="font-size: 15px; font-weight: 800">Wallet import (backfill)</span>
+        <span style="font-size: 13px; line-height: 1.5; font-weight: 600; color: {{c.text2}}">The one long wait. Real counts, a step name, and permission to leave: M8 messages you when it's done.</span>
+        <button class="tm-press" onClick="{{imp.run}}" style="align-self: flex-start; margin-top: 6px; height: 36px; padding: 0 14px; border: 1px solid {{c.line}}; border-radius: 999px; background: transparent; color: {{c.text}}; font-family: inherit; font-size: 13px; font-weight: 800; cursor: pointer">{{imp.btn}}</button>
+      </div>
+      <div role="progressbar" aria-valuemin="0" aria-valuemax="142" aria-valuenow="{{imp.n}}" aria-label="Importing trades" style="display: flex; flex-direction: column; gap: 10px; padding: 18px 20px; border-radius: 18px; background: {{c.bg}}">
+        <div style="display: flex; align-items: baseline; gap: 10px">
+          <span style="flex-grow: 1; font-size: 15px; font-weight: 800">{{imp.title}}</span>
+          <span style="font-size: 13px; font-weight: 800; color: {{c.text2}}">{{imp.count}}</span>
+        </div>
+        <div style="height: 8px; border-radius: 4px; background: {{c.surface2}}; overflow: hidden"><div style="height: 100%; width: {{imp.pct}}; border-radius: 4px; background: {{imp.color}}; transition: width .3s ease"></div></div>
+        <span style="font-size: 13px; font-weight: 600; color: {{c.text3}}">{{imp.sub}}</span>
+      </div>
+    </div>
+
+    <!-- ============ 2. Load-in ============ -->
+    <h2 style="grid-column: 1 / -1; margin: 24px 0 0 0; font-size: 22px; font-weight: 800">2 · Load-in <span style="font-size: 14px; font-weight: 600; color: {{c.text3}}">Content arrives, it doesn't pop. Once per visit, never on every re-render.</span></h2>
+
+    <div class="sb-card" style="grid-column: span 2; display: flex; flex-direction: column; gap: 14px; padding: 24px; border-radius: 24px; background: {{c.surface}}">
+      <div style="display: flex; align-items: center; gap: 12px">
+        <span style="flex-grow: 1; font-size: 15px; font-weight: 800">Hero number counts up, the line draws, cards rise 8px</span>
+        <button class="tm-press" onClick="{{replayIn}}" style="height: 36px; padding: 0 14px; border: 1px solid {{c.line}}; border-radius: 999px; background: transparent; color: {{c.text}}; font-family: inherit; font-size: 13px; font-weight: 800; cursor: pointer">Replay</button>
+      </div>
+      <sc-if value="{{inOn}}" hint-placeholder-val="{{ true }}">
+        <div style="display: grid; grid-template-columns: minmax(0, 1.3fr) minmax(0, 1fr); gap: 16px; padding: 18px; border-radius: 18px; background: {{c.bg}}">
+          <div class="tm-in" style="display: flex; flex-direction: column; gap: 10px">
+            <span style="font-size: 13px; font-weight: 700; color: {{c.text3}}">Wed, Oct 7</span>
+            <span style="font-size: 48px; line-height: 1; font-weight: 800; letter-spacing: -0.03em; color: {{c.gain}}">{{heroVal}}</span>
+            <svg viewBox="0 0 300 80" width="100%" height="80" preserveAspectRatio="none" aria-hidden="true">
+              <polygon class="tm-fade" points="0,70 40,62 80,66 120,40 160,46 200,22 240,30 300,12 300,80 0,80" fill="{{c.gainSoft}}"></polygon>
+              <polyline class="tm-draw" pathLength="1" points="0,70 40,62 80,66 120,40 160,46 200,22 240,30 300,12" fill="none" stroke="{{c.gain}}" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round" vector-effect="non-scaling-stroke"></polyline>
+            </svg>
+          </div>
+          <div style="display: flex; flex-direction: column; gap: 10px">
+            <sc-for list="{{stagger}}" as="s" hint-placeholder-count="3">
+              <div class="tm-in" style="animation-delay: {{s.delay}}; display: flex; align-items: center; gap: 10px; padding: 12px 14px; border-radius: 16px; background: {{c.surface}}">
+                <span style="flex-grow: 1; font-size: 13px; font-weight: 700; color: {{c.text2}}">{{s.k}}</span>
+                <span style="font-size: 15px; font-weight: 800">{{s.v}}</span>
+              </div>
+            </sc-for>
+          </div>
+        </div>
+      </sc-if>
+    </div>
+
+    <div class="sb-card" style="display: flex; flex-direction: column; gap: 12px; padding: 24px; border-radius: 24px; background: {{c.surface}}">
+      <span style="font-size: 15px; font-weight: 800">Sheets, drawers, dialogs</span>
+      <sc-for list="{{surfaces}}" as="s" hint-placeholder-count="4">
+        <div style="display: flex; gap: 12px; padding: 10px 0; border-top: 1px solid {{c.line}}">
+          <span style="width: 92px; flex-shrink: 0; font-size: 13px; font-weight: 800">{{s.k}}</span>
+          <span style="font-size: 13px; line-height: 1.5; font-weight: 600; color: {{c.text2}}">{{s.v}}</span>
+        </div>
+      </sc-for>
+    </div>
+
+    <!-- ============ 3. Hover and press ============ -->
+    <h2 style="grid-column: 1 / -1; margin: 24px 0 0 0; font-size: 22px; font-weight: 800">3 · Hover, press, focus <span style="font-size: 14px; font-weight: 600; color: {{c.text3}}">Hover brightens. Press shrinks to 97%. Keyboard focus always shows a ring.</span></h2>
+
+    <div class="sb-card" style="grid-column: span 2; display: flex; flex-direction: column; gap: 16px; padding: 24px; border-radius: 24px; background: {{c.surface}}">
+      <span style="font-size: 15px; font-weight: 800">Buttons <span style="font-weight: 600; color: {{c.text3}}">· hover, hold, then press Tab</span></span>
+      <div style="display: flex; flex-wrap: wrap; align-items: center; gap: 12px">
+        <button class="tm-press" style="height: 48px; padding: 0 22px; border: none; border-radius: 999px; background: {{accent}}; color: #15140E; font-family: inherit; font-size: 15px; font-weight: 800; cursor: pointer">Make it a rule</button>
+        <button class="tm-press" style="height: 48px; padding: 0 22px; border: 1px solid {{c.line}}; border-radius: 999px; background: transparent; color: {{c.text}}; font-family: inherit; font-size: 15px; font-weight: 800; cursor: pointer">Not now</button>
+        <button class="tm-press" style="height: 48px; padding: 0 22px; border: none; border-radius: 999px; background: {{c.surface2}}; color: {{c.text}}; font-family: inherit; font-size: 15px; font-weight: 800; cursor: pointer">Ask M8</button>
+        <button class="tm-press" aria-label="Record a voice note" style="width: 48px; height: 48px; border: none; border-radius: 24px; background: {{c.surface2}}; color: {{c.text}}; display: flex; align-items: center; justify-content: center; cursor: pointer"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="3" width="6" height="11" rx="3"></rect><path d="M5 11a7 7 0 0 0 14 0"></path><path d="M12 18v3"></path></svg></button>
+        <a class="tm-hover" href="#receipts" onClick="{{noop}}" style="font-size: 15px; font-weight: 800; color: {{c.loss}}">3rd chase this week</a>
+        <button class="tm-press" disabled style="height: 48px; padding: 0 22px; border: none; border-radius: 999px; background: {{c.surface2}}; color: {{c.text3}}; font-family: inherit; font-size: 15px; font-weight: 800; cursor: not-allowed; opacity: 0.6">Disabled</button>
+      </div>
+      <span style="font-size: 13px; line-height: 1.5; font-weight: 600; color: {{c.text2}}">Touch screens get the press state only. Disabled buttons say why in a hint under them, never just grey out.</span>
+    </div>
+
+    <div class="sb-card" style="display: flex; flex-direction: column; gap: 6px; padding: 24px; border-radius: 24px; background: {{c.surface}}">
+      <span style="font-size: 15px; font-weight: 800; margin-bottom: 8px">Rows and cards</span>
+      <sc-for list="{{rows}}" as="r" hint-placeholder-count="3">
+        <a class="sb-row" href="#trade" onClick="{{noop}}" style="display: flex; align-items: center; gap: 12px; padding: 10px 12px; margin: 0 -12px; border-radius: 14px; color: inherit; text-decoration: none">
+          <span style="width: 36px; height: 36px; border-radius: 18px; background: {{c.surface2}}; display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 800">{{r.i}}</span>
+          <span style="flex-grow: 1; font-size: 14px; font-weight: 800">{{r.t}}</span>
+          <span style="font-size: 14px; font-weight: 800; color: {{r.color}}">{{r.v}}</span>
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="{{c.text3}}" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 18l6-6-6-6"></path></svg>
+        </a>
+      </sc-for>
+    </div>
+
+    <!-- ============ 4. Toasts ============ -->
+    <h2 style="grid-column: 1 / -1; margin: 24px 0 0 0; font-size: 22px; font-weight: 800">4 · Toasts <span style="font-size: 14px; font-weight: 600; color: {{c.text3}}">Confirm what happened, offer Undo. Bottom of the screen, one at a time, gone in 3 to 5 seconds.</span></h2>
+
+    <div class="sb-card" style="grid-column: span 2; display: flex; flex-direction: column; gap: 12px; padding: 24px; border-radius: 24px; background: {{c.surface}}">
+      <span style="font-size: 15px; font-weight: 800">Every kind</span>
+      <sc-for list="{{toastKinds}}" as="t" hint-placeholder-count="5">
+        <div style="display: flex; align-items: center; gap: 16px">
+          <div style="width: 440px; flex-shrink: 0; display: flex; align-items: center; gap: 10px; min-height: 48px; box-sizing: border-box; padding: 8px {{t.padR}} 8px 12px; border-radius: 18px; background: {{tc.bg}}; color: {{tc.fg}}; font-size: 14px; line-height: 1.35; font-weight: 700">
+            <span style="width: 24px; height: 24px; flex-shrink: 0; border-radius: 12px; background: {{t.iconBg}}; color: {{t.iconFg}}; display: flex; align-items: center; justify-content: center; font-size: 13px; font-weight: 800">{{t.glyph}}</span>
+            <span style="flex-grow: 1; padding: 4px 0">{{t.text}}</span>
+            <sc-if value="{{t.hasAction}}" hint-placeholder-val="{{ true }}">
+              <span style="height: 32px; padding: 0 14px; border-radius: 999px; background: {{tc.btn}}; display: flex; align-items: center; font-size: 13px; font-weight: 800">{{t.action}}</span>
+            </sc-if>
+          </div>
+          <span style="font-size: 13px; line-height: 1.45; font-weight: 600; color: {{c.text2}}">{{t.when}}</span>
+        </div>
+      </sc-for>
+    </div>
+
+    <div class="sb-card" style="display: flex; flex-direction: column; gap: 12px; padding: 24px; border-radius: 24px; background: {{c.surface}}">
+      <span style="font-size: 15px; font-weight: 800">Try it</span>
+      <div style="display: flex; flex-wrap: wrap; gap: 8px">
+        <sc-for list="{{toastTriggers}}" as="b" hint-placeholder-count="4">
+          <button class="tm-press" onClick="{{b.fire}}" style="height: 36px; padding: 0 14px; border: 1px solid {{c.line}}; border-radius: 999px; background: transparent; color: {{c.text}}; font-family: inherit; font-size: 13px; font-weight: 800; cursor: pointer">{{b.label}}</button>
+        </sc-for>
+      </div>
+      <div style="position: relative; height: 236px; border-radius: 20px; background: {{c.bg}}; overflow: hidden">
+        <div aria-hidden="true" style="position: absolute; left: 14px; right: 14px; top: 14px; display: flex; flex-direction: column; gap: 8px">
+          <div style="height: 14px; width: 40%; border-radius: 7px; background: {{c.surface}}"></div>
+          <div style="height: 64px; border-radius: 14px; background: {{c.surface}}"></div>
+          <div style="height: 40px; border-radius: 14px; background: {{c.surface}}"></div>
+        </div>
+        <span aria-hidden="true" style="position: absolute; left: 0; right: 0; top: 136px; text-align: center; font-size: 12px; font-weight: 700; color: {{c.text3}}">Toasts land here</span>
+        <div role="status" aria-live="polite" style="position: absolute; left: 12px; right: 12px; bottom: 12px">
+          <sc-if value="{{live.show}}" hint-placeholder-val="{{ false }}">
+            <div class="tm-toast" style="display: flex; align-items: center; gap: 10px; min-height: 48px; box-sizing: border-box; padding: 8px {{live.padR}} 8px 12px; border-radius: 18px; background: {{tc.bg}}; color: {{tc.fg}}; box-shadow: 0 16px 40px rgba(0,0,0,0.35); font-size: 13px; line-height: 1.35; font-weight: 700">
+              <span style="width: 24px; height: 24px; flex-shrink: 0; border-radius: 12px; background: {{live.iconBg}}; color: {{live.iconFg}}; display: flex; align-items: center; justify-content: center; font-size: 13px; font-weight: 800">{{live.glyph}}</span>
+              <span style="flex-grow: 1; padding: 4px 0">{{live.text}}</span>
+              <sc-if value="{{live.hasAction}}" hint-placeholder-val="{{ false }}">
+                <button class="tm-press" onClick="{{live.act}}" style="height: 32px; flex-shrink: 0; padding: 0 12px; border: none; border-radius: 999px; background: {{tc.btn}}; color: {{tc.fg}}; font-family: inherit; font-size: 13px; font-weight: 800; cursor: pointer">{{live.action}}</button>
+              </sc-if>
+            </div>
+          </sc-if>
+        </div>
+      </div>
+    </div>
+
+    <!-- ============ 5. Success ============ -->
+    <h2 style="grid-column: 1 / -1; margin: 24px 0 0 0; font-size: 22px; font-weight: 800">5 · Success moments <span style="font-size: 14px; font-weight: 600; color: {{c.text3}}">Celebrate the process: rules made and kept, a paid plan. Never a green day.</span></h2>
+
+    <div class="sb-card" style="display: flex; flex-direction: column; gap: 14px; padding: 24px; border-radius: 24px; background: {{c.surface}}">
+      <span style="font-size: 15px; font-weight: 800">Rule created</span>
+      <div style="min-height: 120px; display: flex; flex-direction: column; justify-content: center; gap: 12px; padding: 16px; border-radius: 18px; background: {{c.bg}}">
+        <span style="font-size: 14px; line-height: 1.5; font-weight: 500">Want a 20 minute cooldown after any red trade?</span>
+        <sc-if value="{{rule.ask}}" hint-placeholder-val="{{ true }}">
+          <div style="display: flex; gap: 8px">
+            <button class="tm-press" onClick="{{rule.yes}}" style="height: 40px; padding: 0 16px; border: none; border-radius: 999px; background: {{accent}}; color: #15140E; font-family: inherit; font-size: 14px; font-weight: 800; cursor: pointer">Make it a rule</button>
+            <button class="tm-press" style="height: 40px; padding: 0 16px; border: 1px solid {{c.line}}; border-radius: 999px; background: transparent; color: {{c.text2}}; font-family: inherit; font-size: 14px; font-weight: 800; cursor: pointer">Not now</button>
+          </div>
+        </sc-if>
+        <sc-if value="{{rule.on}}" hint-placeholder-val="{{ false }}">
+          <div class="tm-in" style="align-self: flex-start; display: flex; align-items: center; gap: 10px; padding: 8px 14px 8px 8px; border-radius: 999px; background: {{c.surface}}; border: 1px solid {{c.line}}">
+            <span class="tm-pop" style="width: 26px; height: 26px; border-radius: 13px; background: {{accent}}; color: #15140E; display: flex; align-items: center; justify-content: center"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5"></path></svg></span>
+            <span style="font-size: 13px; font-weight: 800">Rule on: 20 min cooldown after a red trade</span>
+          </div>
+        </sc-if>
+      </div>
+      <button class="tm-press" onClick="{{rule.reset}}" style="align-self: flex-start; height: 32px; padding: 0 12px; border: none; border-radius: 999px; background: transparent; color: {{c.text3}}; font-family: inherit; font-size: 12px; font-weight: 800; cursor: pointer">Reset</button>
+    </div>
+
+    <div class="sb-card" style="display: flex; flex-direction: column; gap: 14px; padding: 24px; border-radius: 24px; background: {{c.surface}}">
+      <span style="font-size: 15px; font-weight: 800">Payment confirmed</span>
+      <div aria-live="polite" style="min-height: 120px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 10px; padding: 16px; border-radius: 18px; background: {{c.bg}}; text-align: center">
+        <sc-if value="{{pay.idle}}" hint-placeholder-val="{{ true }}">
+          <button class="tm-press" onClick="{{pay.run}}" style="height: 44px; padding: 0 20px; border: none; border-radius: 999px; background: {{accent}}; color: #15140E; font-family: inherit; font-size: 14px; font-weight: 800; cursor: pointer">Pay $50 in USDC</button>
+        </sc-if>
+        <sc-if value="{{pay.waiting}}" hint-placeholder-val="{{ false }}">
+          <span class="tm-spin" aria-hidden="true" style="width: 26px; height: 26px; border-radius: 13px; border: 3px solid {{c.surface2}}; border-top-color: {{tkn.ink}}"></span>
+          <span style="font-size: 14px; font-weight: 800">Waiting for your payment on Solana…</span>
+          <span style="font-size: 12px; font-weight: 600; color: {{c.text3}}">Usually under 30 seconds. You can close this tab.</span>
+        </sc-if>
+        <sc-if value="{{pay.done}}" hint-placeholder-val="{{ false }}">
+          <span class="tm-pop" style="width: 44px; height: 44px; border-radius: 22px; background: {{accent}}; color: #15140E; display: flex; align-items: center; justify-content: center"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5"></path></svg></span>
+          <span class="tm-in" style="font-size: 16px; font-weight: 800">90 days added</span>
+          <span class="tm-in" style="animation-delay: .08s; font-size: 13px; font-weight: 600; color: {{c.text2}}">M8 is with you until Jan 6. Receipt in Settings.</span>
+        </sc-if>
+      </div>
+      <button class="tm-press" onClick="{{pay.reset}}" style="align-self: flex-start; height: 32px; padding: 0 12px; border: none; border-radius: 999px; background: transparent; color: {{c.text3}}; font-family: inherit; font-size: 12px; font-weight: 800; cursor: pointer">Reset</button>
+    </div>
+
+    <div class="sb-card" style="display: flex; flex-direction: column; gap: 14px; padding: 24px; border-radius: 24px; background: {{c.surface}}">
+      <span style="font-size: 15px; font-weight: 800">Rule kept</span>
+      <div style="min-height: 120px; display: flex; flex-direction: column; justify-content: center; gap: 12px; padding: 16px; border-radius: 18px; background: {{c.bg}}">
+        <div style="display: flex; align-items: center; gap: 12px">
+          <span class="tm-pulse" style="--tm-pulse: {{c.gainPulse}}; width: 12px; height: 12px; flex-shrink: 0; border-radius: 6px; background: {{c.gain}}"></span>
+          <span style="flex-grow: 1; font-size: 14px; font-weight: 800">Cooldown kept after 3 red trades today</span>
+        </div>
+        <div style="display: flex; gap: 6px" aria-label="Rule checks this week: 6 kept">
+          <sc-for list="{{kept}}" as="k" hint-placeholder-count="7">
+            <span style="flex: 1; height: 8px; border-radius: 4px; background: {{k}}"></span>
+          </sc-for>
+        </div>
+        <span style="font-size: 12px; font-weight: 600; color: {{c.text3}}">Shown in the evening nudge and on the rules card. A quiet pulse, no confetti.</span>
+      </div>
+    </div>
+
+    <!-- ============ 6. Status ============ -->
+    <h2 style="grid-column: 1 / -1; margin: 24px 0 0 0; font-size: 22px; font-weight: 800">6 · Live status <span style="font-size: 14px; font-weight: 600; color: {{c.text3}}">You should always know if the numbers are fresh.</span></h2>
+
+    <div class="sb-card" style="display: flex; flex-direction: column; gap: 10px; padding: 24px; border-radius: 24px; background: {{c.surface}}">
+      <span style="font-size: 15px; font-weight: 800; margin-bottom: 4px">Sync indicator <span style="font-weight: 600; color: {{c.text3}}">· next to the date</span></span>
+      <sc-for list="{{sync}}" as="s" hint-placeholder-count="4">
+        <div style="display: flex; align-items: center; gap: 12px; padding: 10px 0; border-top: 1px solid {{c.line}}">
+          <span style="height: 30px; padding: 0 12px 0 10px; border-radius: 999px; background: {{s.bg}}; display: flex; align-items: center; gap: 8px; font-size: 12px; font-weight: 800; color: {{s.fg}}; white-space: nowrap">
+            <sc-if value="{{s.spin}}" hint-placeholder-val="{{ false }}"><span class="tm-spin" aria-hidden="true" style="width: 10px; height: 10px; border-radius: 6px; border: 2px solid {{c.surface2}}; border-top-color: {{s.dot}}"></span></sc-if>
+            <sc-if value="{{s.live}}" hint-placeholder-val="{{ true }}"><span class="tm-pulse" style="--tm-pulse: {{s.pulse}}; width: 8px; height: 8px; border-radius: 4px; background: {{s.dot}}"></span></sc-if>
+            <sc-if value="{{s.still}}" hint-placeholder-val="{{ false }}"><span style="width: 8px; height: 8px; border-radius: 4px; background: {{s.dot}}"></span></sc-if>
+            {{s.label}}
+          </span>
+          <span style="font-size: 12px; line-height: 1.45; font-weight: 600; color: {{c.text2}}">{{s.when}}</span>
+        </div>
+      </sc-for>
+    </div>
+
+    <div class="sb-card" style="display: flex; flex-direction: column; gap: 12px; padding: 24px; border-radius: 24px; background: {{c.surface}}">
+      <div style="display: flex; align-items: center; gap: 12px">
+        <span style="flex-grow: 1; font-size: 15px; font-weight: 800">A trade lands while you look</span>
+        <button class="tm-press" onClick="{{addTrade}}" style="height: 36px; padding: 0 14px; border: 1px solid {{c.line}}; border-radius: 999px; background: transparent; color: {{c.text}}; font-family: inherit; font-size: 13px; font-weight: 800; cursor: pointer">Simulate</button>
+      </div>
+      <div aria-live="polite" style="display: flex; flex-direction: column; gap: 4px; padding: 8px; border-radius: 18px; background: {{c.bg}}">
+        <sc-if value="{{newTrade}}" hint-placeholder-val="{{ false }}">
+          <div class="tm-in tm-flash" style="display: flex; align-items: center; gap: 12px; padding: 10px 12px; border-radius: 14px">
+            <span style="width: 34px; height: 34px; flex-shrink: 0; border-radius: 17px; background: {{c.surface2}}; display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 800">{{nt.i}}</span>
+            <div style="flex-grow: 1; display: flex; flex-direction: column; gap: 2px; min-width: 0">
+              <span style="font-size: 14px; font-weight: 800">{{nt.t}} <span style="margin-left: 6px; padding: 2px 8px; border-radius: 999px; background: {{accent}}; color: #15140E; font-size: 11px; font-weight: 800">New</span></span>
+              <span style="font-size: 12px; font-weight: 600; color: {{c.text3}}">{{nt.sub}}</span>
+            </div>
+            <span style="font-size: 14px; font-weight: 800; color: {{nt.color}}">{{nt.v}}</span>
+          </div>
+        </sc-if>
+        <sc-for list="{{feed}}" as="f" hint-placeholder-count="2">
+          <div style="display: flex; align-items: center; gap: 12px; padding: 10px 12px; border-radius: 14px">
+            <span style="width: 34px; height: 34px; flex-shrink: 0; border-radius: 17px; background: {{c.surface2}}; display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 800">{{f.i}}</span>
+            <div style="flex-grow: 1; display: flex; flex-direction: column; gap: 2px; min-width: 0">
+              <span style="font-size: 14px; font-weight: 800">{{f.t}}</span>
+              <span style="font-size: 12px; font-weight: 600; color: {{c.text3}}">{{f.sub}}</span>
+            </div>
+            <span style="font-size: 14px; font-weight: 800; color: {{f.color}}">{{f.v}}</span>
+          </div>
+        </sc-for>
+      </div>
+      <span style="font-size: 12px; line-height: 1.45; font-weight: 600; color: {{c.text3}}">Slides in at the top with a short highlight. The hero number and chart update in place, no reload.</span>
+    </div>
+
+    <div class="sb-card" style="display: flex; flex-direction: column; gap: 14px; padding: 24px; border-radius: 24px; background: {{c.surface}}">
+      <span style="font-size: 15px; font-weight: 800">Settings save themselves</span>
+      <span style="font-size: 13px; line-height: 1.5; font-weight: 600; color: {{c.text2}}">No Save button. Each field says Saving, then Saved, right where you changed it.</span>
+      <div style="display: flex; flex-direction: column; gap: 8px">
+        <div style="display: flex; align-items: center; gap: 10px">
+          <span style="flex-grow: 1; font-size: 14px; font-weight: 800">Check in after my last trade</span>
+          <span aria-live="polite" style="min-width: 72px; text-align: right; font-size: 12px; font-weight: 800; color: {{save.color}}">{{save.label}}</span>
+        </div>
+        <div role="radiogroup" aria-label="Nudge delay" style="display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 6px; padding: 4px; border-radius: 999px; background: {{c.bg}}">
+          <sc-for list="{{delays}}" as="d" hint-placeholder-count="4">
+            <button class="tm-press" role="radio" aria-checked="{{d.on}}" onClick="{{d.pick}}" style="height: 38px; border: none; border-radius: 999px; background: {{d.bg}}; color: {{d.fg}}; font-family: inherit; font-size: 13px; font-weight: 800; cursor: pointer">{{d.label}}</button>
+          </sc-for>
+        </div>
+      </div>
+    </div>
+
+    <!-- ============ 7. Destructive ============ -->
+    <h2 style="grid-column: 1 / -1; margin: 24px 0 0 0; font-size: 22px; font-weight: 800">7 · When we ask first <span style="font-size: 14px; font-weight: 600; color: {{c.text3}}">Dialogs only for things Undo can't fix.</span></h2>
+
+    <div class="sb-card" style="position: relative; display: flex; flex-direction: column; gap: 14px; padding: 24px; border-radius: 24px; background: {{c.surface}}; overflow: hidden">
+      <span style="font-size: 15px; font-weight: 800">Remove a wallet</span>
+      <div style="display: flex; align-items: center; gap: 12px; padding: 12px 14px; border-radius: 16px; background: {{c.bg}}">
+        <span style="width: 36px; height: 36px; border-radius: 18px; background: {{c.surface2}}; display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 800">SOL</span>
+        <div style="flex-grow: 1; display: flex; flex-direction: column; gap: 2px"><span style="font-size: 14px; font-weight: 800">Main</span><span style="font-size: 12px; font-weight: 600; color: {{c.text3}}">7xKX…gAsU</span></div>
+        <button class="tm-press" onClick="{{rm.open}}" style="height: 34px; padding: 0 12px; border: 1px solid {{c.line}}; border-radius: 999px; background: transparent; color: {{c.loss}}; font-family: inherit; font-size: 13px; font-weight: 800; cursor: pointer">Remove</button>
+      </div>
+      <span style="font-size: 12px; line-height: 1.45; font-weight: 600; color: {{c.text3}}">Esc or tapping outside cancels. Focus starts on Cancel.</span>
+      <sc-if value="{{rm.on}}" hint-placeholder-val="{{ false }}">
+        <div aria-hidden="true" onClick="{{rm.close}}" class="tm-fade" style="position: absolute; inset: 0; background: rgba(5,6,9,0.55); animation-duration: .2s"></div>
+        <div role="alertdialog" aria-modal="true" aria-label="Remove wallet" class="tm-in" style="position: absolute; left: 12px; right: 12px; bottom: 12px; display: flex; flex-direction: column; gap: 8px; padding: 16px 18px; border-radius: 22px; background: {{c.surface}}; border: 1px solid {{c.line}}; box-shadow: 0 24px 48px rgba(0,0,0,0.4)">
+          <span style="font-size: 16px; font-weight: 800">Stop tracking Main?</span>
+          <span style="font-size: 13px; line-height: 1.5; font-weight: 600; color: {{c.text2}}">Its 142 trades stay in your journal. M8 stops watching new ones.</span>
+          <div style="display: flex; gap: 8px; margin-top: 4px">
+            <button class="tm-press" onClick="{{rm.close}}" style="flex: 1; height: 44px; border: 1px solid {{c.line}}; border-radius: 999px; background: transparent; color: {{c.text}}; font-family: inherit; font-size: 14px; font-weight: 800; cursor: pointer">Cancel</button>
+            <button class="tm-press" onClick="{{rm.confirm}}" style="flex: 1; height: 44px; border: none; border-radius: 999px; background: {{c.loss}}; color: #FFFFFF; font-family: inherit; font-size: 14px; font-weight: 800; cursor: pointer">Remove</button>
+          </div>
+        </div>
+      </sc-if>
+    </div>
+
+    <div class="sb-card" style="grid-column: span 2; display: flex; flex-direction: column; gap: 14px; padding: 24px; border-radius: 24px; background: {{c.surface}}">
+      <span style="font-size: 15px; font-weight: 800">Delete account <span style="font-weight: 600; color: {{c.text3}}">· type to confirm</span></span>
+      <span style="font-size: 13px; line-height: 1.5; font-weight: 600; color: {{c.text2}}">Deletes every trade, journal entry, rule and memory. This can't be undone, so you type the word.</span>
+      <div style="display: flex; align-items: flex-end; gap: 12px">
+        <label style="flex-grow: 1; display: flex; flex-direction: column; gap: 6px; font-size: 12px; font-weight: 800; color: {{c.text3}}">
+          Type delete to confirm
+          <input class="sb-input" onInput="{{del.type}}" placeholder="delete" autocomplete="off" style="height: 48px; padding: 0 14px; border-radius: 14px; border: 1px solid {{c.line}}; background: {{c.bg}}; color: {{c.text}}; font-family: inherit; font-size: 15px; font-weight: 700; outline: none">
+        </label>
+        <button class="tm-press" onClick="{{del.go}}" aria-disabled="{{del.disabled}}" style="height: 48px; padding: 0 20px; border: none; border-radius: 999px; background: {{del.bg}}; color: {{del.fg}}; font-family: inherit; font-size: 14px; font-weight: 800; cursor: {{del.cursor}}">{{del.label}}</button>
+      </div>
+    </div>
+
+    <!-- ============ 8. Edge states ============ -->
+    <h2 style="grid-column: 1 / -1; margin: 24px 0 0 0; font-size: 22px; font-weight: 800">8 · Empty and edge states <span style="font-size: 14px; font-weight: 600; color: {{c.text3}}">Say what's going on and what still works. One action, if any.</span></h2>
+
+    <sc-for list="{{edges}}" as="e" hint-placeholder-count="6">
+      <div class="sb-card" style="display: flex; flex-direction: column; gap: 12px; padding: 20px; border-radius: 24px; background: {{c.surface}}">
+        <span style="font-size: 12px; font-weight: 800; color: {{c.text3}}">{{e.where}}</span>
+        <div style="display: flex; gap: 12px; padding: 14px 16px; border-radius: 18px; background: {{e.bg}}; border: 1px solid {{e.border}}">
+          <span style="width: 28px; height: 28px; flex-shrink: 0; border-radius: 14px; background: {{e.iconBg}}; color: {{e.iconFg}}; display: flex; align-items: center; justify-content: center; font-size: 14px; font-weight: 800">{{e.glyph}}</span>
+          <div style="flex-grow: 1; display: flex; flex-direction: column; gap: 6px">
+            <span style="font-size: 14px; font-weight: 800">{{e.title}}</span>
+            <span style="font-size: 13px; line-height: 1.5; font-weight: 600; color: {{c.text2}}">{{e.body}}</span>
+            <sc-if value="{{e.hasBar}}" hint-placeholder-val="{{ false }}">
+              <div style="height: 6px; margin-top: 4px; border-radius: 3px; background: {{c.surface2}}; overflow: hidden"><div style="height: 100%; width: {{e.bar}}; border-radius: 3px; background: {{e.barColor}}"></div></div>
+            </sc-if>
+            <sc-if value="{{e.hasCta}}" hint-placeholder-val="{{ false }}">
+              <button class="tm-press" style="align-self: flex-start; margin-top: 4px; height: 36px; padding: 0 14px; border: none; border-radius: 999px; background: {{e.ctaBg}}; color: {{e.ctaFg}}; font-family: inherit; font-size: 13px; font-weight: 800; cursor: pointer">{{e.cta}}</button>
+            </sc-if>
+          </div>
+        </div>
+      </div>
+    </sc-for>
+
+    <!-- Reduced motion -->
+    <div style="grid-column: 1 / -1; display: flex; align-items: center; gap: 16px; margin-top: 16px; padding: 18px 22px; border-radius: 20px; border: 1px dashed {{c.line}}">
+      <span style="font-size: 14px; font-weight: 800; white-space: nowrap">Reduced motion</span>
+      <span style="font-size: 13px; line-height: 1.5; font-weight: 600; color: {{c.text2}}">When the system asks for less motion: fades only. No count-up, no line draw, no shimmer, no press scale, no pulse. Spinners become static "Loading…" text.</span>
+    </div>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"accent":{"editor":"color","default":"#7CD4FF","options":["#7CD4FF","#FFD23F","#6495ED","#B4A5FF","#FF85C8","#FF9152","#FFB547"],"section":"Look"},"$preview":{"width":1440,"height":2600}}'>
+class Component extends DCLogic {
+  componentDidMount() { this.countUp(); this.runThink(); }
+  componentWillUnmount() { (this._t || []).forEach(clearTimeout); if (this._raf) cancelAnimationFrame(this._raf); }
+  later(fn, ms) { this._t = this._t || []; this._t.push(setTimeout(fn, ms)); }
+  countUp() {
+    if (this._raf) cancelAnimationFrame(this._raf);
+    if (window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches) { this.setState({ hero: 234.12 }); return; }
+    let t0 = null;
+    const step = (t) => { if (t0 === null) t0 = t; const k = Math.min(1, (t - t0) / 700); this.setState({ hero: 234.12 * (1 - Math.pow(1 - k, 3)) }); if (k < 1) this._raf = requestAnimationFrame(step); };
+    this._raf = requestAnimationFrame(step);
+  }
+  runThink() {
+    this.setState({ think: 0 });
+    this.later(() => this.setState({ think: 1 }), 800);
+    this.later(() => this.setState({ think: 2 }), 1600);
+    this.later(() => this.setState({ think: 3 }), 2400);
+  }
+  toast(t) {
+    clearTimeout(this._tt);
+    this.setState({ live: null });
+    this.later(() => { this.setState({ live: t }); this._tt = setTimeout(() => this.setState({ live: null }), t.action ? 5000 : 3200); }, 40);
+  }
+  renderVals() {
+    const st = this.state || {};
+    const accent = this.props.accent ?? '#7CD4FF';
+    const theme = st.theme || 'dark';
+    const themes = {
+      dark: { bg: '#0D0E13', surface: '#171922', surface2: '#21242F', line: '#2C303D', text: '#F3F4F7', text2: '#A9AEBE', text3: '#858B9E', gain: '#3FD98E', loss: '#FF6B6B', warn: '#FFE07A', warnSoft: 'rgba(255,224,122,0.14)', danger: '#FF6B6B', gainSoft: 'rgba(63,217,142,0.14)', gainPulse: 'rgba(63,217,142,0.45)', sk1: '#1B1D27', sk2: '#272A36' },
+      light: { bg: '#F4F4F7', surface: '#FFFFFF', surface2: '#EEEFF3', line: '#E3E5EB', text: '#12131A', text2: '#4F5566', text3: '#666C7E', gain: '#0B8A51', loss: '#D23434', warn: '#A86400', warnSoft: 'rgba(168,100,0,0.10)', danger: '#D23434', gainSoft: 'rgba(11,138,81,0.12)', gainPulse: 'rgba(11,138,81,0.35)', sk1: '#E3E5EB', sk2: '#EFF0F4' }
+    };
+    const c = themes[theme];
+    // Theme-aware helpers from design/tokens.json: accent ink for foreground use on light, warn and danger.
+    const tkLight = (theme) === 'light';
+    const tkn = {
+      ink: tkLight ? ({ '#7CD4FF': '#0072AA', '#FFD23F': '#866700', '#6495ED': '#1B63E5', '#B4A5FF': '#6849FF', '#FF85C8': '#D10073', '#FF9152': '#BD4500', '#FFB547': '#9E5E00' }[String(accent).toUpperCase()] || accent) : accent,
+      flash: accent + '38',
+      warn: tkLight ? '#A86400' : '#FFE07A', warnSoft: tkLight ? 'rgba(168,100,0,0.10)' : 'rgba(255,224,122,0.14)',
+      danger: tkLight ? '#D23434' : '#FF6B6B'
+    };
+    const tcs = {
+      dark: { bg: '#F3F4F7', fg: '#12131A', btn: 'rgba(18,19,26,0.08)', success: ['#0B8A51', '#FFFFFF'], info: ['#12131A', '#F3F4F7'], error: ['#D23434', '#FFFFFF'], limit: ['rgba(168,100,0,0.14)', '#A86400'] },
+      light: { bg: '#12131A', fg: '#F3F4F7', btn: 'rgba(255,255,255,0.12)', success: ['#3FD98E', '#0D0E13'], info: ['#F3F4F7', '#12131A'], error: ['#FF6B6B', '#0D0E13'], limit: ['rgba(255,224,122,0.16)', '#FFE07A'] }
+    };
+    const tc = tcs[theme];
+    const glyphs = { success: '✓', info: 'i', error: '!', limit: '%' };
+    const noop = (e) => { if (e && e.preventDefault) e.preventDefault(); };
+    const seg = (on) => ({ bg: on ? accent : 'transparent', fg: on ? '#15140E' : c.text2 });
+    const th = {
+      dark: () => this.setState({ theme: 'dark' }), light: () => this.setState({ theme: 'light' }),
+      darkOn: String(theme === 'dark'), lightOn: String(theme === 'light'),
+      darkBg: seg(theme === 'dark').bg, darkFg: seg(theme === 'dark').fg, lightBg: seg(theme === 'light').bg, lightFg: seg(theme === 'light').fg
+    };
+
+    const rules = [
+      { k: 'Press', v: '120 ms · 97%', d: 'Every tappable thing shrinks a little while held.' },
+      { k: 'Hover', v: '150 ms · +12%', d: 'Brighten, never move. Rows get a soft fill.' },
+      { k: 'UI change', v: '250 to 350 ms', d: 'Toasts, sheets, chips. Ease-out, 8px rise.' },
+      { k: 'Load-in', v: '600 to 900 ms', d: 'Count-up and line draw, once per visit.' },
+      { k: 'Answer within', v: '100 ms', d: 'Anything slower shows a spinner, step or skeleton.' }
+    ];
+
+    // 1. Loading
+    const w = st.wallet || 'idle';
+    const wallet = {
+      busy: String(w === 'busy'), spin: w === 'busy', ok: w === 'ok',
+      label: w === 'busy' ? 'Checking wallet…' : (w === 'ok' ? 'Added' : 'Add wallet'),
+      bg: w === 'ok' ? c.surface2 : accent, fg: w === 'ok' ? c.text : '#15140E',
+      click: () => {
+        if (w === 'busy') return;
+        if (w === 'ok') { this.setState({ wallet: 'idle' }); return; }
+        this.setState({ wallet: 'busy' });
+        this.later(() => { this.setState({ wallet: 'ok' }); this.toast({ text: 'Wallet added. Importing your last 30 days…', kind: 'success' }); }, 1200);
+      }
+    };
+    const steps = ['Reading your 142 trades…', 'Checking coin age at entry…', 'Writing it up…'];
+    const tk = st.think || 0;
+    const think = {
+      on: tk < 3, done: tk >= 3, step: steps[Math.min(tk, 2)],
+      text: 'Coins older than a day when you buy them: -$412 over 38 trades. Under an hour old: +$1,906 over 61.',
+      run: () => { (this._t || []).forEach(clearTimeout); this.runThink(); }
+    };
+    const n = st.imp || 0;
+    const imp = {
+      n, pct: (n / 142 * 100).toFixed(1) + '%', count: n + ' of 142 trades',
+      title: n >= 142 ? 'Done. Your last 30 days are in.' : (n === 0 ? 'Ready to import' : 'Importing your last 30 days'),
+      sub: n >= 142 ? '9 days journaled. M8 just sent you the highlights on Telegram.' : (n === 0 ? 'Solana · Main wallet' : (n < 60 ? 'Finding swaps on Solana…' : 'Matching buys and sells, working out PnL…')),
+      color: n >= 142 ? c.gain : tkn.ink,
+      btn: n > 0 && n < 142 ? 'Importing…' : (n >= 142 ? 'Run again' : 'Start import'),
+      run: () => {
+        if (n > 0 && n < 142) return;
+        this.setState({ imp: 0 });
+        const marks = [12, 31, 48, 60, 77, 95, 118, 131, 142];
+        marks.forEach((m, i) => this.later(() => this.setState({ imp: m }), 250 + i * 330));
+      }
+    };
+
+    // 2. Load-in
+    const inOn = !st.replaying;
+    const replayIn = () => { this.setState({ replaying: true }); this.later(() => { this.setState({ replaying: false }); this.countUp(); }, 30); };
+    const heroVal = '+$' + (st.hero != null ? st.hero : 0).toFixed(2);
+    const stagger = [['Trades', '8'], ['Win rate', '50%'], ['Best', '+$288']].map((s, i) => ({ k: s[0], v: s[1], delay: (0.2 + i * 0.06).toFixed(2) + 's' }));
+    const surfaces = [
+      { k: 'Bottom sheet', v: 'Slides up 300 ms, scrim fades to 60%. Drag down or tap outside to close.' },
+      { k: 'M8 drawer', v: 'Slides in from the right 280 ms. The page stays put behind the scrim.' },
+      { k: 'Dialog', v: 'Fades and rises 8px, 220 ms. Only for things Undo can\'t fix.' },
+      { k: 'Tab switch', v: 'Instant. The new page fades up once; the nav never animates.' }
+    ];
+
+    // 3. Rows
+    const rows = [['PE', '$PEPU2', '-$154', c.loss], ['GO', '$GOBLN', '+$288', c.gain], ['WI', '$WIFHAT', '-$221', c.loss]].map((r) => ({ i: r[0], t: r[1], v: r[2], color: r[3] }));
+
+    // 4. Toasts
+    const kind = (k) => ({ iconBg: tc[k][0], iconFg: tc[k][1], glyph: glyphs[k] });
+    const toastKinds = [
+      Object.assign({ text: 'Rule set: 20 min cooldown after a red trade', action: 'Undo', when: 'After any change M8 or you make. Undo for 5 seconds, then it sticks.' }, kind('success')),
+      Object.assign({ text: 'Text copied', action: '', when: 'Copy, save image, share. Short, 3 seconds.' }, kind('success')),
+      Object.assign({ text: '$FROGO is back to Planned. Stats updated.', action: '', when: 'After an Undo, say what changed back.' }, kind('info')),
+      Object.assign({ text: "Couldn't reach Solana data. Retrying in 30s.", action: 'Retry', when: 'Background failure. Your data is safe; we keep trying.' }, kind('error')),
+      Object.assign({ text: "M8 is tapped out for today. Back at midnight.", action: '', when: 'Hitting the daily chat limit. Check-ins still work.' }, kind('limit'))
+    ].map((t) => Object.assign(t, { hasAction: !!t.action, padR: t.action ? '8px' : '16px' }));
+    const lv = st.live || null;
+    const live = lv ? Object.assign({ show: true, text: lv.text, action: lv.action || '', hasAction: !!lv.action, padR: lv.action ? '8px' : '16px', act: () => { if (lv.onAct) lv.onAct(); } }, kind(lv.kind)) : { show: false, text: '', action: '', hasAction: false, padR: '16px', iconBg: '', iconFg: '', glyph: '', act: noop };
+    const toastTriggers = [
+      { label: 'Make it a rule', fire: () => this.toast({ text: 'Rule set: 20 min cooldown', kind: 'success', action: 'Undo', onAct: () => this.toast({ text: 'Rule removed', kind: 'info' }) }) },
+      { label: 'Copy text', fire: () => this.toast({ text: 'Text copied', kind: 'success' }) },
+      { label: 'Data error', fire: () => this.toast({ text: "Couldn't reach Solana data. Retrying in 30s.", kind: 'error', action: 'Retry', onAct: () => this.toast({ text: 'Back online. 2 new trades.', kind: 'success' }) }) },
+      { label: 'Daily limit', fire: () => this.toast({ text: 'M8 is tapped out for today. Back at midnight.', kind: 'limit' }) }
+    ];
+
+    // 5. Success
+    const rule = { ask: !st.ruleOn, on: !!st.ruleOn, yes: () => this.setState({ ruleOn: true }), reset: () => this.setState({ ruleOn: false }) };
+    const p = st.pay || 'idle';
+    const pay = {
+      idle: p === 'idle', waiting: p === 'waiting', done: p === 'done',
+      run: () => { this.setState({ pay: 'waiting' }); this.later(() => this.setState({ pay: 'done' }), 1800); },
+      reset: () => this.setState({ pay: 'idle' })
+    };
+    const kept = [1, 1, 1, 0, 1, 1, 1].map((k, i) => i === 3 ? c.surface2 : c.gain);
+
+    // 6. Status
+    const sync = [
+      { label: 'Live', bg: c.bg, dot: c.gain, fg: c.text, live: true, pulse: c.gainPulse, spin: false, still: false, when: 'Checked 12s ago. Default state, barely there.' },
+      { label: 'Syncing 2 wallets', bg: c.bg, dot: tkn.ink, fg: c.text, live: false, pulse: '', spin: true, still: false, when: 'Right after you open the app or add a wallet.' },
+      { label: 'Delayed', bg: c.warnSoft, dot: c.warn, fg: c.warn, live: false, pulse: '', spin: false, still: true, when: "Data provider is slow. Numbers may be a few minutes behind." },
+      { label: 'Paused', bg: c.bg, dot: c.text3, fg: c.text3, live: false, pulse: '', spin: false, still: true, when: 'Plan ended. Journal is read-only; tracking is off.' }
+    ];
+    const base = [
+      { i: 'GO', t: '$GOBLN', sub: 'Sold · 9:36 AM', v: '+$288', color: c.gain },
+      { i: 'WI', t: '$WIFHAT', sub: 'Sold · 12:48 PM', v: '-$221', color: c.loss }
+    ];
+    const nt = { i: 'BO', t: '$BONKO', sub: 'Bought 0.8 SOL · just now', v: 'Open', color: c.text2 };
+    const feed = base;
+    const newTrade = !!st.newTrade;
+    const addTrade = () => { this.setState({ newTrade: false }); this.later(() => this.setState({ newTrade: true }), 40); };
+    const sv = st.save || null;
+    const save = { label: sv === 'saving' ? 'Saving…' : (sv === 'saved' ? 'Saved ✓' : ''), color: sv === 'saved' ? c.gain : c.text3 };
+    const cur = st.delay || '2h';
+    const delays = ['1h', '2h', '3h', '4h'].map((d) => Object.assign({ label: d, on: String(d === cur), pick: () => {
+      this.setState({ delay: d, save: 'saving' });
+      this.later(() => this.setState({ save: 'saved' }), 600);
+      this.later(() => { if ((this.state || {}).save === 'saved') this.setState({ save: null }); }, 2600);
+    } }, seg(d === cur)));
+
+    // 7. Destructive
+    const rm = {
+      on: !!st.rm, open: () => this.setState({ rm: true }), close: () => this.setState({ rm: false }),
+      confirm: () => { this.setState({ rm: false }); this.toast({ text: 'Main wallet removed. Its trades stay in your journal.', kind: 'info' }); }
+    };
+    const typed = (st.typed || '').trim().toLowerCase() === 'delete';
+    const del = {
+      type: (e) => this.setState({ typed: e.target.value }),
+      disabled: String(!typed), label: st.deleted ? 'Deleting…' : 'Delete everything',
+      bg: typed ? c.loss : c.surface2, fg: typed ? '#FFFFFF' : c.text3, cursor: typed ? 'pointer' : 'not-allowed',
+      go: () => { if (typed) this.setState({ deleted: true }); }
+    };
+
+    // 8. Edge states
+    const soft = (hex, a) => { const v = parseInt(hex.slice(1), 16); return 'rgba(' + (v >> 16 & 255) + ',' + (v >> 8 & 255) + ',' + (v & 255) + ',' + a + ')'; };
+    const edge = (where, glyph, tone, title, body, extra) => Object.assign({
+      where, glyph, title, body, bg: tone === c.warn ? c.warnSoft : soft(tone, theme === 'dark' ? 0.08 : 0.07), border: soft(tone, 0.25), iconBg: soft(tone, 0.18), iconFg: tone,
+      hasBar: false, bar: '0%', barColor: tone, hasCta: false, cta: '', ctaBg: accent, ctaFg: '#15140E'
+    }, extra || {});
+    const edges = [
+      edge('Journal · first 2 minutes', '↓', tkn.ink, 'Importing your last 30 days', '84 of 142 trades so far. Your first journal shows up here, and M8 will message you on Telegram.', { hasBar: true, bar: '59%' }),
+      edge('Journal · a day with no trades', '0', c.text3, 'No trades on Tue, Oct 6', 'Rest days count. Your cooldown streak is still going.'),
+      edge('Top banner · day 6 of trial', '7', c.warn, 'Your trial ends tomorrow', 'Keep M8 for $20 / 30 days or $50 / 90 days, in USDC.', { hasCta: true, cta: 'Keep M8' }),
+      edge('Everywhere · plan ended', '‖', c.text3, 'M8 is paused', 'Your journal and stats stay here, read-only, forever. Renew to pick up where you left off; we fill in the gap.', { hasCta: true, cta: 'Renew' }),
+      edge('Top banner · no connection', '!', c.danger, "You're offline", 'Showing what was saved at 2:14 PM. Edits will sync when you are back.'),
+      edge('M8 chat · daily limit', '%', c.warn, 'M8 is tapped out for today', 'Back at midnight. Check-ins, journaling and rule alerts still work.', { hasBar: true, bar: '100%' })
+    ];
+
+    return { tkn,
+      c, accent, tc, th, noop, rules,
+      wallet, think, imp,
+      inOn, replayIn, heroVal, stagger, surfaces, rows,
+      toastKinds, toastTriggers, live,
+      rule, pay, kept,
+      sync, feed, nt, newTrade, addTrade, save, delays,
+      rm, del, edges
+    };
+  }
+}
+</script>
+</body>
+</html>

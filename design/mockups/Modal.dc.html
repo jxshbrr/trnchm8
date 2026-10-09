@@ -1,0 +1,1088 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>TrenchM8 - modal</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="anonymous">
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0}
+/* TrenchM8 motion: 120-150ms press/hover, 250-350ms UI, 600-900ms load-in. Ease-out. Fades only when reduced motion is on. */
+@keyframes tm-in{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+@keyframes tm-fade{from{opacity:0}to{opacity:1}}
+@keyframes tm-draw{to{stroke-dashoffset:0}}
+@keyframes tm-shimmer{0%{background-position:-400px 0}100%{background-position:400px 0}}
+@keyframes tm-dot{0%,80%,100%{opacity:.3;transform:translateY(0)}40%{opacity:1;transform:translateY(-3px)}}
+@keyframes tm-toast{from{opacity:0;transform:translateY(12px) scale(.98)}to{opacity:1;transform:none}}
+@keyframes tm-pop{0%{opacity:0;transform:scale(.6)}60%{opacity:1;transform:scale(1.08)}100%{transform:scale(1)}}
+@keyframes tm-spin{to{transform:rotate(360deg)}}
+@keyframes tm-pulse{0%{box-shadow:0 0 0 0 var(--tm-pulse,rgba(63,217,142,.45))}100%{box-shadow:0 0 0 10px rgba(0,0,0,0)}}
+@keyframes tm-fill{from{width:0}to{width:100%}}
+@keyframes tm-out{from{opacity:1}to{opacity:0}}
+@keyframes tm-flash{0%{background-color:var(--tm-flash,rgba(124,212,255,.22))}100%{background-color:transparent}}
+.tm-press{transition:transform .12s ease,filter .15s ease,background-color .15s ease,opacity .15s ease}
+.tm-press:hover{filter:brightness(1.12)}
+.tm-press:active{transform:scale(.97)}
+.tm-press:focus-visible,.tm-hover:focus-visible{outline:2px solid var(--tm-focus,#7CD4FF);outline-offset:2px}
+.tm-hover{transition:filter .15s ease,transform .15s ease}
+.tm-hover:hover{filter:brightness(1.18)}
+.tm-in{animation:tm-in .35s cubic-bezier(.2,.8,.2,1) both}
+.tm-fade{animation:tm-fade .6s ease both;animation-delay:var(--tm-d,0s)}
+.tm-draw{stroke-dasharray:1;stroke-dashoffset:1;animation:tm-draw .9s cubic-bezier(.2,.8,.2,1) calc(var(--tm-d,0s) + .15s) forwards}
+.tm-skel{background:linear-gradient(90deg,var(--sk1) 0%,var(--sk2) 50%,var(--sk1) 100%);background-size:800px 100%;animation:tm-shimmer 1.2s linear infinite}
+.tm-dot{display:inline-block;width:6px;height:6px;border-radius:3px;background:currentColor;animation:tm-dot 1.2s ease-in-out infinite}
+.tm-toast{animation:tm-toast .25s cubic-bezier(.2,.8,.2,1) both}
+.tm-pop{animation:tm-pop .45s cubic-bezier(.2,.8,.2,1) both}
+.tm-spin{animation:tm-spin .8s linear infinite}
+.tm-pulse{animation:tm-pulse 1.6s ease-out infinite}
+.tm-flash{animation:tm-flash 1.6s ease-out both}
+.tm-out{animation:tm-out .22s ease both;pointer-events:none}
+@media (prefers-reduced-motion:reduce){.tm-in,.tm-toast,.tm-pop{animation:tm-fade .2s ease both}.tm-draw{animation:none;stroke-dasharray:none;stroke-dashoffset:0}.tm-skel,.tm-dot,.tm-pulse,.tm-spin{animation:none}.tm-press:active{transform:none}}
+/* Tooltips: data-tip="text" (+ data-tip-pos="bottom|left|right", data-tip-wrap for long text). Desktop hover/keyboard only. */
+[data-tip]{position:relative}
+[data-tip]::after{content:attr(data-tip);position:absolute;left:50%;bottom:calc(100% + 8px);transform:translate(-50%,4px);padding:6px 10px;border-radius:10px;background:var(--tm-tip-bg,#F3F4F7);color:var(--tm-tip-fg,#12131A);font:600 12px/1.35 Manrope,system-ui,sans-serif;letter-spacing:0;text-transform:none;text-align:left;white-space:nowrap;pointer-events:none;opacity:0;visibility:hidden;transition:opacity .12s ease,transform .12s ease,visibility 0s linear .12s;z-index:80;box-shadow:0 8px 24px rgba(0,0,0,.28)}
+[data-tip]:hover::after,[data-tip]:focus-visible::after{opacity:1;visibility:visible;transform:translate(-50%,0);transition:opacity .12s ease .35s,transform .12s ease .35s,visibility 0s linear .35s}
+[data-tip-pos=bottom]::after{bottom:auto;top:calc(100% + 8px);transform:translate(-50%,-4px)}
+[data-tip-pos=left]::after{left:auto;right:calc(100% + 8px);bottom:50%;transform:translate(4px,50%)}
+[data-tip-pos=left]:hover::after,[data-tip-pos=left]:focus-visible::after{transform:translate(0,50%)}
+[data-tip-pos=right]::after{left:calc(100% + 8px);bottom:50%;transform:translate(-4px,50%)}
+[data-tip-pos=right]:hover::after,[data-tip-pos=right]:focus-visible::after{transform:translate(0,50%)}
+[data-tip-wrap]::after{white-space:normal;width:max-content;max-width:240px}
+@media (hover:none){[data-tip]::after{display:none}}
+/* Clickable rows (no inline background on the row itself) and clickable cards */
+.tm-row{transition:background-color .15s ease;cursor:pointer}
+.tm-row:hover{background-color:var(--tm-row-hover,rgba(255,255,255,.045))}
+.tm-row:active{background-color:var(--tm-row-press,rgba(255,255,255,.08))}
+.tm-lift{transition:filter .15s ease,box-shadow .15s ease;cursor:pointer}
+.tm-lift:hover{filter:brightness(1.07)}
+.tm-press[aria-disabled=true],.tm-press:disabled{opacity:.45;cursor:not-allowed;filter:none}
+.tm-press[aria-disabled=true]:active,.tm-press:disabled:active{transform:none}
+@keyframes tm-shake{0%,100%{transform:none}20%,60%{transform:translateX(-4px)}40%,80%{transform:translateX(4px)}}
+.tm-shake{animation:tm-shake .3s ease}
+@keyframes tm-sheet{from{transform:translateY(24px);opacity:0}to{transform:none;opacity:1}}
+@keyframes tm-dialog{from{transform:translateY(8px) scale(.98);opacity:0}to{transform:none;opacity:1}}
+@keyframes tm-drawer{from{transform:translateX(32px);opacity:0}to{transform:none;opacity:1}}
+.tm-sheet{animation:tm-sheet .3s cubic-bezier(.2,.8,.2,1) both}
+.tm-dialog{animation:tm-dialog .22s cubic-bezier(.2,.8,.2,1) both}
+.tm-drawer{animation:tm-drawer .28s cubic-bezier(.2,.8,.2,1) both}
+@keyframes tm-wave{0%,100%{transform:scaleY(.35)}50%{transform:scaleY(1)}}
+.tm-wave{animation:tm-wave .9s ease-in-out infinite;transform-origin:center}
+@media (prefers-reduced-motion:reduce){.tm-sheet,.tm-dialog,.tm-drawer{animation:tm-fade .2s ease both}.tm-shake,.tm-wave{animation:none}}
+/* Modal-only */
+[data-tip=""]::after{display:none}
+.tm-field:focus{border-color:var(--tm-accent)!important}
+.tm-field::placeholder{color:inherit;opacity:.45}
+</style>
+</helmet>
+<div role="dialog" aria-modal="true" aria-labelledby="tm-modal-title" style="--tm-tip-bg: {{c.tipBg}}; --tm-tip-fg: {{c.tipFg}}; --tm-row-hover: {{c.rowHover}}; --tm-row-press: {{c.rowPress}}; --tm-accent: {{tkn.ink}}; --tm-focus: {{tkn.ink}}; --tm-flash: {{tkn.flash}}; position: relative; display: flex; flex-direction: column; width: 100%; max-height: {{maxH}}; box-sizing: border-box; background: {{c.surface}}; color: {{c.text}}; border-radius: {{radius}}; border: 1px solid {{c.edge}}; box-shadow: {{shadow}}; font-family: Manrope, system-ui, sans-serif; font-variant-numeric: tabular-nums; -webkit-font-smoothing: antialiased">
+
+  <sc-if value="{{sheet}}" hint-placeholder-val="{{ false }}">
+    <div aria-hidden="true" style="flex-shrink: 0; display: flex; justify-content: center; padding-top: 10px"><span style="width: 40px; height: 5px; border-radius: 3px; background: {{c.line}}"></span></div>
+  </sc-if>
+
+  <!-- Header -->
+  <header style="flex-shrink: 0; display: flex; align-items: center; gap: 12px; padding: {{headPad}}">
+    <sc-if value="{{head.hasAvatar}}" hint-placeholder-val="{{ true }}">
+      <span aria-hidden="true" style="width: 44px; height: 44px; flex-shrink: 0; border-radius: 22px; background: {{head.avatar}}; color: #15140E; display: flex; align-items: center; justify-content: center; font-size: 17px; font-weight: 800">{{head.letter}}</span>
+    </sc-if>
+    <div style="flex-grow: 1; min-width: 0; display: flex; flex-direction: column; gap: 3px">
+      <h2 id="tm-modal-title" style="margin: 0; font-size: 20px; line-height: 1.25; font-weight: 800; letter-spacing: -0.01em">{{head.title}}</h2>
+      <sc-if value="{{head.hasSub}}" hint-placeholder-val="{{ true }}">
+        <span style="font-size: 13px; line-height: 1.4; font-weight: 600; color: {{c.text3}}">{{head.sub}}</span>
+      </sc-if>
+    </div>
+    <button class="tm-press" aria-label="Close" data-tip="Close (Esc)" data-tip-pos="left" onClick="{{close}}" style="width: 40px; height: 40px; flex-shrink: 0; align-self: flex-start; border: none; border-radius: 20px; background: {{c.surface2}}; color: {{c.text}}; display: flex; align-items: center; justify-content: center; cursor: pointer">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" aria-hidden="true"><path d="M18 6L6 18"></path><path d="M6 6l12 12"></path></svg>
+    </button>
+  </header>
+
+  <!-- Body -->
+  <div style="flex: 1 1 auto; min-height: 0; overflow-y: auto; display: flex; flex-direction: column; gap: 18px; padding: {{bodyPad}}">
+
+    <!-- ===== trade ===== -->
+    <sc-if value="{{is.trade}}" hint-placeholder-val="{{ true }}">
+      <div style="display: flex; align-items: flex-end; gap: 12px">
+        <div style="flex-grow: 1; display: flex; flex-direction: column; gap: 6px">
+          <span style="font-size: 40px; line-height: 1; font-weight: 800; letter-spacing: -0.03em; color: {{tr.color}}">{{tr.pnl}}</span>
+          <span style="font-size: 14px; font-weight: 700; color: {{tr.color}}">{{tr.pct}} <span style="color: {{c.text3}}">· {{tr.inOut}}</span></span>
+        </div>
+      </div>
+
+      <sc-if value="{{tr.hasRepeat}}" hint-placeholder-val="{{ false }}">
+        <div style="display: flex; gap: 12px; padding: 14px 16px; border-radius: 18px; background: {{c.lossSoft}}; border: 1px solid {{c.lossLine}}">
+          <span aria-hidden="true" style="width: 28px; height: 28px; flex-shrink: 0; border-radius: 14px; background: {{c.lossLine}}; color: {{c.loss}}; display: flex; align-items: center; justify-content: center">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 0 1 15.5-6.3L21 8"></path><path d="M21 3v5h-5"></path><path d="M21 12a9 9 0 0 1-15.5 6.3L3 16"></path><path d="M3 21v-5h5"></path></svg>
+          </span>
+          <div style="flex-grow: 1; display: flex; flex-direction: column; gap: 6px">
+            <span style="font-size: 14px; line-height: 1.45; font-weight: 700">{{tr.repeat}}</span>
+            <a class="tm-hover" href="#receipts" onClick="{{tr.seeAll}}" style="align-self: flex-start; font-size: 13px; font-weight: 800; color: {{c.loss}}">See all 3 chases</a>
+          </div>
+        </div>
+      </sc-if>
+
+      <div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px">
+        <sc-for list="{{tr.facts}}" as="f" hint-placeholder-count="6">
+          <div style="display: flex; flex-direction: column; gap: 3px; padding: 12px 14px; border-radius: 16px; background: {{c.well}}">
+            <span style="font-size: 12px; font-weight: 700; color: {{c.text3}}">{{f.k}}</span>
+            <span style="font-size: 15px; font-weight: 800; color: {{f.color}}">{{f.v}}</span>
+            <span style="font-size: 12px; font-weight: 600; color: {{c.text2}}">{{f.sub}}</span>
+          </div>
+        </sc-for>
+      </div>
+
+      <div style="display: flex; flex-direction: column">
+        <span style="padding-bottom: 6px; font-size: 13px; font-weight: 800; color: {{c.text2}}">Fills</span>
+        <sc-for list="{{tr.fills}}" as="x" hint-placeholder-count="2">
+          <div style="display: flex; align-items: center; gap: 12px; padding: 10px 0; border-top: 1px solid {{c.line}}">
+            <span aria-hidden="true" style="width: 10px; height: 10px; flex-shrink: 0; border-radius: 5px; background: {{x.dot}}"></span>
+            <div style="flex-grow: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px">
+              <span style="font-size: 14px; font-weight: 800">{{x.side}} <span style="color: {{c.text2}}">{{x.usd}}</span></span>
+              <span style="font-size: 12px; font-weight: 600; color: {{c.text3}}">{{x.detail}}</span>
+            </div>
+            <span style="font-size: 13px; font-weight: 700; color: {{c.text2}}">{{x.time}}</span>
+            <a class="tm-press" href="#tx" aria-label="View transaction {{x.tx}} on {{tr.explorer}}" data-tip="View on {{tr.explorer}}" data-tip-pos="left" onClick="{{x.open}}" style="width: 32px; height: 32px; flex-shrink: 0; border-radius: 16px; display: flex; align-items: center; justify-content: center; color: {{c.text3}}">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 4h6v6"></path><path d="M20 4l-9 9"></path><path d="M18 14v5a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1h5"></path></svg>
+            </a>
+          </div>
+        </sc-for>
+      </div>
+
+      <div style="display: flex; flex-direction: column; gap: 8px">
+        <div style="display: flex; align-items: center; gap: 8px; min-height: 32px">
+          <span style="flex-grow: 1; font-size: 13px; font-weight: 800; color: {{c.text2}}">My note <span style="font-weight: 600; color: {{c.text3}}">· in your words</span></span>
+          <sc-if value="{{tr.canEdit}}" hint-placeholder-val="{{ true }}">
+            <button class="tm-press" onClick="{{tr.editNote}}" style="height: 32px; padding: 0 12px; border: 1px solid {{c.line}}; border-radius: 999px; background: transparent; color: {{c.text}}; font-family: inherit; font-size: 13px; font-weight: 800; cursor: pointer">Edit</button>
+          </sc-if>
+        </div>
+        <sc-if value="{{tr.showNote}}" hint-placeholder-val="{{ true }}">
+          <p style="margin: 0; padding: 14px 16px; border-radius: 16px; background: {{c.well}}; font-size: 15px; line-height: 1.55; font-weight: 500">{{tr.note}}</p>
+        </sc-if>
+        <sc-if value="{{tr.noNote}}" hint-placeholder-val="{{ false }}">
+          <button class="tm-press" onClick="{{tr.editNote}}" style="min-height: 52px; padding: 0 16px; border: 1px dashed {{c.line}}; border-radius: 16px; background: transparent; color: {{c.text3}}; font-family: inherit; font-size: 14px; font-weight: 600; text-align: left; cursor: pointer">Add a note in your words…</button>
+        </sc-if>
+        <sc-if value="{{tr.editing}}" hint-placeholder-val="{{ false }}">
+          <label style="display: flex; flex-direction: column">
+            <span style="position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0)">Trade note</span>
+            <textarea class="tm-field" ref="{{focusEl}}" onInput="{{tr.input}}" rows="3" placeholder="What were you thinking on this one?" style="resize: vertical; min-height: 92px; padding: 12px 14px; border-radius: 16px; border: 1px solid {{c.line}}; background: {{c.well}}; color: {{c.text}}; font-family: inherit; font-size: 15px; line-height: 1.5; font-weight: 500; outline: none">{{tr.draft}}</textarea>
+          </label>
+          <div style="display: flex; justify-content: flex-end; gap: 8px">
+            <button class="tm-press" onClick="{{tr.cancelNote}}" style="height: 36px; padding: 0 14px; border: 1px solid {{c.line}}; border-radius: 999px; background: transparent; color: {{c.text}}; font-family: inherit; font-size: 13px; font-weight: 800; cursor: pointer">Cancel</button>
+            <button class="tm-press" onClick="{{tr.saveNote}}" style="height: 36px; padding: 0 16px; border: none; border-radius: 999px; background: {{accent}}; color: #15140E; font-family: inherit; font-size: 13px; font-weight: 800; cursor: pointer">Save note</button>
+          </div>
+        </sc-if>
+      </div>
+
+      <div style="display: flex; flex-direction: column; gap: 8px">
+        <span style="font-size: 13px; font-weight: 800; color: {{c.text2}}">Tags <span style="font-weight: 600; color: {{c.text3}}">· {{tr.tagHint}}</span></span>
+        <div role="group" aria-label="Tags" style="display: flex; flex-wrap: wrap; gap: 8px">
+          <sc-for list="{{tr.tags}}" as="g" hint-placeholder-count="6">
+            <button class="tm-press" role="checkbox" aria-checked="{{g.on}}" onClick="{{g.toggle}}" style="height: 34px; padding: 0 14px; border: 1px solid {{g.border}}; border-radius: 999px; background: {{g.bg}}; color: {{g.fg}}; font-family: inherit; font-size: 13px; font-weight: 800; cursor: pointer">{{g.label}}</button>
+          </sc-for>
+        </div>
+      </div>
+    </sc-if>
+
+    <!-- ===== editEntry ===== -->
+    <sc-if value="{{is.editEntry}}" hint-placeholder-val="{{ false }}">
+      <label style="display: flex; flex-direction: column; gap: 8px">
+        <span style="font-size: 13px; font-weight: 800; color: {{c.text2}}">My journal</span>
+        <textarea class="tm-field" ref="{{focusEl}}" onInput="{{ed.input}}" rows="8" style="resize: vertical; min-height: 200px; padding: 14px 16px; border-radius: 18px; border: 1px solid {{c.line}}; background: {{c.well}}; color: {{c.text}}; font-family: inherit; font-size: 16px; line-height: 1.6; font-weight: 500; outline: none">{{ed.text}}</textarea>
+      </label>
+      <div style="display: flex; align-items: flex-start; gap: 12px; margin-top: -8px">
+        <span style="flex-grow: 1; font-size: 12px; line-height: 1.5; font-weight: 600; color: {{c.text3}}">Written from your voice note, in your words. M8 never rewrites it unless you ask.</span>
+        <span style="flex-shrink: 0; font-size: 12px; font-weight: 800; color: {{ed.countColor}}">{{ed.count}}</span>
+      </div>
+    </sc-if>
+
+    <!-- ===== receipts ===== -->
+    <sc-if value="{{is.receipts}}" hint-placeholder-val="{{ false }}">
+      <div style="display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px">
+        <sc-for list="{{rc.stats}}" as="s" hint-placeholder-count="3">
+          <div style="display: flex; flex-direction: column; gap: 3px; padding: 12px 14px; border-radius: 16px; background: {{c.well}}">
+            <span style="font-size: 12px; font-weight: 700; color: {{c.text3}}">{{s.k}}</span>
+            <span style="font-size: 18px; font-weight: 800; color: {{s.color}}">{{s.v}}</span>
+          </div>
+        </sc-for>
+      </div>
+      <sc-if value="{{rc.hasQuote}}" hint-placeholder-val="{{ false }}">
+        <figure style="margin: 0; display: flex; flex-direction: column; gap: 6px; padding: 14px 16px; border-left: 3px solid {{c.loss}}; border-radius: 4px 16px 16px 4px; background: {{c.well}}">
+          <blockquote style="margin: 0; font-size: 16px; line-height: 1.5; font-weight: 700">"never again after a red one"</blockquote>
+          <figcaption style="font-size: 12px; font-weight: 600; color: {{c.text3}}">You, in your journal on Sep 24</figcaption>
+        </figure>
+      </sc-if>
+      <div style="display: flex; flex-direction: column">
+        <sc-for list="{{rc.rows}}" as="r" hint-placeholder-count="3">
+          <a class="tm-row" href="#trade" onClick="{{r.open}}" aria-label="{{r.aria}}" style="display: flex; align-items: center; gap: 12px; margin: 0 -10px; padding: 10px; border-radius: 14px; color: inherit; text-decoration: none">
+            <span aria-hidden="true" style="width: 36px; height: 36px; flex-shrink: 0; border-radius: 18px; background: {{r.avatar}}; color: #15140E; display: flex; align-items: center; justify-content: center; font-size: 13px; font-weight: 800">{{r.letter}}</span>
+            <div style="flex-grow: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px">
+              <span style="font-size: 14px; font-weight: 800">{{r.coin}} <span style="font-weight: 600; color: {{c.text3}}">· {{r.date}}</span></span>
+              <span style="font-size: 12px; font-weight: 600; color: {{c.text2}}">{{r.after}} after a loss · <span style="color: {{r.sizeColor}}">{{r.size}} size</span></span>
+            </div>
+            <span style="font-size: 14px; font-weight: 800; color: {{r.color}}">{{r.net}}</span>
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="{{c.text3}}" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 18l6-6-6-6"></path></svg>
+          </a>
+        </sc-for>
+      </div>
+      <span style="font-size: 12px; line-height: 1.5; font-weight: 600; color: {{c.text3}}">{{rc.foot}}</span>
+    </sc-if>
+
+    <!-- ===== calendar ===== -->
+    <sc-if value="{{is.calendar}}" hint-placeholder-val="{{ false }}">
+      <div style="display: flex; align-items: center; gap: 8px">
+        <button class="tm-press" aria-label="Previous month" data-tip="{{cal.prevTip}}" data-tip-pos="right" aria-disabled="{{cal.prevOff}}" onClick="{{cal.prev}}" style="width: 36px; height: 36px; border: 1px solid {{c.line}}; border-radius: 18px; background: transparent; color: {{c.text}}; display: flex; align-items: center; justify-content: center; cursor: pointer">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 18l-6-6 6-6"></path></svg>
+        </button>
+        <div style="flex-grow: 1; display: flex; flex-direction: column; align-items: center; gap: 2px">
+          <span aria-live="polite" style="font-size: 16px; font-weight: 800">{{cal.label}}</span>
+          <span style="font-size: 12px; font-weight: 700; color: {{cal.sumColor}}">{{cal.sum}}</span>
+        </div>
+        <button class="tm-press" aria-label="Next month" data-tip="{{cal.nextTip}}" data-tip-pos="left" aria-disabled="{{cal.nextOff}}" onClick="{{cal.next}}" style="width: 36px; height: 36px; border: 1px solid {{c.line}}; border-radius: 18px; background: transparent; color: {{c.text}}; display: flex; align-items: center; justify-content: center; cursor: pointer">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 18l6-6-6-6"></path></svg>
+        </button>
+      </div>
+      <div style="display: flex; flex-direction: column; gap: 6px">
+        <div aria-hidden="true" style="display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 5px; text-align: center; font-size: 11px; font-weight: 800; color: {{c.text3}}">
+          <span>Mon</span><span>Tue</span><span>Wed</span><span>Thu</span><span>Fri</span><span>Sat</span><span>Sun</span>
+        </div>
+        <div role="grid" aria-label="{{cal.label}}" style="display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 5px">
+          <sc-for list="{{cal.cells}}" as="d" hint-placeholder-count="35">
+            <sc-if value="{{d.blank}}" hint-placeholder-val="{{ false }}"><span aria-hidden="true" style="height: 52px"></span></sc-if>
+            <sc-if value="{{d.live}}" hint-placeholder-val="{{ true }}">
+              <button class="tm-press" aria-label="{{d.aria}}" aria-pressed="{{d.sel}}" data-tip="{{d.tip}}" data-tip-pos="{{d.tipPos}}" onClick="{{d.pick}}" style="height: 52px; min-width: 0; box-sizing: border-box; padding: 6px 6px 5px 7px; border: none; border-radius: 13px; box-shadow: {{d.ring}}; background: {{d.bg}}; color: {{d.numColor}}; display: flex; flex-direction: column; align-items: flex-start; justify-content: space-between; font-family: inherit; cursor: pointer; overflow: visible">
+                <span style="font-size: 12px; font-weight: 800">{{d.num}}</span>
+                <span style="max-width: 100%; overflow: hidden; font-size: 10.5px; font-weight: 800; color: {{d.fg}}; white-space: nowrap">{{d.amt}}</span>
+              </button>
+            </sc-if>
+            <sc-if value="{{d.off}}" hint-placeholder-val="{{ false }}">
+              <span aria-disabled="true" aria-label="{{d.aria}}" data-tip="{{d.tip}}" data-tip-pos="{{d.tipPos}}" style="height: 52px; box-sizing: border-box; padding: 6px 7px; border-radius: 13px; border: 1px dashed {{c.line}}; color: {{c.text3}}; font-size: 12px; font-weight: 700; cursor: not-allowed; opacity: 0.7">{{d.num}}</span>
+            </sc-if>
+          </sc-for>
+        </div>
+      </div>
+      <div aria-hidden="true" style="display: flex; flex-wrap: wrap; gap: 14px; font-size: 12px; font-weight: 700; color: {{c.text3}}">
+        <span style="display: flex; align-items: center; gap: 6px"><span style="width: 10px; height: 10px; border-radius: 3px; background: {{c.gainSoft2}}"></span>Green day</span>
+        <span style="display: flex; align-items: center; gap: 6px"><span style="width: 10px; height: 10px; border-radius: 3px; background: {{c.lossSoft2}}"></span>Red day</span>
+        <span style="display: flex; align-items: center; gap: 6px"><span style="width: 10px; height: 10px; border-radius: 3px; background: {{c.surface2}}"></span>Rest day</span>
+        <span style="display: flex; align-items: center; gap: 6px"><span style="width: 10px; height: 10px; box-sizing: border-box; border-radius: 3px; border: 2px solid {{accent}}"></span>Showing</span>
+      </div>
+    </sc-if>
+
+    <!-- ===== rule ===== -->
+    <sc-if value="{{is.rule}}" hint-placeholder-val="{{ false }}">
+      <sc-if value="{{ru.picking}}" hint-placeholder-val="{{ true }}">
+        <div role="radiogroup" aria-label="Rule type" style="display: flex; flex-direction: column; gap: 8px">
+          <sc-for list="{{ru.types}}" as="t" hint-placeholder-count="5">
+            <button class="tm-lift" role="radio" aria-checked="{{t.on}}" onClick="{{t.pick}}" style="display: flex; align-items: center; gap: 12px; padding: 12px 14px; border: 1px solid {{t.border}}; border-radius: 16px; background: {{c.well}}; color: {{c.text}}; font-family: inherit; text-align: left">
+              <span aria-hidden="true" style="width: 20px; height: 20px; flex-shrink: 0; box-sizing: border-box; border-radius: 10px; border: {{t.radio}}"></span>
+              <span style="flex-grow: 1; display: flex; flex-direction: column; gap: 2px">
+                <span style="font-size: 14px; font-weight: 800">{{t.label}}</span>
+                <span style="font-size: 12px; font-weight: 600; color: {{c.text3}}">{{t.hint}}</span>
+              </span>
+            </button>
+          </sc-for>
+        </div>
+      </sc-if>
+
+      <div style="display: flex; flex-direction: column; gap: 12px; padding: 16px; border-radius: 20px; background: {{c.well}}">
+        <span style="font-size: 13px; font-weight: 800; color: {{c.text2}}">{{ru.valueLabel}}</span>
+        <div style="display: flex; align-items: center; gap: 12px">
+          <button class="tm-press" aria-label="Less" data-tip="{{ru.lessTip}}" data-tip-pos="right" aria-disabled="{{ru.minOff}}" onClick="{{ru.less}}" style="width: 44px; height: 44px; flex-shrink: 0; border: 1px solid {{c.line}}; border-radius: 22px; background: {{c.surface}}; color: {{c.text}}; display: flex; align-items: center; justify-content: center; cursor: pointer">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" aria-hidden="true"><path d="M5 12h14"></path></svg>
+          </button>
+          <span aria-live="polite" style="flex-grow: 1; text-align: center; font-size: 34px; line-height: 1; font-weight: 800; letter-spacing: -0.02em">{{ru.display}}</span>
+          <button class="tm-press" aria-label="More" data-tip="{{ru.moreTip}}" data-tip-pos="left" aria-disabled="{{ru.maxOff}}" onClick="{{ru.more}}" style="width: 44px; height: 44px; flex-shrink: 0; border: 1px solid {{c.line}}; border-radius: 22px; background: {{c.surface}}; color: {{c.text}}; display: flex; align-items: center; justify-content: center; cursor: pointer">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" aria-hidden="true"><path d="M12 5v14"></path><path d="M5 12h14"></path></svg>
+          </button>
+        </div>
+        <div role="radiogroup" aria-label="Presets" style="display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 6px">
+          <sc-for list="{{ru.presets}}" as="p" hint-placeholder-count="4">
+            <button class="tm-press" role="radio" aria-checked="{{p.on}}" onClick="{{p.pick}}" style="height: 36px; border: none; border-radius: 999px; background: {{p.bg}}; color: {{p.fg}}; font-family: inherit; font-size: 13px; font-weight: 800; cursor: pointer">{{p.label}}</button>
+          </sc-for>
+        </div>
+      </div>
+
+      <div style="display: flex; gap: 12px; align-items: flex-start">
+        <span aria-hidden="true" style="width: 32px; height: 32px; flex-shrink: 0; border-radius: 11px; background: {{accent}}; color: #15140E; display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 800">M8</span>
+        <p aria-live="polite" style="margin: 0; padding-top: 5px; font-size: 15px; line-height: 1.5; font-weight: 600">{{ru.sentence}}</p>
+      </div>
+
+      <div style="display: flex; flex-direction: column; gap: 8px">
+        <span style="font-size: 13px; font-weight: 800; color: {{c.text2}}">When it happens</span>
+        <div role="radiogroup" aria-label="When it happens" style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 6px; padding: 4px; border-radius: 999px; background: {{c.well}}">
+          <sc-for list="{{ru.modes}}" as="m" hint-placeholder-count="2">
+            <button class="tm-press" role="radio" aria-checked="{{m.on}}" data-tip="{{m.tip}}" data-tip-wrap="" onClick="{{m.pick}}" style="height: 40px; border: none; border-radius: 999px; background: {{m.bg}}; color: {{m.fg}}; font-family: inherit; font-size: 13px; font-weight: 800; cursor: pointer">{{m.label}}</button>
+          </sc-for>
+        </div>
+      </div>
+    </sc-if>
+
+    <!-- ===== confirm ===== -->
+    <sc-if value="{{is.confirm}}" hint-placeholder-val="{{ false }}">
+      <p style="margin: 0; font-size: 15px; line-height: 1.55; font-weight: 500; color: {{c.text2}}">{{cf.body}}</p>
+    </sc-if>
+
+    <!-- ===== deleteAccount ===== -->
+    <sc-if value="{{is.deleteAccount}}" hint-placeholder-val="{{ false }}">
+      <p style="margin: 0; font-size: 15px; line-height: 1.55; font-weight: 500; color: {{c.text2}}">This wipes everything, right away. It can't be undone and there's no backup.</p>
+      <div style="display: flex; flex-direction: column; gap: 2px; padding: 6px 16px; border-radius: 18px; background: {{c.well}}">
+        <sc-for list="{{da.items}}" as="i" hint-placeholder-count="5">
+          <div style="display: flex; align-items: center; gap: 10px; padding: 9px 0; font-size: 14px; font-weight: 700">
+            <span aria-hidden="true" style="width: 6px; height: 6px; border-radius: 3px; background: {{c.loss}}"></span>
+            <span style="flex-grow: 1">{{i.k}}</span>
+            <span style="color: {{c.text3}}">{{i.v}}</span>
+          </div>
+        </sc-for>
+      </div>
+      <span style="font-size: 13px; line-height: 1.5; font-weight: 600; color: {{c.text3}}">Your remaining paid days are lost. Want a copy first? Use Export my data.</span>
+      <label style="display: flex; flex-direction: column; gap: 8px">
+        <span style="font-size: 13px; font-weight: 800; color: {{c.text2}}">Type <b style="color: {{c.text}}">delete</b> to confirm</span>
+        <input class="tm-field" ref="{{focusEl}}" onInput="{{da.input}}" placeholder="delete" autocomplete="off" spellcheck="false" style="height: 50px; padding: 0 16px; border-radius: 16px; border: 1px solid {{da.border}}; background: {{c.well}}; color: {{c.text}}; font-family: inherit; font-size: 16px; font-weight: 700; outline: none">
+      </label>
+    </sc-if>
+
+    <!-- ===== export ===== -->
+    <sc-if value="{{is.export}}" hint-placeholder-val="{{ false }}">
+      <sc-if value="{{ex.idle}}" hint-placeholder-val="{{ true }}">
+        <div style="display: flex; flex-direction: column; gap: 8px">
+          <span style="font-size: 13px; font-weight: 800; color: {{c.text2}}">Format</span>
+          <div role="radiogroup" aria-label="Format" style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px">
+            <sc-for list="{{ex.formats}}" as="f" hint-placeholder-count="2">
+              <button class="tm-lift" role="radio" aria-checked="{{f.on}}" onClick="{{f.pick}}" style="display: flex; flex-direction: column; align-items: flex-start; gap: 3px; padding: 12px 14px; border: 1px solid {{f.border}}; border-radius: 16px; background: {{c.well}}; color: {{c.text}}; font-family: inherit; text-align: left">
+                <span style="font-size: 15px; font-weight: 800">{{f.label}}</span>
+                <span style="font-size: 12px; font-weight: 600; color: {{c.text3}}">{{f.hint}}</span>
+              </button>
+            </sc-for>
+          </div>
+        </div>
+        <div style="display: flex; flex-direction: column">
+          <span style="padding-bottom: 4px; font-size: 13px; font-weight: 800; color: {{c.text2}}">Include</span>
+          <sc-for list="{{ex.parts}}" as="p" hint-placeholder-count="3">
+            <div style="display: flex; align-items: center; gap: 12px; padding: 10px 0; border-top: 1px solid {{c.line}}">
+              <span style="flex-grow: 1; display: flex; flex-direction: column; gap: 2px">
+                <span style="font-size: 14px; font-weight: 800">{{p.label}}</span>
+                <span style="font-size: 12px; font-weight: 600; color: {{c.text3}}">{{p.hint}}</span>
+              </span>
+              <button class="tm-press" role="switch" aria-checked="{{p.on}}" aria-label="Include {{p.label}}" onClick="{{p.toggle}}" style="width: 52px; height: 32px; flex-shrink: 0; padding: 4px; box-sizing: border-box; border: none; border-radius: 16px; background: {{p.track}}; display: flex; justify-content: {{p.justify}}; cursor: pointer">
+                <span style="width: 24px; height: 24px; border-radius: 12px; background: {{p.knob}}; box-shadow: 0 1px 3px rgba(0,0,0,0.25)"></span>
+              </button>
+            </div>
+          </sc-for>
+        </div>
+      </sc-if>
+      <sc-if value="{{ex.working}}" hint-placeholder-val="{{ false }}">
+        <div role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="{{ex.pctNum}}" aria-label="Preparing export" style="display: flex; flex-direction: column; gap: 10px; padding: 18px; border-radius: 18px; background: {{c.well}}">
+          <div style="display: flex; align-items: center; gap: 10px">
+            <span class="tm-spin" aria-hidden="true" style="width: 16px; height: 16px; flex-shrink: 0; border-radius: 9px; border: 2px solid {{c.surface2}}; border-top-color: {{tkn.ink}}"></span>
+            <span aria-live="polite" style="flex-grow: 1; font-size: 14px; font-weight: 800">{{ex.step}}</span>
+            <span style="font-size: 13px; font-weight: 800; color: {{c.text2}}">{{ex.pct}}</span>
+          </div>
+          <div style="height: 8px; border-radius: 4px; background: {{c.surface2}}; overflow: hidden"><div style="height: 100%; width: {{ex.pct}}; border-radius: 4px; background: {{accent}}; transition: width .3s ease"></div></div>
+          <span style="font-size: 12px; font-weight: 600; color: {{c.text3}}">You can close this. We'll keep the file for 24 hours in Settings.</span>
+        </div>
+      </sc-if>
+      <sc-if value="{{ex.ready}}" hint-placeholder-val="{{ false }}">
+        <div class="tm-in" style="display: flex; align-items: center; gap: 14px; padding: 16px; border-radius: 18px; background: {{c.well}}">
+          <span class="tm-pop" aria-hidden="true" style="width: 44px; height: 44px; flex-shrink: 0; border-radius: 14px; background: {{accent}}; color: #15140E; display: flex; align-items: center; justify-content: center">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M12 4v11"></path><path d="M7 10l5 5 5-5"></path><path d="M5 20h14"></path></svg>
+          </span>
+          <div style="flex-grow: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px">
+            <span style="font-size: 15px; font-weight: 800">trenchm8-export.zip</span>
+            <span style="font-size: 12px; font-weight: 600; color: {{c.text3}}">{{ex.size}} · {{ex.fmtLabel}} · {{ex.what}}</span>
+          </div>
+        </div>
+      </sc-if>
+    </sc-if>
+
+    <!-- ===== checkout ===== -->
+    <sc-if value="{{is.checkout}}" hint-placeholder-val="{{ false }}">
+      <sc-if value="{{co.paying}}" hint-placeholder-val="{{ true }}">
+        <div style="display: flex; align-items: baseline; gap: 10px; padding: 14px 16px; border-radius: 18px; background: {{c.well}}">
+          <span style="font-size: 30px; line-height: 1; font-weight: 800; letter-spacing: -0.02em">{{co.amount}}</span>
+          <span style="font-size: 14px; font-weight: 800; color: {{c.text2}}">USDC</span>
+          <span style="flex-grow: 1"></span>
+          <span style="font-size: 13px; font-weight: 700; color: {{c.text3}}">{{co.days}} days · until {{co.until}}</span>
+        </div>
+        <div style="display: flex; gap: 16px; align-items: center">
+          <div role="img" aria-label="Solana Pay QR code for {{co.amount}} USDC" style="width: 156px; height: 156px; flex-shrink: 0; box-sizing: border-box; padding: 10px; border-radius: 16px; background: #FFFFFF; display: grid; grid-template-columns: repeat(25, minmax(0, 1fr)); grid-auto-rows: 1fr">
+            <sc-for list="{{co.qr}}" as="q" hint-placeholder-count="625">
+              <span style="background: {{q}}"></span>
+            </sc-for>
+          </div>
+          <div style="flex-grow: 1; min-width: 0; display: flex; flex-direction: column; gap: 8px">
+            <span style="font-size: 14px; line-height: 1.45; font-weight: 700">Scan with Phantom, Solflare or any Solana wallet.</span>
+            <span style="font-size: 12px; line-height: 1.5; font-weight: 600; color: {{c.text3}}">The amount and memo are filled in for you.</span>
+          </div>
+        </div>
+        <div style="display: flex; flex-direction: column; gap: 6px">
+          <span style="font-size: 13px; font-weight: 800; color: {{c.text2}}">Or send to this address</span>
+          <div style="display: flex; align-items: center; gap: 8px; padding: 6px 6px 6px 14px; border-radius: 16px; background: {{c.well}}; border: 1px solid {{c.line}}">
+            <span style="flex-grow: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 13px; font-weight: 600">{{co.address}}</span>
+            <button class="tm-press" onClick="{{co.copy}}" data-tip="{{co.copyTip}}" data-tip-pos="left" style="height: 34px; flex-shrink: 0; padding: 0 12px; border: none; border-radius: 999px; background: {{c.surface2}}; color: {{c.text}}; font-family: inherit; font-size: 13px; font-weight: 800; cursor: pointer">{{co.copyLabel}}</button>
+          </div>
+          <span style="display: flex; align-items: flex-start; gap: 8px; padding: 8px 12px; border-radius: 10px; background: {{tkn.warnSoft}}; font-size: 12px; line-height: 1.5; font-weight: 700; color: {{tkn.warn}}"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="flex-shrink: 0; margin-top: 2px"><path d="M12 9v4"></path><path d="M12 17h.01"></path><path d="M10.3 3.9L1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z"></path></svg>Only USDC on Solana. Other tokens or networks can't be recovered.</span>
+        </div>
+        <div aria-live="polite" style="display: flex; align-items: center; gap: 10px; padding: 12px 14px; border-radius: 16px; border: 1px dashed {{c.line}}">
+          <span class="tm-spin" aria-hidden="true" style="width: 16px; height: 16px; flex-shrink: 0; border-radius: 9px; border: 2px solid {{c.surface2}}; border-top-color: {{tkn.ink}}"></span>
+          <span style="flex-grow: 1; font-size: 13px; font-weight: 700">{{co.status}}</span>
+          <span style="font-size: 12px; font-weight: 600; color: {{c.text3}}">Usually under 30s</span>
+        </div>
+      </sc-if>
+      <sc-if value="{{co.checking}}" hint-placeholder-val="{{ false }}">
+        <div aria-live="polite" style="min-height: 260px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 14px; text-align: center">
+          <span class="tm-spin" aria-hidden="true" style="width: 40px; height: 40px; border-radius: 20px; border: 4px solid {{c.surface2}}; border-top-color: {{tkn.ink}}"></span>
+          <span style="font-size: 17px; font-weight: 800">Confirming on Solana…</span>
+          <span style="font-size: 13px; font-weight: 600; color: {{c.text3}}">Payment seen. Waiting for finality.</span>
+        </div>
+      </sc-if>
+      <sc-if value="{{co.done}}" hint-placeholder-val="{{ false }}">
+        <div aria-live="polite" style="min-height: 260px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 12px; text-align: center">
+          <span class="tm-pop" aria-hidden="true" style="width: 64px; height: 64px; border-radius: 32px; background: {{accent}}; color: #15140E; display: flex; align-items: center; justify-content: center">
+            <svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.5 4.5L19 7.5"></path></svg>
+          </span>
+          <span class="tm-in" style="font-size: 22px; font-weight: 800">{{co.days}} days added</span>
+          <span class="tm-in" style="animation-delay: .08s; max-width: 320px; font-size: 14px; line-height: 1.5; font-weight: 600; color: {{c.text2}}">M8 is with you until {{co.until}}. The receipt is in Settings, and M8 will remind you 3 days before it ends.</span>
+        </div>
+      </sc-if>
+    </sc-if>
+
+    <!-- ===== connect ===== -->
+    <sc-if value="{{is.connect}}" hint-placeholder-val="{{ false }}">
+      <sc-if value="{{cn.linking}}" hint-placeholder-val="{{ true }}">
+        <ol style="margin: 0; padding: 0; list-style: none; display: flex; flex-direction: column; gap: 12px">
+          <sc-for list="{{cn.steps}}" as="s" hint-placeholder-count="3">
+            <li style="display: flex; gap: 12px; align-items: flex-start">
+              <span aria-hidden="true" style="width: 26px; height: 26px; flex-shrink: 0; border-radius: 13px; background: {{c.surface2}}; display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 800">{{s.n}}</span>
+              <span style="padding-top: 3px; font-size: 14px; line-height: 1.5; font-weight: 600">{{s.text}}</span>
+            </li>
+          </sc-for>
+        </ol>
+        <div style="display: flex; align-items: center; gap: 8px; padding: 8px 8px 8px 18px; border-radius: 18px; background: {{c.well}}; border: 1px solid {{c.line}}">
+          <span style="flex-grow: 1; font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 20px; font-weight: 700; letter-spacing: 0.02em">{{cn.code}}</span>
+          <button class="tm-press" onClick="{{cn.copy}}" data-tip="{{cn.copyTip}}" data-tip-pos="left" style="height: 38px; padding: 0 14px; border: none; border-radius: 999px; background: {{c.surface2}}; color: {{c.text}}; font-family: inherit; font-size: 13px; font-weight: 800; cursor: pointer">{{cn.copyLabel}}</button>
+        </div>
+        <div aria-live="polite" style="display: flex; align-items: center; gap: 10px; font-size: 13px; font-weight: 700; color: {{c.text2}}">
+          <sc-if value="{{cn.waiting}}" hint-placeholder-val="{{ false }}"><span class="tm-spin" aria-hidden="true" style="width: 14px; height: 14px; flex-shrink: 0; border-radius: 8px; border: 2px solid {{c.surface2}}; border-top-color: {{tkn.ink}}"></span></sc-if>
+          <span>{{cn.status}}</span>
+        </div>
+      </sc-if>
+      <sc-if value="{{cn.done}}" hint-placeholder-val="{{ false }}">
+        <div style="min-height: 220px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 12px; text-align: center">
+          <span class="tm-pop" aria-hidden="true" style="width: 60px; height: 60px; border-radius: 30px; background: {{accent}}; color: #15140E; display: flex; align-items: center; justify-content: center">
+            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.5 4.5L19 7.5"></path></svg>
+          </span>
+          <span class="tm-in" style="font-size: 20px; font-weight: 800">{{cn.name}} connected</span>
+          <span class="tm-in" style="animation-delay: .08s; max-width: 320px; font-size: 14px; line-height: 1.5; font-weight: 600; color: {{c.text2}}">Signed in as {{cn.handle}}. Pick which app M8 messages first in Settings.</span>
+        </div>
+      </sc-if>
+    </sc-if>
+  </div>
+
+  <!-- Footer -->
+  <sc-if value="{{hasFoot}}" hint-placeholder-val="{{ true }}">
+    <footer style="flex-shrink: 0; display: flex; align-items: center; gap: 8px; padding: {{footPad}}; border-top: 1px solid {{c.line}}">
+
+      <sc-if value="{{is.trade}}" hint-placeholder-val="{{ true }}">
+        <button class="tm-press" aria-label="Open on {{tr.explorer}}" data-tip="Open on {{tr.explorer}}" data-tip-pos="right" onClick="{{tr.explore}}" style="width: 48px; height: 48px; flex-shrink: 0; border: 1px solid {{c.line}}; border-radius: 24px; background: transparent; color: {{c.text}}; display: flex; align-items: center; justify-content: center; cursor: pointer">
+          <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 4h6v6"></path><path d="M20 4l-9 9"></path><path d="M18 14v5a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1h5"></path></svg>
+        </button>
+        <button class="tm-press" onClick="{{tr.ask}}" style="flex: 1 1 auto; height: 48px; padding: 0 20px; border: none; border-radius: 999px; background: {{accent}}; color: #15140E; font-family: inherit; font-size: 15px; font-weight: 800; cursor: pointer">Ask M8 about this trade</button>
+      </sc-if>
+
+      <sc-if value="{{is.editEntry}}" hint-placeholder-val="{{ false }}">
+        <button class="tm-press" onClick="{{close}}" style="flex: 1 1 0; height: 48px; border: 1px solid {{c.line}}; border-radius: 999px; background: transparent; color: {{c.text}}; font-family: inherit; font-size: 15px; font-weight: 800; cursor: pointer">Cancel</button>
+        <button class="tm-press" onClick="{{ed.save}}" aria-disabled="{{ed.off}}" data-tip="{{ed.tip}}" style="flex: 1 1 0; height: 48px; border: none; border-radius: 999px; background: {{accent}}; color: #15140E; font-family: inherit; font-size: 15px; font-weight: 800; cursor: pointer">Save</button>
+      </sc-if>
+
+      <sc-if value="{{is.receipts}}" hint-placeholder-val="{{ false }}">
+        <button class="tm-press" onClick="{{rc.ask}}" style="flex: 1 1 0; height: 48px; border: 1px solid {{c.line}}; border-radius: 999px; background: transparent; color: {{c.text}}; font-family: inherit; font-size: 15px; font-weight: 800; cursor: pointer">Ask M8 why</button>
+        <button class="tm-press" onClick="{{rc.rule}}" style="flex: 1 1 0; height: 48px; border: none; border-radius: 999px; background: {{accent}}; color: #15140E; font-family: inherit; font-size: 15px; font-weight: 800; cursor: pointer">Make it a rule</button>
+      </sc-if>
+
+      <sc-if value="{{is.calendar}}" hint-placeholder-val="{{ false }}">
+        <span style="flex-grow: 1; font-size: 12px; font-weight: 600; color: {{c.text3}}">Tracking since Sep 8</span>
+        <button class="tm-press" onClick="{{cal.today}}" style="height: 44px; padding: 0 18px; border: 1px solid {{c.line}}; border-radius: 999px; background: transparent; color: {{c.text}}; font-family: inherit; font-size: 14px; font-weight: 800; cursor: pointer">Go to today</button>
+      </sc-if>
+
+      <sc-if value="{{is.rule}}" hint-placeholder-val="{{ false }}">
+        <sc-if value="{{ru.canDelete}}" hint-placeholder-val="{{ false }}">
+          <button class="tm-press" onClick="{{ru.del}}" style="height: 48px; padding: 0 16px; border: none; border-radius: 999px; background: transparent; color: {{c.loss}}; font-family: inherit; font-size: 14px; font-weight: 800; cursor: pointer">Delete rule</button>
+        </sc-if>
+        <span style="flex-grow: 1"></span>
+        <button class="tm-press" onClick="{{close}}" style="height: 48px; padding: 0 18px; border: 1px solid {{c.line}}; border-radius: 999px; background: transparent; color: {{c.text}}; font-family: inherit; font-size: 15px; font-weight: 800; cursor: pointer">Cancel</button>
+        <button class="tm-press" onClick="{{ru.save}}" style="height: 48px; padding: 0 22px; border: none; border-radius: 999px; background: {{accent}}; color: #15140E; font-family: inherit; font-size: 15px; font-weight: 800; cursor: pointer">{{ru.saveLabel}}</button>
+      </sc-if>
+
+      <sc-if value="{{is.confirm}}" hint-placeholder-val="{{ false }}">
+        <button class="tm-press" ref="{{focusEl}}" onClick="{{close}}" style="flex: 1 1 0; height: 48px; border: 1px solid {{c.line}}; border-radius: 999px; background: transparent; color: {{c.text}}; font-family: inherit; font-size: 15px; font-weight: 800; cursor: pointer">Cancel</button>
+        <button class="tm-press" onClick="{{cf.ok}}" style="flex: 1 1 0; height: 48px; border: none; border-radius: 999px; background: {{cf.bg}}; color: {{cf.fg}}; font-family: inherit; font-size: 15px; font-weight: 800; cursor: pointer">{{cf.label}}</button>
+      </sc-if>
+
+      <sc-if value="{{is.deleteAccount}}" hint-placeholder-val="{{ false }}">
+        <button class="tm-press" onClick="{{close}}" style="flex: 1 1 0; height: 48px; border: 1px solid {{c.line}}; border-radius: 999px; background: transparent; color: {{c.text}}; font-family: inherit; font-size: 15px; font-weight: 800; cursor: pointer">Keep my account</button>
+        <button class="tm-press" onClick="{{da.go}}" aria-disabled="{{da.off}}" aria-busy="{{da.busy}}" data-tip="{{da.tip}}" style="flex: 1 1 0; height: 48px; border: none; border-radius: 999px; background: {{da.bg}}; color: {{da.fg}}; display: flex; align-items: center; justify-content: center; gap: 8px; font-family: inherit; font-size: 15px; font-weight: 800; cursor: pointer">
+          <sc-if value="{{da.deleting}}" hint-placeholder-val="{{ false }}"><span class="tm-spin" aria-hidden="true" style="width: 15px; height: 15px; border-radius: 8px; border: 2px solid rgba(255,255,255,0.35); border-top-color: #FFFFFF"></span></sc-if>
+          {{da.label}}
+        </button>
+      </sc-if>
+
+      <sc-if value="{{is.export}}" hint-placeholder-val="{{ false }}">
+        <sc-if value="{{ex.idle}}" hint-placeholder-val="{{ true }}">
+          <span style="flex-grow: 1; font-size: 12px; font-weight: 700; color: {{c.text3}}">About {{ex.size}}</span>
+          <button class="tm-press" onClick="{{ex.run}}" aria-disabled="{{ex.off}}" data-tip="{{ex.tip}}" data-tip-pos="left" style="height: 48px; padding: 0 22px; border: none; border-radius: 999px; background: {{accent}}; color: #15140E; font-family: inherit; font-size: 15px; font-weight: 800; cursor: pointer">Export</button>
+        </sc-if>
+        <sc-if value="{{ex.working}}" hint-placeholder-val="{{ false }}">
+          <button class="tm-press" onClick="{{close}}" style="flex: 1 1 0; height: 48px; border: 1px solid {{c.line}}; border-radius: 999px; background: transparent; color: {{c.text}}; font-family: inherit; font-size: 15px; font-weight: 800; cursor: pointer">Close, keep going</button>
+        </sc-if>
+        <sc-if value="{{ex.ready}}" hint-placeholder-val="{{ false }}">
+          <button class="tm-press" onClick="{{close}}" style="height: 48px; padding: 0 18px; border: 1px solid {{c.line}}; border-radius: 999px; background: transparent; color: {{c.text}}; font-family: inherit; font-size: 15px; font-weight: 800; cursor: pointer">Done</button>
+          <button class="tm-press" onClick="{{ex.download}}" style="flex: 1 1 auto; height: 48px; padding: 0 20px; border: none; border-radius: 999px; background: {{accent}}; color: #15140E; font-family: inherit; font-size: 15px; font-weight: 800; cursor: pointer">Download</button>
+        </sc-if>
+      </sc-if>
+
+      <sc-if value="{{is.checkout}}" hint-placeholder-val="{{ false }}">
+        <sc-if value="{{co.paying}}" hint-placeholder-val="{{ true }}">
+          <button class="tm-press" onClick="{{co.wallet}}" style="flex: 1 1 0; height: 48px; border: 1px solid {{c.line}}; border-radius: 999px; background: transparent; color: {{c.text}}; font-family: inherit; font-size: 15px; font-weight: 800; cursor: pointer">Open in wallet</button>
+          <button class="tm-press" onClick="{{co.sent}}" style="flex: 1 1 0; height: 48px; border: none; border-radius: 999px; background: {{accent}}; color: #15140E; font-family: inherit; font-size: 15px; font-weight: 800; cursor: pointer">I've sent it</button>
+        </sc-if>
+        <sc-if value="{{co.checking}}" hint-placeholder-val="{{ false }}">
+          <button class="tm-press" aria-disabled="true" data-tip="Almost there" onClick="{{noop}}" style="flex: 1 1 0; height: 48px; border: none; border-radius: 999px; background: {{c.surface2}}; color: {{c.text3}}; font-family: inherit; font-size: 15px; font-weight: 800">Confirming…</button>
+        </sc-if>
+        <sc-if value="{{co.done}}" hint-placeholder-val="{{ false }}">
+          <button class="tm-press" onClick="{{co.finish}}" style="flex: 1 1 0; height: 48px; border: none; border-radius: 999px; background: {{accent}}; color: #15140E; font-family: inherit; font-size: 15px; font-weight: 800; cursor: pointer">Done</button>
+        </sc-if>
+      </sc-if>
+
+      <sc-if value="{{is.connect}}" hint-placeholder-val="{{ false }}">
+        <sc-if value="{{cn.linking}}" hint-placeholder-val="{{ true }}">
+          <button class="tm-press" onClick="{{close}}" style="height: 48px; padding: 0 18px; border: 1px solid {{c.line}}; border-radius: 999px; background: transparent; color: {{c.text}}; font-family: inherit; font-size: 15px; font-weight: 800; cursor: pointer">Cancel</button>
+          <button class="tm-press" onClick="{{cn.open}}" style="flex: 1 1 auto; height: 48px; padding: 0 20px; border: none; border-radius: 999px; background: {{accent}}; color: #15140E; font-family: inherit; font-size: 15px; font-weight: 800; cursor: pointer">{{cn.openLabel}}</button>
+        </sc-if>
+        <sc-if value="{{cn.done}}" hint-placeholder-val="{{ false }}">
+          <button class="tm-press" onClick="{{cn.finish}}" style="flex: 1 1 0; height: 48px; border: none; border-radius: 999px; background: {{accent}}; color: #15140E; font-family: inherit; font-size: 15px; font-weight: 800; cursor: pointer">Done</button>
+        </sc-if>
+      </sc-if>
+    </footer>
+  </sc-if>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"modal":{"editor":null},"onClose":{"editor":null},"onToast":{"editor":null},"onNav":{"editor":null},"onModal":{"editor":null},"maxH":{"editor":null},"theme":{"editor":"enum","options":["dark","light"],"default":"dark","section":"Look"},"layout":{"editor":"enum","options":["dialog","sheet"],"default":"dialog","section":"Look"},"accent":{"editor":"color","default":"#7CD4FF","options":["#7CD4FF","#FFD23F","#6495ED","#B4A5FF","#FF85C8","#FF9152","#FFB547"],"section":"Look"},"$preview":{"width":520,"height":900}}'>
+class Component extends DCLogic {
+  componentWillUnmount() { (this._t || []).forEach(clearTimeout); }
+  later(fn, ms) { this._t = this._t || []; this._t.push(setTimeout(fn, ms)); }
+  componentDidMount() {
+    const m = this.props.modal || {};
+    if (m.kind === 'checkout' && !m.manual) this.later(() => { if ((this.state || {}).co === undefined || (this.state || {}).co === 'pay') this.confirmPay(); }, 4500);
+  }
+  confirmPay() {
+    const st = this.state || {};
+    if (st.co === 'checking' || st.co === 'done') return;
+    this.setState({ co: 'checking' });
+    this.later(() => this.setState({ co: 'done' }), 1300);
+  }
+  renderVals() {
+    const st = this.state || {};
+    const m = this.props.modal || { kind: 'trade', trade: { coin: '$PEPU2' } };
+    const kind = m.kind || 'trade';
+    const accent = this.props.accent ?? '#7CD4FF';
+    const theme = this.props.theme ?? 'dark';
+    const layout = this.props.layout ?? 'dialog';
+    const sheet = layout === 'sheet';
+    const themes = {
+      dark: {
+        bg: '#0D0E13', surface: '#171922', surface2: '#21242F', line: '#2C303D', edge: '#2C303D', well: '#0D0E13',
+        text: '#F3F4F7', text2: '#A9AEBE', text3: '#858B9E', gain: '#3FD98E', loss: '#FF6B6B', warn: '#FFE07A',
+        gainRgb: '63,217,142', lossRgb: '255,107,107',
+        tipBg: '#F3F4F7', tipFg: '#12131A', rowHover: 'rgba(255,255,255,0.045)', rowPress: 'rgba(255,255,255,0.08)'
+      },
+      light: {
+        bg: '#F4F4F7', surface: '#FFFFFF', surface2: '#EEEFF3', line: '#E3E5EB', edge: 'transparent', well: '#F4F4F7',
+        text: '#12131A', text2: '#4F5566', text3: '#666C7E', gain: '#0B8A51', loss: '#D23434', warn: '#A86400',
+        gainRgb: '11,138,81', lossRgb: '210,52,52',
+        tipBg: '#12131A', tipFg: '#F3F4F7', rowHover: 'rgba(18,19,26,0.045)', rowPress: 'rgba(18,19,26,0.08)'
+      }
+    };
+    const c = Object.assign({}, themes[theme] || themes.dark);
+    // Theme-aware helpers from design/tokens.json: accent ink for foreground use on light, warn and danger.
+    const tkLight = (theme) === 'light';
+    const tkn = {
+      ink: tkLight ? ({ '#7CD4FF': '#0072AA', '#FFD23F': '#866700', '#6495ED': '#1B63E5', '#B4A5FF': '#6849FF', '#FF85C8': '#D10073', '#FF9152': '#BD4500', '#FFB547': '#9E5E00' }[String(accent).toUpperCase()] || accent) : accent,
+      flash: accent + '38',
+      warn: tkLight ? '#A86400' : '#FFE07A', warnSoft: tkLight ? 'rgba(168,100,0,0.10)' : 'rgba(255,224,122,0.14)',
+      danger: tkLight ? '#D23434' : '#FF6B6B'
+    };
+    c.lossSoft = 'rgba(' + c.lossRgb + ',0.08)';
+    c.lossLine = 'rgba(' + c.lossRgb + ',0.22)';
+    c.gainSoft2 = 'rgba(' + c.gainRgb + ',0.30)';
+    c.lossSoft2 = 'rgba(' + c.lossRgb + ',0.30)';
+
+    const call = (fn, ...a) => { if (typeof fn === 'function') return fn(...a); };
+    const close = () => call(this.props.onClose);
+    const toast = (t) => call(this.props.onToast, t);
+    const nav = (to) => call(this.props.onNav, to);
+    const openModal = (next) => call(this.props.onModal, next);
+    const prevent = (e) => { if (e && e.preventDefault) e.preventDefault(); };
+    const fmt = (v) => (v > 0 ? '+' : v < 0 ? '-' : '') + '$' + Math.abs(Math.round(v)).toLocaleString('en-US');
+    const usd = (v) => '$' + Math.abs(Math.round(v)).toLocaleString('en-US');
+    const hash = (s) => { let h = 2166136261; for (let i = 0; i < s.length; i++) { h ^= s.charCodeAt(i); h = Math.imul(h, 16777619); } return h >>> 0; };
+    const rng = (seed) => () => { seed |= 0; seed = (seed + 0x6D2B79F5) | 0; let t = Math.imul(seed ^ (seed >>> 15), 1 | seed); t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t; return ((t ^ (t >>> 14)) >>> 0) / 4294967296; };
+    const focusEl = (el) => { if (el && !this._focused) { this._focused = true; try { el.focus({ preventScroll: true }); if (el.setSelectionRange && el.value) el.setSelectionRange(el.value.length, el.value.length); } catch (e) {} } };
+    const seg = (on) => ({ bg: on ? accent : 'transparent', fg: on ? '#15140E' : c.text2, on: String(on) });
+
+    // ---------- shared data ----------
+    const DAILY = [210, -145, 88, -310, 65, 0, 0, 402, -96, 140, -540, 45, 0, 37, 305, -120, 180, -75, 612, 0, -38, 60, -150, 120, -64, 0, 0, 412, -88, 234];
+    const TRADES = [6, 5, 4, 14, 3, 0, 0, 7, 5, 6, 19, 4, 0, 3, 6, 4, 5, 4, 8, 0, 3, 4, 6, 5, 4, 0, 0, 6, 3, 8];
+    const NORMAL = 300;
+    const CHAINS = { SOL: ['Solana', 'Solscan'], BASE: ['Base', 'Basescan'], BNB: ['BNB Chain', 'BscScan'], RH: ['Robinhood Chain', 'Blockscout'] };
+    const chainKey = (ch) => { if (!ch) return 'SOL'; const u = String(ch).toUpperCase(); if (CHAINS[u]) return u; if (u.startsWith('SOL')) return 'SOL'; if (u.startsWith('BASE')) return 'BASE'; if (u.startsWith('BNB')) return 'BNB'; if (u.startsWith('ROB')) return 'RH'; return 'SOL'; };
+    // Real trades from the journal mockups (Oct 7 from Main, Sep 18 / Sep 24 from the repeat callouts).
+    const KNOWN = {
+      '$GOBLN': { date: 'Oct 7', time: '9:02 AM', chain: 'SOL', held: 34, inUsd: 300, out: 588, tag: 'Plan', avatar: '#8FD3FF', note: 'Sold half at 2x and rode the rest. Textbook.' },
+      '$SNEK': { date: 'Oct 7', time: '9:41 AM', chain: 'SOL', held: 18, inUsd: 250, out: 396, tag: 'Plan', avatar: '#9EE6C1' },
+      '$CHAD': { date: 'Oct 7', time: '10:05 AM', chain: 'BASE', held: 9, inUsd: 200, out: 162, tag: 'Cut fast', avatar: '#C3A6FF', note: 'Cut it at -19% without hesitating. Good loss.' },
+      '$MOONCAT': { date: 'Oct 7', time: '10:30 AM', chain: 'RH', held: 52, inUsd: 300, out: 497, tag: 'Plan', avatar: '#FFE08A' },
+      '$FROGO': { date: 'Oct 7', time: '11:12 AM', chain: 'SOL', held: 21, inUsd: 150, out: 204, tag: 'Plan', avatar: '#A5B4FC' },
+      '$DUCKY': { date: 'Oct 7', time: '11:31 AM', chain: 'BNB', held: 17, inUsd: 150, out: 112, tag: 'Cut fast', avatar: '#FFB86B' },
+      '$WIFHAT': { date: 'Oct 7', time: '1:34 PM', chain: 'SOL', held: 26, inUsd: 500, out: 279, tag: 'FOMO', avatar: '#FF9EC4', after: '3 min', note: 'Bought after a +180% candle at 2x my morning size. Pure FOMO.' },
+      '$PEPU2': { date: 'Oct 7', time: '1:58 PM', chain: 'SOL', held: 22, inUsd: 600, out: 446, tag: 'Revenge', avatar: '#F9A8A8', after: '4 min', note: 'Jumped back in 4 min after closing $WIFHAT red, at 2x my normal size. Wanted it back.', repeat: 'Same as Sep 18: $PEPU, 2 min after a loss, 2.5x size, -$188' },
+      '$PEPU': { date: 'Sep 18', time: '2:41 PM', chain: 'SOL', held: 11, inUsd: 450, out: 262, tag: 'Revenge', avatar: '#F9A8A8', after: '2 min', note: 'Doubled down to win $GIGACAT back. It did not come back.' },
+      '$BIRB': { date: 'Sep 24', time: '1:12 PM', chain: 'BASE', held: 14, inUsd: 360, out: 296, tag: 'Revenge', avatar: '#FFD3A8', after: '3 min', note: 'Never again after a red one. Saying it here so I read it later.' }
+    };
+    const AVATARS = ['#8FD3FF', '#9EE6C1', '#C3A6FF', '#FFE08A', '#A5B4FC', '#FFB86B', '#FF9EC4', '#F9A8A8'];
+    const buildTrade = (t) => {
+      t = t || {};
+      const coin = t.coin || '$PEPU2';
+      const k = KNOWN[coin] && (!t.date || t.date === KNOWN[coin].date) ? KNOWN[coin] : {};
+      const r = rng(hash(coin + (t.date || '')));
+      // Known trades: size multiple comes from the real buy-in, so it always agrees with the dollar figure.
+      const sizeX = k.inUsd ? k.inUsd / NORMAL : (t.sizeX || 0.6 + Math.round(r() * 14) / 10);
+      const inUsd = k.inUsd || Math.round((NORMAL * sizeX) / 10) * 10;
+      const pnl = typeof t.pnl === 'number' ? t.pnl : (k.out ? k.out - inUsd : Math.round((r() - 0.45) * inUsd * 0.8));
+      const out = inUsd + pnl;
+      const ck = chainKey(t.chain || k.chain);
+      const held = k.held || 3 + Math.floor(r() * 48);
+      const time = t.time || k.time || (1 + Math.floor(r() * 4)) + ':' + String(Math.floor(r() * 60)).padStart(2, '0') + ' PM';
+      return {
+        coin, date: t.date || k.date || 'Oct 7', time, ck, held, inUsd, out, pnl, sizeX,
+        note: t.note !== undefined ? t.note : (k.note || ''),
+        tags: t.tags || (k.tag ? [k.tag] : (t.after ? ['Revenge'] : [])),
+        repeat: t.repeat !== undefined ? t.repeat : (k.repeat || ''),
+        after: t.after || k.after || '',
+        avatar: k.avatar || AVATARS[hash(coin) % AVATARS.length],
+        age: 6 + Math.floor(r() * 170), mcap: 40 + Math.floor(r() * 900), supply: (0.4 + r() * 8).toFixed(2) + 'M', seed: r
+      };
+    };
+    const toMin = (s) => { const mm = /(\d+):(\d+)\s*(AM|PM)?/i.exec(s || '') || [0, 12, 0, 'PM']; let h = +mm[1] % 12; const ap = (mm[3] || (h >= 1 && h < 8 ? 'PM' : 'AM')).toUpperCase(); if (ap === 'PM') h += 12; return h * 60 + +mm[2]; };
+    const fromMin = (v) => { const h = Math.floor(v / 60) % 24; const mi = v % 60; return ((h % 12) || 12) + ':' + String(mi).padStart(2, '0') + ' ' + (h >= 12 ? 'PM' : 'AM'); };
+    const tradeModal = (t) => ({ kind: 'trade', trade: t });
+    const ruleSaved = (r) => toast({ text: 'Rule set: ' + ruleText(r), kind: 'success', undo: 'Rule removed' });
+
+    // ---------- rule definitions ----------
+    const HOURS = ['10 AM', '11 AM', '12 PM', '1 PM', '2 PM', '3 PM', '4 PM', '6 PM', '8 PM'];
+    const RULES = {
+      cooldown: { label: 'Cooldown after a red trade', hint: 'Wait before the next buy when one closes red', unit: 'min', step: 5, min: 5, max: 120, presets: [10, 20, 30, 60], def: 20, valueLabel: 'Wait this long', sentence: (v) => 'M8 will ask you to wait ' + v + ' min after any red trade.' },
+      dailyLoss: { label: 'Daily loss limit', hint: 'Stop for the day once you are down this much', unit: '$', step: 25, min: 25, max: 2000, presets: [100, 150, 250, 500], def: 150, valueLabel: 'Stop when down', sentence: (v) => 'Once you are down $' + v + ' in a day, M8 asks you to call it.' },
+      maxTrades: { label: 'Max trades a day', hint: 'Caps overtrading on hot days', unit: 'trades', step: 1, min: 1, max: 50, presets: [5, 8, 10, 15], def: 10, valueLabel: 'Trades per day', sentence: (v) => 'After trade ' + v + ', M8 checks in before every new buy.' },
+      maxPosition: { label: 'Max position size', hint: 'Flags buys bigger than your limit', unit: '$', step: 25, min: 25, max: 5000, presets: [150, 250, 400, 600], def: 250, valueLabel: 'Biggest buy', sentence: (v) => 'M8 flags any buy over $' + v + '. Your normal is $180.' },
+      noTradingAfter: { label: 'No new entries after', hint: 'Your worst hours are after 1 PM', unit: 'time', presets: ['11 AM', '1 PM', '3 PM', '6 PM'], def: '1 PM', valueLabel: 'Last entry at', sentence: (v) => 'No new entries after ' + v + ' ET. M8 asks before any later buy.' }
+    };
+    const ruleText = (r) => {
+      const d = RULES[r.type] || RULES.cooldown;
+      const v = r.value;
+      if (r.type === 'cooldown') return v + ' min cooldown after a red trade';
+      if (r.type === 'dailyLoss') return 'stop at -$' + v + ' a day';
+      if (r.type === 'maxTrades') return 'max ' + v + ' trades a day';
+      if (r.type === 'maxPosition') return 'max $' + v + ' per buy';
+      if (r.type === 'noTradingAfter') return 'no new entries after ' + v;
+      return d.label;
+    };
+
+    // ---------- header ----------
+    const titles = {
+      trade: null,
+      editEntry: ['Edit my journal', 'Wed, Oct 7 · in your words'],
+      receipts: m.pattern === 'reentry' ? ['14 re-entries after a loss', 'Last 30 days · a buy within 10 min of a red trade'] : ['3 chases after a red trade', 'Sep 18 · Sep 24 · Oct 7'],
+      calendar: ['Pick a day', 'Tap a day to open its journal'],
+      rule: m.rule ? ['Edit rule', (RULES[m.rule.type] || RULES.cooldown).label] : ['New rule', 'M8 checks it after every trade'],
+      confirm: [m.title || 'Are you sure?', ''],
+      deleteAccount: ['Delete your account?', ''],
+      export: ['Export my data', 'Everything M8 knows about your trading'],
+      checkout: ['Pay with USDC', (m.plan === '90' ? '90' : '30') + ' days · USDC on Solana'],
+      connect: ['Connect ' + (m.service === 'telegram' ? 'Telegram' : 'Discord'), 'Use M8 in both apps, one journal']
+    };
+    let head = { title: '', sub: '', hasSub: false, hasAvatar: false, avatar: '', letter: '' };
+    if (titles[kind]) head = { title: titles[kind][0], sub: titles[kind][1], hasSub: !!titles[kind][1], hasAvatar: false, avatar: '', letter: '' };
+
+    // ---------- trade ----------
+    const T = buildTrade(m.trade);
+    if (kind === 'trade') head = { title: T.coin, sub: CHAINS[T.ck][0] + ' · ' + T.date + ' · ' + T.time, hasSub: true, hasAvatar: true, avatar: T.avatar, letter: T.coin.replace('$', '').charAt(0) };
+    const note = st.note !== undefined ? st.note : T.note;
+    const editing = st.noteDraft !== undefined && st.noteDraft !== null;
+    const tagsOn = st.tags || T.tags;
+    const t0 = toMin(T.time);
+    const tokens = (usdAmt) => (usdAmt / (0.00004 + T.seed() * 0.0003) / 1e6).toFixed(2) + 'M ' + T.coin.replace('$', '');
+    const txid = (i) => { const r = rng(hash(T.coin + i)); const ch = '123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz'; let s = ''; for (let j = 0; j < 8; j++) s += ch[Math.floor(r() * ch.length)]; return s; };
+    const fillsRaw = [{ side: 'Bought', usdAmt: T.inUsd, at: t0, dot: tkn.ink }];
+    if (T.pnl > 0 && T.held >= 15) {
+      const half = Math.round(T.out * 0.55);
+      fillsRaw.push({ side: 'Sold half', usdAmt: half, at: t0 + Math.round(T.held * 0.45), dot: c.gain });
+      fillsRaw.push({ side: 'Sold the rest', usdAmt: T.out - half, at: t0 + T.held, dot: c.gain });
+    } else {
+      fillsRaw.push({ side: 'Sold', usdAmt: T.out, at: t0 + T.held, dot: T.pnl >= 0 ? c.gain : c.loss });
+    }
+    const explorer = CHAINS[T.ck][1];
+    const platform = { SOL: T.age < 60 ? 'Pump.fun' : 'Raydium', BASE: 'Uniswap', BNB: 'PancakeSwap', RH: 'Uniswap' }[T.ck];
+    const tagNames = ['Plan', 'Cut fast', 'Lucky', 'FOMO', 'Chase', 'Revenge'];
+    const tr = {
+      pnl: fmt(T.pnl), color: T.pnl >= 0 ? c.gain : c.loss,
+      pct: (T.pnl >= 0 ? '+' : '-') + Math.abs((T.pnl / T.inUsd) * 100).toFixed(1) + '%',
+      inOut: usd(T.inUsd) + ' in, ' + usd(T.out) + ' out', chainName: CHAINS[T.ck][0], explorer,
+      hasRepeat: !!T.repeat, repeat: T.repeat,
+      seeAll: (e) => { prevent(e); openModal({ kind: 'receipts', pattern: 'chase' }); },
+      facts: [
+        { k: 'Size', v: usd(T.inUsd), sub: T.sizeX.toFixed(1) + 'x your normal $' + NORMAL, color: T.sizeX >= 1.5 ? c.loss : c.text },
+        { k: 'Held', v: T.held >= 60 ? Math.floor(T.held / 60) + 'h ' + (T.held % 60) + 'm' : T.held + ' min', sub: fromMin(t0) + ' to ' + fromMin(t0 + T.held), color: c.text },
+        { k: 'Coin age at entry', v: T.age >= 60 ? Math.floor(T.age / 60) + 'h ' + (T.age % 60) + 'm' : T.age + ' min', sub: T.age < 60 ? 'Your best bucket: under 1 hour' : 'Older coins cost you this month', color: c.text },
+        { k: 'Entered', v: T.after ? T.after + ' after a loss' : 'Fresh start', sub: T.after ? (T.date.indexOf('Oct') === 0 ? 'Inside your 20 min cooldown' : 'Before you had a cooldown rule') : 'No red trade in the last hour', color: T.after ? c.loss : c.text },
+        { k: 'Market cap at entry', v: '$' + T.mcap + 'K', sub: platform, color: c.text },
+        { k: 'Wallet', v: T.ck === 'SOL' ? 'Main' : 'EVM', sub: T.ck === 'SOL' ? '7xKp…3fQa' : '0x4a…91c2', color: c.text }
+      ],
+      fills: fillsRaw.map((f, i) => ({
+        side: f.side, usd: usd(f.usdAmt), detail: tokens(f.usdAmt) + ' · ' + platform, time: fromMin(f.at), dot: f.dot, tx: txid(i),
+        open: (e) => { prevent(e); toast({ text: 'Opening ' + explorer + '…', kind: 'info' }); }
+      })),
+      canEdit: !editing && !!note, showNote: !editing && !!note, noNote: !editing && !note, editing,
+      note, draft: editing ? st.noteDraft : '',
+      editNote: () => this.setState({ noteDraft: note }),
+      cancelNote: () => this.setState({ noteDraft: null }),
+      input: (e) => this.setState({ noteDraft: e.target.value }),
+      saveNote: () => {
+        const old = note;
+        const next = (st.noteDraft || '').trim();
+        this.setState({ note: next, noteDraft: null });
+        if (m.onNote) m.onNote(next);
+        toast({ text: 'Note saved', kind: 'success', undo: 'Note restored', onUndo: () => { this.setState({ note: old }); if (m.onNote) m.onNote(old); } });
+      },
+      tagHint: st.tagSaved ? 'Saved' : 'tap to change',
+      tags: tagNames.map((g) => {
+        const on = tagsOn.indexOf(g) >= 0;
+        return {
+          label: g, on: String(on), bg: on ? accent : 'transparent', fg: on ? '#15140E' : c.text2, border: on ? accent : c.line,
+          toggle: () => {
+            const next = on ? tagsOn.filter((x) => x !== g) : tagsOn.concat([g]);
+            this.setState({ tags: next, tagSaved: true });
+            if (m.onTags) m.onTags(next);
+          }
+        };
+      }),
+      ask: () => { nav('ask'); close(); },
+      explore: () => toast({ text: 'Opening ' + explorer + '…', kind: 'info' })
+    };
+
+    // ---------- editEntry ----------
+    const original = m.text || '';
+    const edText = st.text !== undefined ? st.text : original;
+    const changed = edText.trim() !== original.trim();
+    const empty = !edText.trim();
+    const ed = {
+      text: edText, count: edText.length + ' / 1,000', countColor: edText.length > 1000 ? c.loss : c.text3,
+      off: String(!changed || empty || edText.length > 1000),
+      tip: empty ? 'Write something first' : (!changed ? 'No changes yet' : (edText.length > 1000 ? 'Too long' : '')),
+      input: (e) => this.setState({ text: e.target.value }),
+      save: () => {
+        if (!changed || empty || edText.length > 1000) return;
+        call(m.onSave, edText.trim());
+        toast({ text: 'Journal saved', kind: 'success', undo: 'Journal restored', onUndo: () => call(m.onSave, original) });
+        close();
+      }
+    };
+
+    // ---------- receipts ----------
+    const CHASE = [
+      ['$PEPU2', 'Oct 7', '4 min', 2.0, -154],
+      ['$BIRB', 'Sep 24', '3 min', 2.0, -64],
+      ['$PEPU', 'Sep 18', '2 min', 2.5, -188]
+    ];
+    // 14 re-entries: the 6 Stats shows plus 8 more. Net -$612, 4 green (29%).
+    const REENTRY = [
+      ['$WIFHAT', 'Oct 7', '3 min', 2.0, -221], ['$MOGGY', 'Oct 5', '10 min', 0.5, -14], ['$HONK', 'Sep 29', '4 min', 1.5, -36],
+      ['$FROGZ', 'Sep 24', '8 min', 1.0, 46], ['$BIRB', 'Sep 24', '3 min', 2.0, -64], ['$GLORP', 'Sep 22', '6 min', 1.0, 49],
+      ['$PEPU', 'Sep 18', '2 min', 2.5, -188], ['$GIGACAT', 'Sep 18', '6 min', 1.5, -94], ['$SLOTH', 'Sep 17', '9 min', 1.0, 58],
+      ['$MOODY', 'Sep 15', '5 min', 1.5, -38], ['$BONKR', 'Sep 11', '4 min', 2.0, -71], ['$KEKW', 'Sep 11', '3 min', 2.0, -44],
+      ['$ZOOMR', 'Sep 11', '7 min', 1.5, -27], ['$NUBZ', 'Sep 9', '5 min', 1.0, 32]
+    ];
+    const reentry = m.pattern === 'reentry';
+    const list = reentry ? REENTRY : CHASE;
+    const net = list.reduce((s, r) => s + r[4], 0);
+    const wins = list.filter((r) => r[4] > 0).length;
+    const avgSize = list.reduce((s, r) => s + r[3], 0) / list.length;
+    const rc = {
+      stats: [
+        { k: reentry ? 'Re-entries' : 'Chases', v: String(list.length), color: c.text },
+        { k: 'Net', v: fmt(net), color: net >= 0 ? c.gain : c.loss },
+        reentry ? { k: 'Won', v: Math.round((wins / list.length) * 100) + '%', color: c.text } : { k: 'Avg size', v: avgSize.toFixed(1) + 'x', color: c.loss }
+      ],
+      hasQuote: !reentry,
+      foot: reentry ? 'Re-entries lose you $44 on average. Your other trades make $15.' : 'All three came after a red trade, at 2x size or more, in the afternoon.',
+      rows: list.map((r) => {
+        const b = buildTrade({ coin: r[0], date: r[1] });
+        return {
+          coin: r[0], date: r[1], after: r[2], size: r[3].toFixed(1) + 'x', sizeColor: r[3] >= 1.5 ? c.loss : c.text2,
+          net: fmt(r[4]), color: r[4] >= 0 ? c.gain : c.loss, avatar: b.avatar, letter: r[0].replace('$', '').charAt(0),
+          aria: r[0] + ', ' + r[1] + ', ' + fmt(r[4]) + '. Open trade',
+          open: (e) => { prevent(e); openModal(tradeModal({ coin: r[0], date: r[1], pnl: r[4], sizeX: r[3], after: r[2] })); }
+        };
+      }),
+      ask: () => { nav('ask'); close(); },
+      rule: () => openModal({ kind: 'rule', rule: { type: 'cooldown', value: 20 }, fresh: true, onSave: ruleSaved })
+    };
+
+    // ---------- calendar ----------
+    const sel = m.selected || '2026-10-07';
+    const selMonth = +sel.slice(5, 7) - 1;
+    const month = st.month !== undefined ? st.month : selMonth;
+    const start = new Date(2026, 8, 8);
+    const isoOf = (d) => d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
+    const monthNames = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
+    const cells = [];
+    const first = new Date(2026, month, 1);
+    const lead = (first.getDay() + 6) % 7;
+    const dim = new Date(2026, month + 1, 0).getDate();
+    let mSum = 0, mTrades = 0;
+    const pick = (iso) => { call(m.onPick, iso); close(); };
+    for (let i = 0; i < lead; i++) cells.push({ blank: true, live: false, off: false, num: '', amt: '', aria: '', tip: '', tipPos: 'top', sel: 'false', ring: 'none', bg: '', numColor: '', fg: '', pick: () => {} });
+    for (let dd = 1; dd <= dim; dd++) {
+      const date = new Date(2026, month, dd);
+      const di = Math.round((date - start) / 86400000);
+      const label = date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+      const iso = isoOf(date);
+      const row = Math.floor((lead + dd - 1) / 7);
+      const col = (lead + dd - 1) % 7;
+      const tipPos = row === 0 ? 'bottom' : (col === 0 ? 'right' : (col === 6 ? 'left' : 'top'));
+      if (di < 0 || di >= DAILY.length) {
+        const tip = di < 0 ? 'Before tracking started' : 'Still to come';
+        cells.push({ blank: false, live: false, off: true, num: String(dd), amt: '', aria: label + ', ' + tip.toLowerCase(), tip, tipPos, sel: 'false', ring: 'none', bg: '', numColor: '', fg: '', pick: () => {} });
+        continue;
+      }
+      const v = DAILY[di], n = TRADES[di];
+      mSum += v; mTrades += n;
+      const isSel = iso === sel;
+      const isToday = iso === '2026-10-07';
+      const a = 0.12 + 0.22 * Math.min(1, Math.abs(v) / 600);
+      const rgb = v >= 0 ? c.gainRgb : c.lossRgb;
+      const amt = n === 0 ? 'Rest' : (Math.abs(v) >= 1000 ? (v > 0 ? '+' : '-') + (Math.abs(v) / 1000).toFixed(1) + 'k' : fmt(v));
+      cells.push({
+        blank: false, live: true, off: false, num: String(dd), amt,
+        aria: label + (n === 0 ? ', rest day' : ', ' + fmt(v) + ' on ' + n + ' trades') + (isToday ? ', today' : ''),
+        tip: label + (isToday ? ' (today)' : '') + ' · ' + (n === 0 ? 'rest day' : fmt(v) + ' · ' + n + (n === 1 ? ' trade' : ' trades')),
+        tipPos, sel: String(isSel),
+        ring: isSel ? 'inset 0 0 0 2px ' + accent : (isToday ? 'inset 0 0 0 1px ' + c.text3 : 'none'),
+        bg: n === 0 ? c.surface2 : 'rgba(' + rgb + ',' + a.toFixed(2) + ')',
+        numColor: n === 0 ? c.text3 : c.text, fg: n === 0 ? c.text3 : (v >= 0 ? c.gain : c.loss),
+        pick: () => pick(iso)
+      });
+    }
+    const minMonth = 8, maxMonth = 9;
+    const cal = {
+      label: monthNames[month] + ' 2026', cells,
+      sum: mTrades ? fmt(mSum) + ' · ' + mTrades + ' trades' : 'No trades tracked',
+      sumColor: mTrades ? (mSum >= 0 ? c.gain : c.loss) : c.text3,
+      prevOff: String(month <= minMonth), nextOff: String(month >= maxMonth),
+      prevTip: month <= minMonth ? 'Tracking started Sep 8' : monthNames[month - 1],
+      nextTip: month >= maxMonth ? 'No later days yet' : monthNames[month + 1],
+      prev: () => { if (month > minMonth) this.setState({ month: month - 1 }); },
+      next: () => { if (month < maxMonth) this.setState({ month: month + 1 }); },
+      today: () => pick('2026-10-07')
+    };
+
+    // ---------- rule ----------
+    const init = m.rule || null;
+    const rType = st.rType || (init ? init.type : 'cooldown');
+    const def = RULES[rType] || RULES.cooldown;
+    const rVal = st.rVal !== undefined ? st.rVal : (init && init.type === rType ? init.value : def.def);
+    const isTime = def.unit === 'time';
+    const hIdx = isTime ? Math.max(0, HOURS.indexOf(rVal)) : 0;
+    const shown = isTime ? rVal : (def.unit === '$' ? '$' + rVal : rVal + ' ' + def.unit);
+    const mode = st.rMode || (init && init.mode) || 'ask';
+    const stepTo = (dir) => {
+      if (isTime) { const ni = hIdx + dir; if (ni >= 0 && ni < HOURS.length) this.setState({ rVal: HOURS[ni] }); return; }
+      const nv = rVal + dir * def.step;
+      if (nv >= def.min && nv <= def.max) this.setState({ rVal: nv });
+    };
+    const ru = {
+      picking: !init || !!m.fresh,
+      types: Object.keys(RULES).map((key) => ({
+        label: RULES[key].label, hint: RULES[key].hint, on: String(key === rType),
+        border: key === rType ? accent : 'transparent', radio: key === rType ? '6px solid ' + accent : '2px solid ' + c.text3,
+        pick: () => this.setState({ rType: key, rVal: RULES[key].def })
+      })),
+      valueLabel: def.valueLabel, display: shown,
+      minOff: String(isTime ? hIdx <= 0 : rVal - def.step < def.min),
+      maxOff: String(isTime ? hIdx >= HOURS.length - 1 : rVal + def.step > def.max),
+      lessTip: isTime ? 'Earlier' : 'Less (' + (def.unit === '$' ? '-$' + def.step : '-' + def.step + (def.unit === 'min' ? ' min' : '')) + ')',
+      moreTip: isTime ? 'Later' : 'More (' + (def.unit === '$' ? '+$' + def.step : '+' + def.step + (def.unit === 'min' ? ' min' : '')) + ')',
+      less: () => stepTo(-1), more: () => stepTo(1),
+      presets: def.presets.map((p) => Object.assign({ label: isTime ? p : (def.unit === '$' ? '$' + p : p + (def.unit === 'min' ? ' min' : '')), pick: () => this.setState({ rVal: p }) }, seg(p === rVal))),
+      sentence: def.sentence(rVal) + (mode === 'log' ? ' It just notes it in your journal.' : ''),
+      modes: [
+        Object.assign({ label: 'Ask me first', tip: 'M8 messages you and waits for "It\'s planned" or "Good catch"', pick: () => this.setState({ rMode: 'ask' }) }, seg(mode === 'ask')),
+        Object.assign({ label: 'Just log it', tip: 'No message. It shows up in your journal and Sunday recap', pick: () => this.setState({ rMode: 'log' }) }, seg(mode === 'log'))
+      ],
+      canDelete: typeof m.onDelete === 'function',
+      saveLabel: init && !m.fresh ? 'Save changes' : 'Save rule',
+      save: () => {
+        const r = { type: rType, value: rVal, mode, label: def.label, text: ruleText({ type: rType, value: rVal }) };
+        if (typeof m.onSave === 'function') m.onSave(r); else ruleSaved(r);
+        close();
+      },
+      del: () => { call(m.onDelete); close(); }
+    };
+    if (kind === 'rule' && init && !m.fresh) head.sub = def.label;
+
+    // ---------- confirm ----------
+    const cf = {
+      body: m.body || '', label: m.confirmLabel || 'Confirm',
+      bg: m.danger ? c.loss : accent, fg: m.danger ? '#FFFFFF' : '#15140E',
+      ok: () => { call(m.onConfirm); close(); }
+    };
+
+    // ---------- deleteAccount ----------
+    const typed = (st.typed || '').trim().toLowerCase() === 'delete';
+    const deleting = st.deleting === true;
+    const da = {
+      items: [
+        { k: 'Trades and stats', v: '142 trades' }, { k: 'Journal entries', v: '24 days' }, { k: 'Rules and alerts', v: '3 rules' },
+        { k: 'What M8 remembers', v: '5 memories' }, { k: 'Wallets and chats', v: '3 wallets' }
+      ],
+      input: (e) => this.setState({ typed: e.target.value }),
+      border: typed ? c.loss : c.line,
+      off: String(!typed || deleting), busy: String(deleting), deleting,
+      tip: typed ? '' : 'Type delete first',
+      label: deleting ? 'Deleting…' : 'Delete everything',
+      bg: typed ? c.loss : c.surface2, fg: typed ? '#FFFFFF' : c.text3,
+      go: () => {
+        if (!typed || deleting) return;
+        this.setState({ deleting: true });
+        this.later(() => { call(m.onConfirm); close(); }, 1100);
+      }
+    };
+
+    // ---------- export ----------
+    const exFmt = st.exFmt || 'csv';
+    const parts = st.parts || { trades: true, journal: true, chats: true };
+    const partDefs = [['trades', 'Trades and stats', '142 trades, 3 wallets, every fill', 1.1], ['journal', 'Journal', 'Your entries, notes and tags', 0.4], ['chats', 'M8 conversations', 'Telegram, Discord and web, with dates', 0.9]];
+    const mb = partDefs.reduce((s, p) => s + (parts[p[0]] ? p[3] : 0), 0) * (exFmt === 'json' ? 1.3 : 1);
+    const anyPart = partDefs.some((p) => parts[p[0]]);
+    const exPhase = st.ex || 'idle';
+    const exSteps = ['Gathering trades…', 'Adding your journal…', 'Adding M8 conversations…', 'Zipping it up…'];
+    const exP = st.exP || 0;
+    const ex = {
+      idle: exPhase === 'idle', working: exPhase === 'working', ready: exPhase === 'ready',
+      formats: [
+        { key: 'csv', label: 'CSV', hint: 'Opens in Excel or Sheets' }, { key: 'json', label: 'JSON', hint: 'For your own scripts' }
+      ].map((f) => ({ label: f.label, hint: f.hint, on: String(f.key === exFmt), border: f.key === exFmt ? tkn.ink : 'transparent', pick: () => this.setState({ exFmt: f.key }) })),
+      parts: partDefs.map((p) => {
+        const on = !!parts[p[0]];
+        return {
+          label: p[1], hint: p[2], on: String(on), track: on ? accent : (theme === 'light' ? '#C9CCD6' : '#3A3E4C'), knob: on ? '#15140E' : '#FFFFFF', justify: on ? 'flex-end' : 'flex-start',
+          toggle: () => this.setState({ parts: Object.assign({}, parts, { [p[0]]: !on }) })
+        };
+      }),
+      size: mb.toFixed(1) + ' MB', fmtLabel: exFmt.toUpperCase(),
+      what: partDefs.filter((p) => parts[p[0]]).map((p) => ({ trades: 'trades', journal: 'journal', chats: 'chats' })[p[0]]).join(', '),
+      off: String(!anyPart), tip: anyPart ? '' : 'Pick at least one',
+      step: exSteps[Math.min(exP, 3)], pct: Math.min(100, exP * 25 + 10) + '%', pctNum: String(Math.min(100, exP * 25 + 10)),
+      run: () => {
+        if (!anyPart || exPhase !== 'idle') return;
+        this.setState({ ex: 'working', exP: 0 });
+        [1, 2, 3].forEach((k) => this.later(() => this.setState({ exP: k }), k * 650));
+        this.later(() => this.setState({ ex: 'ready' }), 2700);
+      },
+      download: () => { toast({ text: 'Downloaded trenchm8-export.zip', kind: 'success' }); close(); }
+    };
+
+    // ---------- checkout ----------
+    const plan90 = m.plan === '90';
+    const coPhase = st.co || 'pay';
+    const qr = [];
+    const qrR = rng(hash('trenchm8-pay-' + (plan90 ? 90 : 30)));
+    const finder = (x, y) => {
+      const pts = [[0, 0], [18, 0], [0, 18]];
+      for (const p of pts) {
+        const dx = x - p[0], dy = y - p[1];
+        if (dx >= 0 && dx < 7 && dy >= 0 && dy < 7) {
+          const edge = dx === 0 || dx === 6 || dy === 0 || dy === 6;
+          const core = dx >= 2 && dx <= 4 && dy >= 2 && dy <= 4;
+          return edge || core ? 1 : 0;
+        }
+        if (dx >= -1 && dx <= 7 && dy >= -1 && dy <= 7) return 0;
+      }
+      return -1;
+    };
+    for (let y = 0; y < 25; y++) for (let x = 0; x < 25; x++) {
+      const f = finder(x, y);
+      const on = f === -1 ? (y === 6 || x === 6 ? (x + y) % 2 === 0 : qrR() < 0.48) : f === 1;
+      qr.push(on ? '#12131A' : 'transparent');
+    }
+    const copied = st.copied === true;
+    const co = {
+      paying: coPhase === 'pay', checking: coPhase === 'checking', done: coPhase === 'done',
+      amount: plan90 ? '$50.00' : '$20.00', days: plan90 ? '90' : '30', until: plan90 ? 'Jan 28' : 'Nov 29',
+      qr, address: 'TM8pay7Hq3vXcR2kLwN9sJdE4fYb6uGtA1mZoKpz2',
+      copyLabel: copied ? 'Copied' : 'Copy', copyTip: copied ? 'Copied to clipboard' : 'Copy address',
+      copy: () => { this.setState({ copied: true }); toast({ text: 'Address copied', kind: 'success' }); this.later(() => this.setState({ copied: false }), 2000); },
+      status: st.walletOpened ? 'Waiting for you to approve in Phantom…' : 'Waiting for your payment…',
+      wallet: () => { this.setState({ walletOpened: true }); toast({ text: 'Opening Phantom…', kind: 'info' }); },
+      sent: () => this.confirmPay(),
+      finish: () => { call(m.onPaid, { days: plan90 ? 90 : 30, until: plan90 ? 'Jan 28' : 'Nov 29' }); if (typeof m.onPaid !== 'function') toast({ text: (plan90 ? '90' : '30') + ' days added. Thanks for backing M8.', kind: 'success' }); close(); }
+    };
+
+    // ---------- connect ----------
+    const svc = m.service === 'telegram' ? 'telegram' : 'discord';
+    const svcName = svc === 'telegram' ? 'Telegram' : 'Discord';
+    const cnPhase = st.cn || 'link';
+    const cnCopied = st.cnCopied === true;
+    const cn = {
+      linking: cnPhase !== 'done', done: cnPhase === 'done', waiting: cnPhase === 'wait', name: svcName,
+      handle: svc === 'telegram' ? '@trenchwalker' : 'trenchwalker',
+      code: '/link 4F7K-29QD',
+      steps: (svc === 'telegram'
+        ? ['Open Telegram and start a chat with @TrenchM8bot.', 'Send it this message:', 'M8 replies "Linked" and you are done here.']
+        : ['Open Discord and DM the TrenchM8 app (or join the TrenchM8 server).', 'Send it this message:', 'M8 replies "Linked" and you are done here.']).map((text, i) => ({ n: String(i + 1), text })),
+      copyLabel: cnCopied ? 'Copied' : 'Copy', copyTip: cnCopied ? 'Copied to clipboard' : 'Copy the code',
+      copy: () => { this.setState({ cnCopied: true }); this.later(() => this.setState({ cnCopied: false }), 2000); },
+      status: cnPhase === 'wait' ? 'Waiting for your message in ' + svcName + '…' : 'The code works for 10 minutes.',
+      openLabel: cnPhase === 'wait' ? 'Open ' + svcName + ' again' : 'Open ' + svcName,
+      open: () => {
+        toast({ text: 'Opening ' + svcName + '…', kind: 'info' });
+        if (cnPhase === 'wait') return;
+        this.setState({ cn: 'wait' });
+        this.later(() => this.setState({ cn: 'done' }), 3200);
+      },
+      finish: () => { call(m.onDone || m.onConnected, svc); toast({ text: svcName + ' connected', kind: 'success' }); close(); }
+    };
+
+    const is = {};
+    ['trade', 'editEntry', 'receipts', 'calendar', 'rule', 'confirm', 'deleteAccount', 'export', 'checkout', 'connect'].forEach((k) => { is[k] = k === kind; });
+    const padX = sheet ? '20px' : '24px';
+    return { tkn,
+      c, accent, is, head, close, focusEl, sheet, noop: () => {},
+      tr, ed, rc, cal, ru, cf, da, ex, co, cn,
+      hasFoot: true,
+      maxH: this.props.maxH || '86vh',
+      radius: sheet ? '28px 28px 0 0' : '28px',
+      shadow: sheet ? '0 -12px 40px rgba(0,0,0,0.35)' : '0 24px 64px rgba(0,0,0,0.45)',
+      headPad: (sheet ? '12px ' : '22px ') + padX + ' 14px ' + padX,
+      bodyPad: '2px ' + padX + ' 20px ' + padX,
+      footPad: '14px ' + padX + (sheet ? ' 28px ' : ' 20px ') + padX
+    };
+  }
+}
+</script>
+</body>
+</html>

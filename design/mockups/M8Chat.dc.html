@@ -1,0 +1,449 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>TrenchM8 - M8 chat</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="anonymous">
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0}
+/* TrenchM8 motion: 120-150ms press/hover, 250-350ms UI, 600-900ms load-in. Ease-out. Fades only when reduced motion is on. */
+@keyframes tm-in{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+@keyframes tm-fade{from{opacity:0}to{opacity:1}}
+@keyframes tm-draw{to{stroke-dashoffset:0}}
+@keyframes tm-shimmer{0%{background-position:-400px 0}100%{background-position:400px 0}}
+@keyframes tm-dot{0%,80%,100%{opacity:.3;transform:translateY(0)}40%{opacity:1;transform:translateY(-3px)}}
+@keyframes tm-toast{from{opacity:0;transform:translateY(12px) scale(.98)}to{opacity:1;transform:none}}
+@keyframes tm-pop{0%{opacity:0;transform:scale(.6)}60%{opacity:1;transform:scale(1.08)}100%{transform:scale(1)}}
+@keyframes tm-spin{to{transform:rotate(360deg)}}
+@keyframes tm-pulse{0%{box-shadow:0 0 0 0 var(--tm-pulse,rgba(63,217,142,.45))}100%{box-shadow:0 0 0 10px rgba(0,0,0,0)}}
+@keyframes tm-fill{from{width:0}to{width:100%}}
+@keyframes tm-out{from{opacity:1}to{opacity:0}}
+@keyframes tm-flash{0%{background-color:var(--tm-flash,rgba(124,212,255,.22))}100%{background-color:transparent}}
+.tm-press{transition:transform .12s ease,filter .15s ease,background-color .15s ease,opacity .15s ease}
+.tm-press:hover{filter:brightness(1.12)}
+.tm-press:active{transform:scale(.97)}
+.tm-press:focus-visible,.tm-hover:focus-visible{outline:2px solid var(--tm-focus,#7CD4FF);outline-offset:2px}
+.tm-hover{transition:filter .15s ease,transform .15s ease}
+.tm-hover:hover{filter:brightness(1.18)}
+.tm-in{animation:tm-in .35s cubic-bezier(.2,.8,.2,1) both}
+.tm-fade{animation:tm-fade .6s ease both;animation-delay:var(--tm-d,0s)}
+.tm-draw{stroke-dasharray:1;stroke-dashoffset:1;animation:tm-draw .9s cubic-bezier(.2,.8,.2,1) calc(var(--tm-d,0s) + .15s) forwards}
+.tm-skel{background:linear-gradient(90deg,var(--sk1) 0%,var(--sk2) 50%,var(--sk1) 100%);background-size:800px 100%;animation:tm-shimmer 1.2s linear infinite}
+.tm-dot{display:inline-block;width:6px;height:6px;border-radius:3px;background:currentColor;animation:tm-dot 1.2s ease-in-out infinite}
+.tm-toast{animation:tm-toast .25s cubic-bezier(.2,.8,.2,1) both}
+.tm-pop{animation:tm-pop .45s cubic-bezier(.2,.8,.2,1) both}
+.tm-spin{animation:tm-spin .8s linear infinite}
+.tm-pulse{animation:tm-pulse 1.6s ease-out infinite}
+.tm-flash{animation:tm-flash 1.6s ease-out both}
+.tm-out{animation:tm-out .22s ease both;pointer-events:none}
+@media (prefers-reduced-motion:reduce){.tm-in,.tm-toast,.tm-pop{animation:tm-fade .2s ease both}.tm-draw{animation:none;stroke-dasharray:none;stroke-dashoffset:0}.tm-skel,.tm-dot,.tm-pulse,.tm-spin{animation:none}.tm-press:active{transform:none}}
+/* Tooltips: data-tip="text" (+ data-tip-pos="bottom|left|right", data-tip-wrap for long text). Desktop hover/keyboard only. */
+[data-tip]{position:relative}
+[data-tip]::after{content:attr(data-tip);position:absolute;left:50%;bottom:calc(100% + 8px);transform:translate(-50%,4px);padding:6px 10px;border-radius:10px;background:var(--tm-tip-bg,#F3F4F7);color:var(--tm-tip-fg,#12131A);font:600 12px/1.35 Manrope,system-ui,sans-serif;letter-spacing:0;text-transform:none;text-align:left;white-space:nowrap;pointer-events:none;opacity:0;visibility:hidden;transition:opacity .12s ease,transform .12s ease,visibility 0s linear .12s;z-index:80;box-shadow:0 8px 24px rgba(0,0,0,.28)}
+[data-tip]:hover::after,[data-tip]:focus-visible::after{opacity:1;visibility:visible;transform:translate(-50%,0);transition:opacity .12s ease .35s,transform .12s ease .35s,visibility 0s linear .35s}
+[data-tip-pos=bottom]::after{bottom:auto;top:calc(100% + 8px);transform:translate(-50%,-4px)}
+[data-tip-pos=left]::after{left:auto;right:calc(100% + 8px);bottom:50%;transform:translate(4px,50%)}
+[data-tip-pos=left]:hover::after,[data-tip-pos=left]:focus-visible::after{transform:translate(0,50%)}
+[data-tip-pos=right]::after{left:calc(100% + 8px);bottom:50%;transform:translate(-4px,50%)}
+[data-tip-pos=right]:hover::after,[data-tip-pos=right]:focus-visible::after{transform:translate(0,50%)}
+[data-tip-wrap]::after{white-space:normal;width:max-content;max-width:240px}
+@media (hover:none){[data-tip]::after{display:none}}
+[data-tip=""]::after{display:none}
+/* Clickable rows (no inline background on the row itself) and clickable cards */
+.tm-row{transition:background-color .15s ease;cursor:pointer}
+.tm-row:hover{background-color:var(--tm-row-hover,rgba(255,255,255,.045))}
+.tm-row:active{background-color:var(--tm-row-press,rgba(255,255,255,.08))}
+.tm-lift{transition:filter .15s ease,box-shadow .15s ease;cursor:pointer}
+.tm-lift:hover{filter:brightness(1.07)}
+.tm-press[aria-disabled=true],.tm-press:disabled{opacity:.45;cursor:not-allowed;filter:none}
+.tm-press[aria-disabled=true]:active,.tm-press:disabled:active{transform:none}
+@keyframes tm-shake{0%,100%{transform:none}20%,60%{transform:translateX(-4px)}40%,80%{transform:translateX(4px)}}
+.tm-shake{animation:tm-shake .3s ease}
+@keyframes tm-sheet{from{transform:translateY(24px);opacity:0}to{transform:none;opacity:1}}
+@keyframes tm-dialog{from{transform:translateY(8px) scale(.98);opacity:0}to{transform:none;opacity:1}}
+@keyframes tm-drawer{from{transform:translateX(32px);opacity:0}to{transform:none;opacity:1}}
+.tm-sheet{animation:tm-sheet .3s cubic-bezier(.2,.8,.2,1) both}
+.tm-dialog{animation:tm-dialog .22s cubic-bezier(.2,.8,.2,1) both}
+.tm-drawer{animation:tm-drawer .28s cubic-bezier(.2,.8,.2,1) both}
+@keyframes tm-wave{0%,100%{transform:scaleY(.35)}50%{transform:scaleY(1)}}
+.tm-wave{animation:tm-wave .9s ease-in-out infinite;transform-origin:center}
+@media (prefers-reduced-motion:reduce){.tm-sheet,.tm-dialog,.tm-drawer{animation:tm-fade .2s ease both}.tm-shake,.tm-wave{animation:none}}
+</style>
+</helmet>
+<div style="--tm-focus: {{tkn.ink}}; --tm-flash: {{tkn.flash}}; --tm-tip-bg: {{tip.bg}}; --tm-tip-fg: {{tip.fg}}; --tm-row-hover: {{tip.row}}; --tm-row-press: {{tip.press}}; width: 100%; height: {{rootH}}; min-height: {{minH}}; box-sizing: border-box; display: flex; flex-direction: column; background: {{c.bg}}; color: {{c.text}}; font-family: Manrope, system-ui, sans-serif; font-variant-numeric: tabular-nums; -webkit-font-smoothing: antialiased">
+
+  <!-- Header -->
+  <div style="display: flex; align-items: center; gap: 4px; padding: 12px 12px 12px 8px; border-bottom: {{headerLine}}">
+    <sc-if value="{{screen}}" hint-placeholder-val="{{ true }}">
+      <button class="tm-press" aria-label="Back" data-tip="Back" data-tip-pos="right" onClick="{{nav.back}}" style="width: 44px; height: 44px; border: none; border-radius: 22px; background: transparent; color: {{c.text}}; display: flex; align-items: center; justify-content: center; cursor: pointer">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"></path></svg>
+      </button>
+    </sc-if>
+    <div style="display: flex; align-items: center; gap: 10px; flex-grow: 1; padding-left: {{titlePad}}">
+      <svg width="32" height="32" viewBox="0 0 36 36" aria-hidden="true"><rect x="0" y="0" width="36" height="36" rx="12" fill="{{accent}}"></rect><rect x="11" y="12" width="4.5" height="9" rx="2.25" fill="#15140E"></rect><rect x="20.5" y="12" width="4.5" height="9" rx="2.25" fill="#15140E"></rect></svg>
+      <span style="font-size: 17px; font-weight: 800">M8</span>
+    </div>
+    <sc-if value="{{showHistory}}" hint-placeholder-val="{{ true }}">
+      <button class="tm-press" aria-label="Past conversations" data-tip="Past conversations" data-tip-pos="bottom" onClick="{{nav.history}}" style="width: 44px; height: 44px; border: none; border-radius: 22px; background: transparent; color: {{c.text2}}; display: flex; align-items: center; justify-content: center; cursor: pointer">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 3-6.7"></path><path d="M3 4v4h4"></path><path d="M12 8v4l3 2"></path></svg>
+      </button>
+    </sc-if>
+    <sc-if value="{{drawer}}" hint-placeholder-val="{{ false }}">
+      <button class="tm-press" aria-label="Expand" data-tip="Expand to full screen" data-tip-pos="bottom" onClick="{{nav.expand}}" style="width: 44px; height: 44px; border: none; border-radius: 22px; background: transparent; color: {{c.text2}}; display: flex; align-items: center; justify-content: center; cursor: pointer">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 4h6v6"></path><path d="M20 4l-7 7"></path><path d="M10 20H4v-6"></path><path d="M4 20l7-7"></path></svg>
+      </button>
+    </sc-if>
+    <sc-if value="{{expanded}}" hint-placeholder-val="{{ false }}">
+      <button class="tm-press" aria-label="Collapse to drawer" data-tip="Collapse to drawer" data-tip-pos="bottom" onClick="{{nav.collapse}}" style="width: 44px; height: 44px; border: none; border-radius: 22px; background: transparent; color: {{c.text2}}; display: flex; align-items: center; justify-content: center; cursor: pointer">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 14h6v6"></path><path d="M10 14l-7 7"></path><path d="M20 10h-6V4"></path><path d="M14 10l7-7"></path></svg>
+      </button>
+    </sc-if>
+    <sc-if value="{{closable}}" hint-placeholder-val="{{ false }}">
+      <button class="tm-press" aria-label="Close" data-tip="Close (Esc)" data-tip-pos="left" onClick="{{nav.close}}" style="width: 44px; height: 44px; border: none; border-radius: 22px; background: transparent; color: {{c.text}}; display: flex; align-items: center; justify-content: center; cursor: pointer">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6L6 18"></path><path d="M6 6l12 12"></path></svg>
+      </button>
+    </sc-if>
+  </div>
+
+  <div style="flex-grow: 1; min-height: 0; display: flex; flex-direction: column; width: 100%; max-width: {{colMax}}; margin: 0 auto; box-sizing: border-box">
+
+    <!-- Active conversation -->
+    <sc-if value="{{active}}" hint-placeholder-val="{{ true }}">
+      <div ref="{{setScroll}}" style="flex-grow: 1; min-height: 0; overflow-y: auto; display: flex; flex-direction: column; gap: 18px; padding: 16px 20px 20px 20px">
+        <div role="separator" aria-label="Today" style="display: flex; align-items: center; gap: 10px; font-size: 12px; font-weight: 700; color: {{c.text3}}">
+          <span style="flex-grow: 1; height: 1px; background: {{c.line}}"></span>Today · After-lunch losses<span style="flex-grow: 1; height: 1px; background: {{c.line}}"></span>
+        </div>
+
+        <div style="display: flex; flex-direction: column; gap: 6px">
+          <span style="font-size: 12px; font-weight: 700; color: {{c.text3}}">via Telegram</span>
+          <p style="margin: 0; font-size: 16px; line-height: 1.55; font-weight: 500">You were up $647 before lunch and gave $375 back after. What happened after lunch?</p>
+        </div>
+
+        <div style="align-self: flex-end; max-width: 82%; display: flex; flex-direction: column; align-items: flex-end; gap: 6px">
+          <span style="font-size: 12px; font-weight: 700; color: {{c.text3}}">Voice note · via Telegram</span>
+          <div style="padding: 12px 16px; border-radius: 20px 20px 6px 20px; background: {{c.surface2}}; font-size: 15px; line-height: 1.45; font-weight: 600">chased wifhat right after frogo. dumb</div>
+        </div>
+
+        <div style="align-self: flex-end; max-width: 82%; display: flex; flex-direction: column; align-items: flex-end; gap: 6px">
+          <span style="font-size: 12px; font-weight: 700; color: {{c.text3}}">About $WIFHAT · -$221</span>
+          <div style="padding: 12px 16px; border-radius: 20px 20px 6px 20px; background: {{c.surface2}}; font-size: 15px; line-height: 1.45; font-weight: 600">why do i keep doing this after lunch?</div>
+        </div>
+
+        <div style="display: flex; flex-direction: column; gap: 12px">
+          <p style="margin: 0; font-size: 16px; line-height: 1.55; font-weight: 500">You're usually coming off a red trade, and you size up to win it back. After 1 PM this month you're <b style="color: {{c.loss}}">-$860</b> over 35 trades, and 9 of them came within 10 minutes of a loss.</p>
+          <div style="display: flex; flex-direction: column; gap: 8px; padding: 4px 0">
+            <sc-for list="{{bars}}" as="r" hint-placeholder-count="4">
+              <div style="display: grid; grid-template-columns: 84px minmax(0, 1fr) 60px; gap: 10px; align-items: center">
+                <span style="font-size: 12px; font-weight: 700; color: {{c.text2}}">{{r.label}}</span>
+                <div style="position: relative; height: 8px">
+                  <span style="position: absolute; left: 50%; top: -3px; bottom: -3px; width: 1px; background: {{c.line}}"></span>
+                  <span style="position: absolute; top: 0; bottom: 0; border-radius: 4px; left: {{r.left}}; width: {{r.width}}; background: {{r.color}}"></span>
+                </div>
+                <span style="text-align: right; font-size: 12px; font-weight: 800; color: {{r.color}}">{{r.value}}</span>
+              </div>
+            </sc-for>
+          </div>
+          <p style="margin: 0; font-size: 16px; line-height: 1.55; font-weight: 500">Want to try no new entries after 1 PM for a week?</p>
+          <sc-if value="{{ruleAsk}}" hint-placeholder-val="{{ true }}">
+            <div style="display: flex; gap: 8px">
+              <button class="tm-press" onClick="{{ruleYes}}" style="height: 40px; padding: 0 16px; border: 1px solid {{c.line}}; border-radius: 999px; background: transparent; color: {{c.text}}; font-family: inherit; font-size: 14px; font-weight: 700; cursor: pointer">Set it for 7 days</button>
+              <button class="tm-press" onClick="{{ruleNo}}" style="height: 40px; padding: 0 16px; border: 1px solid {{c.line}}; border-radius: 999px; background: transparent; color: {{c.text2}}; font-family: inherit; font-size: 14px; font-weight: 700; cursor: pointer">Not yet</button>
+            </div>
+          </sc-if>
+          <sc-if value="{{ruleOn}}" hint-placeholder-val="{{ false }}">
+            <div class="tm-in" style="align-self: flex-start; display: flex; align-items: center; gap: 10px; padding: 8px 14px 8px 8px; border-radius: 999px; background: {{c.surface}}; border: 1px solid {{c.line}}">
+              <span class="tm-pop" style="width: 24px; height: 24px; border-radius: 12px; background: {{accent}}; color: #15140E; display: flex; align-items: center; justify-content: center"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5"></path></svg></span>
+              <span style="font-size: 13px; font-weight: 700">Rule on: no new entries after 1 PM · until Oct 15</span>
+            </div>
+          </sc-if>
+          <sc-if value="{{ruleLater}}" hint-placeholder-val="{{ false }}">
+            <p class="tm-in" style="margin: 0; font-size: 14px; line-height: 1.5; font-weight: 600; color: {{c.text2}}">No rush. I'll bring it up again in Sunday's recap if the pattern holds.</p>
+          </sc-if>
+        </div>
+
+        <div style="align-self: flex-end; max-width: 82%; padding: 12px 16px; border-radius: 20px 20px 6px 20px; background: {{c.surface2}}; font-size: 15px; line-height: 1.45; font-weight: 600">actually $FROGO wasn't planned, i just got lucky</div>
+
+        <div style="display: flex; flex-direction: column; gap: 6px">
+          <p style="margin: 0; font-size: 16px; line-height: 1.55; font-weight: 500">Respect for the honesty. $FROGO is now tagged Lucky.</p>
+          <sc-if value="{{tagKept}}" hint-placeholder-val="{{ true }}">
+            <span style="font-size: 12px; font-weight: 700; color: {{c.text3}}">Journal updated · <a class="tm-press" href="#undo" onClick="{{undoTag}}" style="color: {{c.text2}}">Undo</a></span>
+          </sc-if>
+          <sc-if value="{{tagUndone}}" hint-placeholder-val="{{ false }}">
+            <span class="tm-in" style="font-size: 12px; font-weight: 700; color: {{c.text3}}">Undone · $FROGO is back to Planned</span>
+          </sc-if>
+        </div>
+        <!-- Messages sent in this session -->
+        <sc-for list="{{log}}" as="m" hint-placeholder-count="0">
+          <sc-if value="{{m.me}}" hint-placeholder-val="{{ true }}">
+            <div class="tm-in" style="align-self: flex-end; max-width: 82%; display: flex; flex-direction: column; align-items: flex-end; gap: 6px">
+              <sc-if value="{{m.isVoice}}" hint-placeholder-val="{{ false }}">
+                <span style="font-size: 12px; font-weight: 700; color: {{c.text3}}">Voice note · {{m.voice}}</span>
+              </sc-if>
+              <div style="padding: 12px 16px; border-radius: 20px 20px 6px 20px; background: {{c.surface2}}; font-size: 15px; line-height: 1.45; font-weight: 600">{{m.text}}</div>
+            </div>
+          </sc-if>
+          <sc-if value="{{m.m8}}" hint-placeholder-val="{{ false }}">
+            <p class="tm-in" style="margin: 0; font-size: 16px; line-height: 1.55; font-weight: 500">{{m.text}}</p>
+          </sc-if>
+        </sc-for>
+        <div aria-live="polite">
+          <sc-if value="{{thinking}}" hint-placeholder-val="{{ false }}">
+            <div class="tm-in" style="display: flex; align-items: center; gap: 10px; height: 28px; color: {{c.text3}}">
+              <span aria-hidden="true" style="display: flex; gap: 4px; color: {{tkn.ink}}"><span class="tm-dot"></span><span class="tm-dot" style="animation-delay: .15s"></span><span class="tm-dot" style="animation-delay: .3s"></span></span>
+              <span style="font-size: 13px; font-weight: 700">{{step}}</span>
+            </div>
+          </sc-if>
+        </div>
+      </div>
+    </sc-if>
+
+    <!-- Fresh start after a quiet gap -->
+    <sc-if value="{{fresh}}" hint-placeholder-val="{{ false }}">
+      <div ref="{{setScroll}}" style="flex-grow: 1; min-height: 0; overflow-y: auto; display: flex; flex-direction: column; gap: 18px; padding: 16px 20px 20px 20px">
+        <a class="tm-hover" href="#conversation" onClick="{{nav.openActive}}" style="display: flex; align-items: center; gap: 10px; min-height: 52px; padding: 0 14px; border-radius: 16px; background: {{c.surface}}; color: inherit; text-decoration: none">
+          <div style="display: flex; flex-direction: column; gap: 1px; flex-grow: 1; min-width: 0">
+            <span style="font-size: 12px; font-weight: 700; color: {{c.text3}}">Yesterday</span>
+            <span style="font-size: 14px; font-weight: 700; overflow: hidden; text-overflow: ellipsis; white-space: nowrap">After-lunch losses</span>
+          </div>
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="{{c.text3}}" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 18l6-6-6-6"></path></svg>
+        </a>
+
+        <div role="separator" aria-label="Today" style="display: flex; align-items: center; gap: 10px; font-size: 12px; font-weight: 700; color: {{c.text3}}">
+          <span style="flex-grow: 1; height: 1px; background: {{c.line}}"></span>Today<span style="flex-grow: 1; height: 1px; background: {{c.line}}"></span>
+        </div>
+
+        <p style="margin: 0; font-size: 16px; line-height: 1.55; font-weight: 500">gm. Your last 30 days are <b style="color: {{c.gain}}">+$1,284</b>, and almost all of it came from coins under an hour old. Your new cooldown is live today.</p>
+
+        <sc-if value="{{showSuggest}}" hint-placeholder-val="{{ true }}">
+        <div style="display: flex; flex-direction: column; align-items: flex-start; gap: 8px">
+          <span style="font-size: 12px; font-weight: 700; color: {{c.text3}}">Ask about this page</span>
+          <sc-for list="{{suggestions}}" as="s" hint-placeholder-count="3">
+            <button class="tm-press" onClick="{{s.ask}}" style="min-height: 40px; padding: 8px 14px; border: 1px solid {{c.line}}; border-radius: 18px; background: transparent; color: {{c.text}}; font-family: inherit; font-size: 14px; line-height: 1.35; font-weight: 600; text-align: left; cursor: pointer">{{s.text}}</button>
+          </sc-for>
+        </div>
+        </sc-if>
+        <!-- Messages sent in this session -->
+        <sc-for list="{{log}}" as="m" hint-placeholder-count="0">
+          <sc-if value="{{m.me}}" hint-placeholder-val="{{ true }}">
+            <div class="tm-in" style="align-self: flex-end; max-width: 82%; display: flex; flex-direction: column; align-items: flex-end; gap: 6px">
+              <sc-if value="{{m.isVoice}}" hint-placeholder-val="{{ false }}">
+                <span style="font-size: 12px; font-weight: 700; color: {{c.text3}}">Voice note · {{m.voice}}</span>
+              </sc-if>
+              <div style="padding: 12px 16px; border-radius: 20px 20px 6px 20px; background: {{c.surface2}}; font-size: 15px; line-height: 1.45; font-weight: 600">{{m.text}}</div>
+            </div>
+          </sc-if>
+          <sc-if value="{{m.m8}}" hint-placeholder-val="{{ false }}">
+            <p class="tm-in" style="margin: 0; font-size: 16px; line-height: 1.55; font-weight: 500">{{m.text}}</p>
+          </sc-if>
+        </sc-for>
+        <div aria-live="polite">
+          <sc-if value="{{thinking}}" hint-placeholder-val="{{ false }}">
+            <div class="tm-in" style="display: flex; align-items: center; gap: 10px; height: 28px; color: {{c.text3}}">
+              <span aria-hidden="true" style="display: flex; gap: 4px; color: {{tkn.ink}}"><span class="tm-dot"></span><span class="tm-dot" style="animation-delay: .15s"></span><span class="tm-dot" style="animation-delay: .3s"></span></span>
+              <span style="font-size: 13px; font-weight: 700">{{step}}</span>
+            </div>
+          </sc-if>
+        </div>
+      </div>
+    </sc-if>
+
+    <!-- Composer -->
+    <div style="padding: 8px 16px 14px 16px; display: flex; flex-direction: column; gap: 8px">
+      <sc-if value="{{showCtx}}" hint-placeholder-val="{{ true }}">
+        <div style="display: flex; align-items: center; gap: 8px; padding-left: 6px; font-size: 12px; font-weight: 700; color: {{c.text3}}">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12z"></path><circle cx="12" cy="12" r="3"></circle></svg>
+          <span style="flex-grow: 1">M8 sees: <span style="color: {{c.text2}}">{{ctx}}</span></span>
+          <button class="tm-press" aria-label="Don't share this page with M8" data-tip="Don't share this page with M8" data-tip-pos="left" onClick="{{hideCtx}}" style="width: 32px; height: 32px; border: none; border-radius: 16px; background: transparent; color: {{c.text3}}; display: flex; align-items: center; justify-content: center; cursor: pointer">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6L6 18"></path><path d="M6 6l12 12"></path></svg>
+          </button>
+        </div>
+      </sc-if>
+      <sc-if value="{{recording}}" hint-placeholder-val="{{ false }}">
+        <div class="tm-in" role="group" aria-label="Recording a voice note" style="display: flex; align-items: center; gap: 10px; height: 52px; box-sizing: border-box; padding: 0 6px; border-radius: 999px; background: {{c.surface}}; border: 1px solid {{c.line}}">
+          <button class="tm-press" aria-label="Discard recording" data-tip="Discard" data-tip-pos="right" onClick="{{cancelRec}}" style="width: 40px; height: 40px; flex-shrink: 0; border: none; border-radius: 20px; background: {{c.surface2}}; color: {{c.text2}}; display: flex; align-items: center; justify-content: center; cursor: pointer">
+            <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7h16"></path><path d="M10 11v6"></path><path d="M14 11v6"></path><path d="M6 7l1 13h10l1-13"></path><path d="M9 7V4h6v3"></path></svg>
+          </button>
+          <span class="tm-pulse" aria-hidden="true" style="--tm-pulse: {{recPulse}}; width: 10px; height: 10px; flex-shrink: 0; border-radius: 5px; background: {{tkn.danger}}"></span>
+          <span style="width: 40px; flex-shrink: 0; font-size: 14px; font-weight: 800">{{recTime}}</span>
+          <span aria-hidden="true" style="flex-grow: 1; min-width: 0; height: 24px; display: flex; align-items: center; gap: 3px; overflow: hidden">
+            <sc-for list="{{wave}}" as="w" hint-placeholder-count="24">
+              <span class="tm-wave" style="width: 3px; height: {{w.h}}; flex-shrink: 0; border-radius: 2px; background: {{c.text2}}; animation-delay: {{w.d}}"></span>
+            </sc-for>
+          </span>
+          <button class="tm-press" aria-label="Send voice note" data-tip="Send voice note" data-tip-pos="left" onClick="{{stopRec}}" style="width: 40px; height: 40px; flex-shrink: 0; border: none; border-radius: 20px; background: {{accent}}; color: #15140E; display: flex; align-items: center; justify-content: center; cursor: pointer">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M12 19V5"></path><path d="M5 12l7-7 7 7"></path></svg>
+          </button>
+        </div>
+      </sc-if>
+      <sc-if value="{{notRecording}}" hint-placeholder-val="{{ true }}">
+      <div style="display: flex; align-items: center; gap: 6px; height: 52px; box-sizing: border-box; padding: 0 6px 0 18px; border-radius: 999px; background: {{c.surface}}; border: 1px solid {{c.line}}">
+        <label style="flex-grow: 1; display: flex; min-width: 0">
+          <span style="position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0)">Message M8</span>
+          <input ref="{{setInput}}" placeholder="{{placeholder}}" onKeyDown="{{onKey}}" onInput="{{onType}}" style="width: 100%; height: 40px; border: none; background: transparent; color: {{c.text}}; font-family: inherit; font-size: 15px; font-weight: 500; outline: none">
+        </label>
+        <sc-if value="{{hasText}}" hint-placeholder-val="{{ false }}">
+        <button class="tm-press tm-pop" aria-label="Send" data-tip="Send (Enter)" data-tip-pos="left" onClick="{{sendTyped}}" style="width: 40px; height: 40px; flex-shrink: 0; border: none; border-radius: 20px; background: {{accent}}; color: #15140E; display: flex; align-items: center; justify-content: center; cursor: pointer">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M12 19V5"></path><path d="M5 12l7-7 7 7"></path></svg>
+        </button>
+        </sc-if>
+        <sc-if value="{{noText}}" hint-placeholder-val="{{ true }}">
+        <button class="tm-press" aria-label="Record a voice note" data-tip="Hold to talk, or tap to record" data-tip-pos="left" onClick="{{startRec}}" style="width: 40px; height: 40px; flex-shrink: 0; border: none; border-radius: 20px; background: {{c.surface2}}; color: {{c.text}}; display: flex; align-items: center; justify-content: center; cursor: pointer">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="3" width="6" height="11" rx="3"></rect><path d="M5 11a7 7 0 0 0 14 0"></path><path d="M12 18v3"></path></svg>
+        </button>
+        </sc-if>
+      </div>
+      </sc-if>
+      <span style="text-align: center; font-size: 11px; font-weight: 600; color: {{c.text3}}">M8 can make mistakes. Nothing here is financial advice.</span>
+    </div>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"onNav":{"editor":null},"onToast":{"editor":null},"height":{"editor":null},"theme":{"editor":null},"accent":{"editor":"color","default":"#7CD4FF","options":["#7CD4FF","#FFD23F","#6495ED","#B4A5FF","#FF85C8","#FF9152","#FFB547"],"section":"Look"},"layout":{"editor":"enum","options":["screen","drawer","expanded"],"default":"screen","section":"Look"},"state":{"editor":"enum","options":["active","fresh"],"default":"active","section":"Look"},"$preview":{"width":390,"height":1080}}'>
+class Component extends DCLogic {
+  componentWillUnmount() { (this._timers || []).forEach(clearTimeout); clearTimeout(this._rec); }
+  componentDidUpdate(prev, prevState) {
+    // Keep the newest message in view.
+    const a = prevState || {}, b = this.state || {};
+    if (this._scroll && ((a.log || []).length !== (b.log || []).length || a.thinking !== b.thinking)) {
+      this._scroll.scrollTo({ top: this._scroll.scrollHeight, behavior: 'smooth' });
+    }
+  }
+  renderVals() {
+    const accent = this.props.accent ?? '#7CD4FF';
+    const layout = this.props.layout ?? 'screen';
+    const state = this.props.state ?? 'active';
+    const themes = {
+      dark: {
+      bg: '#0D0E13', surface: '#171922', surface2: '#21242F', line: '#2C303D',
+      text: '#F3F4F7', text2: '#A9AEBE', text3: '#858B9E', gain: '#3FD98E', loss: '#FF6B6B'
+      },
+      light: {
+      bg: '#F4F4F7', surface: '#FFFFFF', surface2: '#EEEFF3', line: '#E3E5EB',
+      text: '#12131A', text2: '#4F5566', text3: '#666C7E', gain: '#0B8A51', loss: '#D23434'
+      }
+    };
+    const c = themes[this.props.theme ?? 'dark'] || themes.dark;
+    // Theme-aware helpers from design/tokens.json: accent ink for foreground use on light, warn and danger.
+    const tkLight = (this.props.theme ?? 'dark') === 'light';
+    const tkn = {
+      ink: tkLight ? ({ '#7CD4FF': '#0072AA', '#FFD23F': '#866700', '#6495ED': '#1B63E5', '#B4A5FF': '#6849FF', '#FF85C8': '#D10073', '#FF9152': '#BD4500', '#FFB547': '#9E5E00' }[String(accent).toUpperCase()] || accent) : accent,
+      flash: accent + '38',
+      warn: tkLight ? '#A86400' : '#FFE07A', warnSoft: tkLight ? 'rgba(168,100,0,0.10)' : 'rgba(255,224,122,0.14)',
+      danger: tkLight ? '#D23434' : '#FF6B6B'
+    };
+    const rows = [['Before 9 AM', 84], ['9-11 AM', 2140], ['11 AM-1 PM', -80], ['After 1 PM', -860]];
+    const max = 2140;
+    const bars = rows.map((r) => {
+      const pct = (Math.abs(r[1]) / max) * 50;
+      return {
+        label: r[0],
+        value: (r[1] >= 0 ? '+$' : '-$') + Math.abs(r[1]).toLocaleString('en-US'),
+        color: r[1] >= 0 ? c.gain : c.loss,
+        width: pct.toFixed(1) + '%',
+        left: (r[1] >= 0 ? 50 : 50 - pct).toFixed(1) + '%'
+      };
+    });
+    const screen = layout === 'screen';
+    const drawer = layout === 'drawer';
+    const expanded = layout === 'expanded';
+    const fresh = state === 'fresh';
+    const go = (to) => (e) => { if (e && e.preventDefault) e.preventDefault(); if (this.props.onNav) this.props.onNav(to); };
+    const nav = { back: go('back'), history: go('history'), expand: go('expand'), collapse: go('collapse'), close: go('close'), openActive: go('openActive'), newTopic: go('newTopic') };
+    const st = this.state || {};
+    const toast = (t) => { if (this.props.onToast) this.props.onToast(t); };
+    const ruleYes = () => { this.setState({ rule: 'on' }); toast({ text: 'Rule set: no new entries after 1 PM for 7 days', kind: 'success', undo: 'Rule removed', onUndo: () => this.setState({ rule: null }) }); };
+    const ruleNo = () => this.setState({ rule: 'later' });
+    const undoTag = (e) => { if (e && e.preventDefault) e.preventDefault(); this.setState({ tagUndone: true }); toast({ text: '$FROGO is back to Planned. Stats updated.', kind: 'info' }); };
+    // Canned answers. In the product these stream in after M8 runs its tools; the step line names the tool that is running.
+    const answers = {
+      'Why do older coins keep costing me?': 'Coins older than a day when you buy them: -$412 over 38 trades. Under an hour old: +$1,906 over 61. Most of the older-coin buys happen after 1 PM, when you are chasing a red trade.',
+      'What went wrong on Sep 18?': '19 trades, -$540. 7 of them came within 10 minutes of a loss, and your size doubled after the third red one. You wrote "never again" that night.',
+      'Is 10 trades a day the right limit for me?': 'On days with 10 trades or fewer you are +$1,712. On busier days, -$428. 10 is close. Your best days stop around 8.'
+    };
+    const reply = (q) => {
+      if (answers[q]) return answers[q];
+      const t = q.toLowerCase();
+      if (/voice|1 ?pm|lunch/.test(t)) return 'Heard. After 1 PM is where most of this month went: -$860 over 35 trades. Want me to check in at 1 PM tomorrow before you start?';
+      if (/week/.test(t)) return 'This week: +$558 over 17 trades, 2 green days out of 3. Best trade was $GOBLN, +$288. Worst habit: your two biggest losses both came right after a red trade.';
+      if (/wifhat/.test(t)) return '$WIFHAT: bought 3 minutes after the $FROGO exit, 1.7x your normal size, sold 22 minutes later for -$221. You tagged it Chase.';
+      if (/frogo/.test(t)) return '$FROGO: +$54 on a coin 9 minutes old. You said it was luck, so it is tagged Lucky and it does not count toward your plan stats.';
+      if (/rule|cooldown/.test(t)) return 'You have 1 rule: a 20 minute cooldown after any red trade. You kept it 6 times this week and broke it once, on $FROGZ, and you said that one was planned.';
+      if (/buy|call|pump|moon|run|rug|should i|\$[a-z]/.test(t)) {
+        // Doctrine "Coin talk": facts from a tool, no verdict, linked back to the user's own record.
+        const tick = ((q.match(/\$[A-Za-z0-9]+/) || ['$FROGZ'])[0]).toUpperCase();
+        const h = tick.split('').reduce((a, ch) => (a * 31 + ch.charCodeAt(0)) % 997, 7);
+        const f = tick === '$FROGZ' ? { age: '41 min', liq: '$86k', top: 38 } : { age: (12 + h % 50) + ' min', liq: '$' + (40 + h % 160) + 'k', top: 22 + h % 30 };
+        return 'Not a call, just facts: ' + tick + ' is ' + f.age + ' old, ' + f.liq + ' liquidity, top 10 wallets hold ' + f.top + '%. Your best setup is coins under 1h old at normal size: +$1,906 over 61 trades. Your call.';
+      }
+      return 'Last 30 days: +$1,284 over 142 trades. Ask me about a coin, a day or a habit and I will pull the receipts.';
+    };
+    const steps = ['Reading your 142 trades…', 'Checking your journal…', 'Writing it up…'];
+    const log = st.log || [];
+    const send = (text, voice) => {
+      const msg = (text || '').trim();
+      if (!msg || st.thinking) return;
+      (this._timers || []).forEach(clearTimeout);
+      const next = log.concat([{ me: true, m8: false, isVoice: !!voice, voice: voice || '', text: msg }]);
+      this.setState({ log: next, thinking: true, step: 0 });
+      this._timers = [
+        setTimeout(() => this.setState({ step: 1 }), 650),
+        setTimeout(() => this.setState({ step: 2 }), 1300),
+        setTimeout(() => this.setState({ thinking: false, log: next.concat([{ me: false, m8: true, isVoice: false, voice: '', text: reply(msg) }]) }), 1950)
+      ];
+    };
+    const sendTyped = () => {
+      const el = this._input; if (!el) return;
+      const v = el.value; el.value = ''; this.setState({ hasText: false }); send(v);
+    };
+    const onKey = (e) => { if (e.key === 'Enter') { e.preventDefault(); sendTyped(); } };
+    const onType = (e) => { const has = !!(e.target.value || '').trim(); if (has !== !!st.hasText) this.setState({ hasText: has }); };
+    const tick = () => { this._rec = setTimeout(() => { this.setState({ recSec: ((this.state || {}).recSec || 0) + 1 }); tick(); }, 1000); };
+    const startRec = () => { this.setState({ recording: true, recSec: 0 }); tick(); };
+    const cancelRec = () => { clearTimeout(this._rec); this.setState({ recording: false, recSec: 0 }); toast({ text: 'Voice note discarded', kind: 'info' }); };
+    const stopRec = () => {
+      clearTimeout(this._rec);
+      const sec = Math.max(1, st.recSec || 0);
+      this.setState({ recording: false, recSec: 0 });
+      send("honestly the after lunch thing is real. i'll try the 1 PM rule", '0:' + String(Math.min(sec, 59)).padStart(2, '0'));
+    };
+    const recSec = st.recSec || 0;
+    const wave = [6, 10, 16, 9, 20, 14, 8, 18, 22, 12, 7, 15, 19, 10, 6, 13, 21, 16, 9, 12, 18, 8, 14, 10].map((h, i) => ({ h: h + 'px', d: (i * 0.07).toFixed(2) + 's' }));
+    const hideCtx = () => { this.setState({ ctxOff: true }); toast({ text: "M8 won't see this page in this chat", kind: 'info', undo: 'M8 can see this page again', onUndo: () => this.setState({ ctxOff: false }) }); };
+    const setScroll = (el) => { this._scroll = el; };
+    const setInput = (el) => { this._input = el; };
+    return { tkn,
+      ruleYes, ruleNo, undoTag, onKey, onType, sendTyped, setScroll, setInput, hideCtx,
+      log, thinking: !!st.thinking, step: steps[st.step || 0],
+      hasText: !!st.hasText, noText: !st.hasText,
+      recPulse: tkn.danger + '80', recording: !!st.recording, notRecording: !st.recording, startRec, cancelRec, stopRec, wave,
+      recTime: Math.floor(recSec / 60) + ':' + String(recSec % 60).padStart(2, '0'),
+      placeholder: fresh ? 'Ask about this page…' : 'Message M8…',
+      tip: (this.props.theme ?? 'dark') === 'light' ? { bg: '#12131A', fg: '#F3F4F7', row: 'rgba(18,19,26,0.045)', press: 'rgba(18,19,26,0.08)' } : { bg: '#F3F4F7', fg: '#12131A', row: 'rgba(255,255,255,0.045)', press: 'rgba(255,255,255,0.08)' },
+      ruleAsk: !st.rule, ruleOn: st.rule === 'on', ruleLater: st.rule === 'later',
+      tagKept: !st.tagUndone, tagUndone: !!st.tagUndone,
+      showSuggest: log.length === 0 && !st.thinking,
+      nav, c, accent, bars, screen, drawer, expanded,
+      active: !fresh, fresh,
+      showHistory: !expanded, closable: !screen,
+      // On the mobile M8 tab, page context only shows when there is a page to share (a fresh open from another tab).
+      showCtx: (!screen || fresh) && !st.ctxOff,
+      ctx: fresh ? 'Stats · last 30 days' : 'Journal · Oct 7',
+      suggestions: Object.keys(answers).map((text) => ({ text, ask: () => send(text) })),
+      titlePad: screen ? '0' : '8px',
+      headerLine: expanded ? 'none' : '1px solid ' + c.line,
+      colMax: expanded ? '760px' : 'none',
+      rootH: this.props.height || '100%',
+      minH: this.props.height ? '0' : (screen ? '1080px' : '100%')
+    };
+  }
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,891 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>TrenchM8 - Wed, Oct 7</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="anonymous">
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0}
+a{color:inherit}a:hover{opacity:.85}
+button{font-family:inherit;cursor:pointer}
+/* TrenchM8 motion: 120-150ms press/hover, 250-350ms UI, 600-900ms load-in. Ease-out. Fades only when reduced motion is on. */
+@keyframes tm-in{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+@keyframes tm-fade{from{opacity:0}to{opacity:1}}
+@keyframes tm-draw{to{stroke-dashoffset:0}}
+@keyframes tm-shimmer{0%{background-position:-400px 0}100%{background-position:400px 0}}
+@keyframes tm-dot{0%,80%,100%{opacity:.3;transform:translateY(0)}40%{opacity:1;transform:translateY(-3px)}}
+@keyframes tm-toast{from{opacity:0;transform:translateY(12px) scale(.98)}to{opacity:1;transform:none}}
+@keyframes tm-pop{0%{opacity:0;transform:scale(.6)}60%{opacity:1;transform:scale(1.08)}100%{transform:scale(1)}}
+@keyframes tm-spin{to{transform:rotate(360deg)}}
+@keyframes tm-pulse{0%{box-shadow:0 0 0 0 var(--tm-pulse,rgba(63,217,142,.45))}100%{box-shadow:0 0 0 10px rgba(0,0,0,0)}}
+@keyframes tm-fill{from{width:0}to{width:100%}}
+@keyframes tm-out{from{opacity:1}to{opacity:0}}
+@keyframes tm-flash{0%{background-color:var(--tm-flash,rgba(124,212,255,.22))}100%{background-color:transparent}}
+.tm-press{transition:transform .12s ease,filter .15s ease,background-color .15s ease,opacity .15s ease}
+.tm-press:hover{filter:brightness(1.12)}
+.tm-press:active{transform:scale(.97)}
+.tm-press:focus-visible,.tm-hover:focus-visible{outline:2px solid var(--tm-focus,#7CD4FF);outline-offset:2px}
+.tm-hover{transition:filter .15s ease,transform .15s ease}
+.tm-hover:hover{filter:brightness(1.18)}
+.tm-in{animation:tm-in .35s cubic-bezier(.2,.8,.2,1) both}
+.tm-fade{animation:tm-fade .6s ease both;animation-delay:var(--tm-d,0s)}
+.tm-draw{stroke-dasharray:1;stroke-dashoffset:1;animation:tm-draw .9s cubic-bezier(.2,.8,.2,1) calc(var(--tm-d,0s) + .15s) forwards}
+.tm-skel{background:linear-gradient(90deg,var(--sk1) 0%,var(--sk2) 50%,var(--sk1) 100%);background-size:800px 100%;animation:tm-shimmer 1.2s linear infinite}
+.tm-dot{display:inline-block;width:6px;height:6px;border-radius:3px;background:currentColor;animation:tm-dot 1.2s ease-in-out infinite}
+.tm-toast{animation:tm-toast .25s cubic-bezier(.2,.8,.2,1) both}
+.tm-pop{animation:tm-pop .45s cubic-bezier(.2,.8,.2,1) both}
+.tm-spin{animation:tm-spin .8s linear infinite}
+.tm-pulse{animation:tm-pulse 1.6s ease-out infinite}
+.tm-flash{animation:tm-flash 1.6s ease-out both}
+.tm-out{animation:tm-out .22s ease both;pointer-events:none}
+@media (prefers-reduced-motion:reduce){.tm-in,.tm-toast,.tm-pop{animation:tm-fade .2s ease both}.tm-draw{animation:none;stroke-dasharray:none;stroke-dashoffset:0}.tm-skel,.tm-dot,.tm-pulse,.tm-spin{animation:none}.tm-press:active{transform:none}}
+/* Tooltips: data-tip="text" (+ data-tip-pos="bottom|left|right", data-tip-wrap for long text). Desktop hover/keyboard only. */
+[data-tip]{position:relative}
+[data-tip]::after{content:attr(data-tip);position:absolute;left:50%;bottom:calc(100% + 8px);transform:translate(-50%,4px);padding:6px 10px;border-radius:10px;background:var(--tm-tip-bg,#F3F4F7);color:var(--tm-tip-fg,#12131A);font:600 12px/1.35 Manrope,system-ui,sans-serif;letter-spacing:0;text-transform:none;text-align:left;white-space:nowrap;pointer-events:none;opacity:0;visibility:hidden;transition:opacity .12s ease,transform .12s ease,visibility 0s linear .12s;z-index:80;box-shadow:0 8px 24px rgba(0,0,0,.28)}
+[data-tip]:hover::after,[data-tip]:focus-visible::after{opacity:1;visibility:visible;transform:translate(-50%,0);transition:opacity .12s ease .35s,transform .12s ease .35s,visibility 0s linear .35s}
+[data-tip-pos=bottom]::after{bottom:auto;top:calc(100% + 8px);transform:translate(-50%,-4px)}
+[data-tip-pos=left]::after{left:auto;right:calc(100% + 8px);bottom:50%;transform:translate(4px,50%)}
+[data-tip-pos=left]:hover::after,[data-tip-pos=left]:focus-visible::after{transform:translate(0,50%)}
+[data-tip-pos=right]::after{left:calc(100% + 8px);bottom:50%;transform:translate(-4px,50%)}
+[data-tip-pos=right]:hover::after,[data-tip-pos=right]:focus-visible::after{transform:translate(0,50%)}
+[data-tip-wrap]::after{white-space:normal;width:max-content;max-width:240px}
+@media (hover:none){[data-tip]::after{display:none}}
+[data-tip=""]::after{display:none}
+/* Clickable rows (no inline background on the row itself) and clickable cards */
+.tm-row{transition:background-color .15s ease;cursor:pointer}
+.tm-row:hover{background-color:var(--tm-row-hover,rgba(255,255,255,.045))}
+.tm-row:active{background-color:var(--tm-row-press,rgba(255,255,255,.08))}
+.tm-lift{transition:filter .15s ease,box-shadow .15s ease;cursor:pointer}
+.tm-lift:hover{filter:brightness(1.07)}
+.tm-press[aria-disabled=true],.tm-press:disabled{opacity:.45;cursor:not-allowed;filter:none}
+.tm-press[aria-disabled=true]:active,.tm-press:disabled:active{transform:none}
+@keyframes tm-shake{0%,100%{transform:none}20%,60%{transform:translateX(-4px)}40%,80%{transform:translateX(4px)}}
+.tm-shake{animation:tm-shake .3s ease}
+@keyframes tm-sheet{from{transform:translateY(24px);opacity:0}to{transform:none;opacity:1}}
+@keyframes tm-dialog{from{transform:translateY(8px) scale(.98);opacity:0}to{transform:none;opacity:1}}
+@keyframes tm-drawer{from{transform:translateX(32px);opacity:0}to{transform:none;opacity:1}}
+.tm-sheet{animation:tm-sheet .3s cubic-bezier(.2,.8,.2,1) both}
+.tm-dialog{animation:tm-dialog .22s cubic-bezier(.2,.8,.2,1) both}
+.tm-drawer{animation:tm-drawer .28s cubic-bezier(.2,.8,.2,1) both}
+@keyframes tm-wave{0%,100%{transform:scaleY(.35)}50%{transform:scaleY(1)}}
+.tm-wave{animation:tm-wave .9s ease-in-out infinite;transform-origin:center}
+@media (prefers-reduced-motion:reduce){.tm-sheet,.tm-dialog,.tm-drawer{animation:tm-fade .2s ease both}.tm-shake,.tm-wave{animation:none}}
+</style>
+</helmet>
+<div style="--tm-focus: {{tkn.ink}}; --tm-flash: {{tkn.flash}}; --tm-tip-bg: {{c.tipBg}}; --tm-tip-fg: {{c.tipFg}}; --tm-row-hover: {{c.rowHover}}; --tm-row-press: {{c.rowPress}}; width: 390px; min-height: {{minH}}; box-sizing: border-box; display: flex; flex-direction: column; background: {{c.bg}}; color: {{c.text}}; font-family: Manrope, system-ui, sans-serif; font-variant-numeric: tabular-nums; -webkit-font-smoothing: antialiased">
+
+  <!-- Top bar -->
+  <div style="display: flex; align-items: center; justify-content: space-between; padding: 16px 16px 8px 16px">
+    <button class="tm-press" aria-label="Pick a day" data-tip="Pick a day" data-tip-pos="right" onClick="{{openCal}}" style="width: 44px; height: 44px; border-radius: 22px; border: none; background: {{c.surface}}; color: {{c.text}}; display: flex; align-items: center; justify-content: center; cursor: pointer">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3.5" y="5" width="17" height="15.5" rx="4"></rect><path d="M3.5 10h17"></path><path d="M8 3v4"></path><path d="M16 3v4"></path></svg>
+    </button>
+    <button class="tm-press" onClick="{{openCal}}" aria-label="{{dd.titleShort}}. Pick a day" style="min-height: 44px; padding: 2px 12px; border: none; border-radius: 16px; background: transparent; color: inherit; font-family: inherit; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px; cursor: pointer">
+      <span style="display: flex; align-items: center; gap: 4px; font-size: 16px; font-weight: 700">{{dd.titleShort}}<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="{{c.text3}}" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9l6 6 6-6"></path></svg></span>
+      <span style="display: flex; align-items: center; gap: 6px; font-size: 12px; font-weight: 500; color: {{c.text3}}">
+        <span role="status" aria-label="Sync: live, checked 12 seconds ago" style="display: flex; align-items: center; gap: 5px; font-weight: 700; color: {{c.text2}}"><span class="tm-pulse" aria-hidden="true" style="--tm-pulse: {{tkn.pulse}}; width: 6px; height: 6px; border-radius: 3px; background: {{c.gain}}"></span>Live</span>
+        <span aria-hidden="true">·</span>{{subShort}}
+      </span>
+    </button>
+    <button class="tm-press" aria-label="{{shareTip}}" data-tip="{{shareTip}}" data-tip-pos="left" aria-disabled="{{shareDis}}" onClick="{{share}}" style="width: 44px; height: 44px; border-radius: 22px; border: none; background: {{c.surface}}; color: {{c.text}}; display: flex; align-items: center; justify-content: center; cursor: pointer">
+      <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3v12"></path><path d="M7 8l5-5 5 5"></path><path d="M5 13v6a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-6"></path></svg>
+    </button>
+  </div>
+
+  <!-- Week strip: the Mon-Sun week around the selected day -->
+  <div role="group" aria-label="Week" style="display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 6px; padding: 8px 16px 4px 16px">
+    <sc-for list="{{week}}" as="d" hint-placeholder-count="7">
+      <button class="tm-press" aria-label="{{d.label}}" aria-current="{{d.current}}" aria-disabled="{{d.disabledStr}}" data-tip="{{d.tip}}" data-tip-pos="bottom" onClick="{{d.pick}}" style="height: 64px; border-radius: 18px; border: none; background: {{d.bg}}; color: {{d.fg}}; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; padding: 0; opacity: {{d.opacity}}; font-family: inherit; cursor: {{d.cursor}}">
+        <span style="font-size: 11px; font-weight: 600; opacity: .8">{{d.dow}}</span>
+        <span style="font-size: 16px; font-weight: 800">{{d.date}}</span>
+        <span style="width: 6px; height: 6px; border-radius: 3px; background: {{d.dot}}"></span>
+      </button>
+    </sc-for>
+  </div>
+
+  <!-- Rest day -->
+  <sc-if value="{{rest}}" hint-placeholder-val="{{ false }}">
+    <div class="tm-in" style="margin: 24px 16px 0 16px; padding: 32px 24px; border-radius: 28px; background: {{c.surface}}; display: flex; flex-direction: column; align-items: center; gap: 12px; text-align: center">
+      <span aria-hidden="true" style="width: 56px; height: 56px; border-radius: 28px; background: {{c.surface2}}; color: {{c.text2}}; display: flex; align-items: center; justify-content: center"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 14.5A8 8 0 0 1 9.5 4 8 8 0 1 0 20 14.5z"></path></svg></span>
+      <span style="font-size: 20px; font-weight: 800">{{restTitle}}</span>
+      <span style="max-width: 290px; font-size: 15px; line-height: 1.5; font-weight: 500; color: {{c.text2}}">{{restBlurb}}</span>
+      <div style="display: flex; flex-wrap: wrap; justify-content: center; gap: 8px; margin-top: 8px">
+        <sc-if value="{{hasPrevTrading}}" hint-placeholder-val="{{ true }}">
+          <button class="tm-press" onClick="{{goPrevTrading}}" style="height: 44px; padding: 0 18px; border: none; border-radius: 999px; background: {{accent}}; color: #15140E; font-family: inherit; font-size: 14px; font-weight: 800; cursor: pointer">Previous trading day</button>
+        </sc-if>
+        <button class="tm-press" onClick="{{nav.askFresh}}" style="height: 44px; padding: 0 18px; border: none; border-radius: 999px; background: {{c.surface2}}; color: {{c.text}}; font-family: inherit; font-size: 14px; font-weight: 800; cursor: pointer">Ask M8 about this week</button>
+      </div>
+    </div>
+  </sc-if>
+
+  <sc-if value="{{trading}}" hint-placeholder-val="{{ true }}">
+  <!-- Hero -->
+  <div style="display: flex; flex-direction: column; align-items: center; padding: 28px 16px 8px 16px; gap: 6px">
+    <div style="font-size: 13px; font-weight: 600; color: {{c.text2}}; letter-spacing: .02em">{{dd.heroLabel}}</div>
+    <div style="font-size: 52px; line-height: 1; font-weight: 800; letter-spacing: -0.03em; color: {{heroColor}}">{{heroPnl}}</div>
+    <div style="font-size: 14px; font-weight: 600; color: {{c.text2}}">{{dd.heroSub}}</div>
+  </div>
+
+  <!-- Equity curve -->
+  <div style="margin: 12px 16px 0 16px; padding: 16px 16px 12px 16px; border-radius: 24px; background: {{c.surface}}">
+    <div style="height: 100px">
+      <sc-if value="{{curveOn}}" hint-placeholder-val="{{ true }}">
+        <svg width="326" height="100" viewBox="0 0 342 100" preserveAspectRatio="none" role="img" aria-label="{{curve.aria}}" style="display: block; width: 100%; height: 100px">
+          <line x1="0" y1="{{curve.zeroY}}" x2="342" y2="{{curve.zeroY}}" stroke="{{c.line}}" stroke-width="1"></line>
+          <line x1="{{curve.lunchX}}" y1="0" x2="{{curve.lunchX}}" y2="96" stroke="{{c.line}}" stroke-width="1" stroke-dasharray="3 4" stroke-opacity="{{lunchOpacity}}"></line>
+          <polygon class="tm-fade" points="{{curve.gainArea}}" fill="{{c.gain}}" fill-opacity="0.12"></polygon>
+          <polygon class="tm-fade" style="animation-delay: calc(var(--tm-d, 0s) + .6s)" points="{{curve.lossArea}}" fill="{{c.loss}}" fill-opacity="0.12"></polygon>
+          <polyline class="tm-draw" pathLength="1" points="{{curve.gainLine}}" fill="none" stroke="{{c.gain}}" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round"></polyline>
+          <polyline class="tm-draw" pathLength="1" style="animation-delay: calc(var(--tm-d, 0s) + .8s)" points="{{curve.lossLine}}" fill="none" stroke="{{c.loss}}" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round"></polyline>
+          <circle cx="{{curve.peakX}}" cy="{{curve.peakY}}" r="4" fill="{{c.gain}}" fill-opacity="{{peakOpacity}}"></circle>
+        </svg>
+      </sc-if>
+    </div>
+    <div style="display: flex; justify-content: space-between; margin-top: 8px; font-size: 11px; font-weight: 600; color: {{c.text3}}">
+      <sc-for list="{{axisShort}}" as="a" hint-placeholder-count="3"><span>{{a}}</span></sc-for>
+    </div>
+  </div>
+
+  <!-- Stat chips -->
+  <div style="display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; margin: 8px 16px 0 16px">
+    <sc-for list="{{chips3}}" as="k" hint-placeholder-count="3">
+      <div tabindex="0" data-tip="{{k.tip}}" data-tip-wrap="" style="border-radius: 20px; background: {{c.surface}}; padding: 14px 14px; display: flex; flex-direction: column; gap: 4px; cursor: help; outline-offset: 2px">
+        <span style="font-size: 12px; font-weight: 600; color: {{c.text3}}">{{k.k}}</span>
+        <span style="font-size: 20px; font-weight: 800">{{k.v}}</span>
+      </div>
+    </sc-for>
+  </div>
+
+  <!-- My journal (first person, written by M8 from the reply) -->
+  <div style="margin: 24px 16px 0 16px; padding: 20px; border-radius: 28px; background: {{c.surface}}; display: flex; flex-direction: column; gap: 14px">
+    <div style="display: flex; align-items: center; gap: 10px">
+      <div style="display: flex; flex-direction: column; gap: 1px; flex-grow: 1">
+        <span style="font-size: 16px; font-weight: 800">My journal</span>
+        <span style="font-size: 12px; font-weight: 600; color: {{c.text3}}">{{entryMeta}}</span>
+      </div>
+      <button class="tm-press" onClick="{{openEdit}}" data-tip="Edit your entry" data-tip-pos="left" style="height: 36px; padding: 0 14px; border: none; border-radius: 999px; background: {{c.surface2}}; color: {{c.text}}; font-family: inherit; font-size: 13px; font-weight: 800; cursor: pointer">Edit</button>
+    </div>
+    <p style="margin: 0; font-size: 17px; line-height: 1.6; font-weight: 500">{{entryText}}</p>
+    <div style="display: flex; gap: 10px; align-items: center; padding: 10px 12px; border-radius: 16px; background: {{c.surface2}}">
+      <sc-if value="{{fromVoice}}" hint-placeholder-val="{{ true }}"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="{{c.text3}}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="flex-shrink: 0"><rect x="9" y="3" width="6" height="11" rx="3"></rect><path d="M5 11a7 7 0 0 0 14 0"></path><path d="M12 18v3"></path></svg></sc-if>
+      <sc-if value="{{fromText}}" hint-placeholder-val="{{ false }}"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="{{c.text3}}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="flex-shrink: 0"><path d="M4 5h16v11H9l-5 4z"></path></svg></sc-if>
+      <span style="font-size: 13px; line-height: 1.4; font-weight: 600; color: {{c.text2}}; flex-grow: 1">From: {{dd.from}}</span>
+      <span style="font-size: 12px; font-weight: 600; color: {{c.text3}}; flex-shrink: 0">{{fromDur}}</span>
+    </div>
+  </div>
+
+  <!-- M8's take -->
+  <div style="margin: 12px 16px 0 16px; padding: 20px; border-radius: 28px; background: {{c.surface}}; display: flex; flex-direction: column; gap: 16px">
+    <div style="display: flex; align-items: center; gap: 10px">
+      <svg width="36" height="36" viewBox="0 0 36 36" aria-hidden="true"><rect x="0" y="0" width="36" height="36" rx="12" fill="{{accent}}"></rect><rect x="11" y="12" width="4.5" height="9" rx="2.25" fill="#15140E"></rect><rect x="20.5" y="12" width="4.5" height="9" rx="2.25" fill="#15140E"></rect></svg>
+      <div style="display: flex; flex-direction: column; gap: 1px; flex-grow: 1">
+        <span style="font-size: 16px; font-weight: 800">M8's take</span>
+        <span style="font-size: 12px; font-weight: 600; color: {{c.text3}}">What M8 sees across your journal</span>
+      </div>
+      <span data-tip="Change M8's voice in Settings" data-tip-pos="left" style="flex-shrink: 0; white-space: nowrap; font-size: 11px; font-weight: 700; padding: 6px 10px; border-radius: 999px; background: {{c.surface2}}; color: {{c.text2}}">{{voiceLabel}}</span>
+    </div>
+
+    <p style="margin: 0; font-size: 16px; line-height: 1.55; font-weight: 500">{{take}}</p>
+
+    <sc-if value="{{hasReceipts}}" hint-placeholder-val="{{ true }}">
+      <a class="tm-hover" href="#receipts" onClick="{{openReceipts}}" style="display: flex; align-items: center; gap: 10px; min-height: 48px; padding: 8px 12px; border-radius: 16px; background: {{c.lossBg}}; color: inherit; text-decoration: none">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="{{c.loss}}" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="flex-shrink: 0"><path d="M17 2l4 4-4 4"></path><path d="M3 11V9a3 3 0 0 1 3-3h15"></path><path d="M7 22l-4-4 4-4"></path><path d="M21 13v2a3 3 0 0 1-3 3H3"></path></svg>
+        <div style="display: flex; flex-direction: column; gap: 1px; flex-grow: 1; min-width: 0">
+          <span style="font-size: 13px; font-weight: 800">{{receipts.title}}</span>
+          <span style="font-size: 12px; font-weight: 600; color: {{c.text2}}">{{receipts.sub}}</span>
+        </div>
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="{{c.text3}}" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="flex-shrink: 0"><path d="M9 18l6-6-6-6"></path></svg>
+      </a>
+    </sc-if>
+
+    <div style="height: 1px; background: {{c.line}}"></div>
+
+    <div style="display: flex; flex-direction: column; gap: 6px">
+      <span style="font-size: 12px; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; color: {{c.text3}}">One thing for tomorrow</span>
+      <span style="font-size: 18px; line-height: 1.35; font-weight: 800">{{oneThing}}</span>
+    </div>
+    <sc-if value="{{ruleAsk}}" hint-placeholder-val="{{ true }}">
+      <div style="display: flex; gap: 8px">
+        <button class="tm-press" onClick="{{ruleYes}}" style="height: 48px; padding: 0 20px; border-radius: 999px; border: none; background: {{accent}}; color: #15140E; font-family: inherit; font-size: 15px; font-weight: 800; cursor: pointer">Make it a rule</button>
+        <button class="tm-press" onClick="{{ruleNo}}" style="height: 48px; padding: 0 20px; border-radius: 999px; border: none; background: {{c.surface2}}; color: {{c.text}}; font-family: inherit; font-size: 15px; font-weight: 700; cursor: pointer">Not now</button>
+      </div>
+    </sc-if>
+    <sc-if value="{{ruleOn}}" hint-placeholder-val="{{ false }}">
+      <div class="tm-in" style="display: flex; align-items: center; gap: 10px; padding: 8px 8px 8px 8px; border-radius: 999px; background: {{c.surface2}}">
+        <span class="tm-pop" style="width: 28px; height: 28px; flex-shrink: 0; border-radius: 14px; background: {{accent}}; color: #15140E; display: flex; align-items: center; justify-content: center"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5"></path></svg></span>
+        <span style="flex-grow: 1; font-size: 13px; font-weight: 800">{{ruleOnLabel}}</span>
+        <button class="tm-press" onClick="{{editRule}}" data-tip="Edit this rule" data-tip-pos="left" style="height: 32px; padding: 0 12px; border: none; border-radius: 999px; background: {{c.surface}}; color: {{c.text}}; font-family: inherit; font-size: 12px; font-weight: 800; cursor: pointer">Edit</button>
+      </div>
+    </sc-if>
+    <sc-if value="{{ruleSkip}}" hint-placeholder-val="{{ false }}">
+      <span class="tm-in" style="font-size: 13px; line-height: 1.5; font-weight: 600; color: {{c.text2}}">Skipped. M8 won't suggest this again this week.</span>
+    </sc-if>
+  </div>
+
+  <!-- Trades by session -->
+  <div style="display: flex; align-items: baseline; justify-content: space-between; margin: 32px 20px 0 20px">
+    <h2 style="margin: 0; font-size: 20px; font-weight: 800; letter-spacing: -0.01em">Trades</h2>
+    <span style="font-size: 13px; font-weight: 600; color: {{c.text3}}">{{wonLost}}</span>
+  </div>
+
+  <sc-for list="{{sessions}}" as="s" hint-placeholder-count="2">
+    <div style="margin: 14px 16px 0 16px; display: flex; flex-direction: column; gap: 8px">
+      <div style="display: flex; align-items: center; justify-content: space-between; padding: 0 4px">
+        <div style="display: flex; align-items: baseline; gap: 8px">
+          <span style="font-size: 15px; font-weight: 800">{{s.name}}</span>
+          <span style="font-size: 12px; font-weight: 600; color: {{c.text3}}">{{s.range}}</span>
+        </div>
+        <span style="font-size: 15px; font-weight: 800; color: {{s.pnlColor}}">{{s.pnl}}</span>
+      </div>
+      <div style="border-radius: 24px; background: {{c.surface}}; display: flex; flex-direction: column; overflow: hidden">
+        <sc-for list="{{s.trades}}" as="t" hint-placeholder-count="3">
+          <div class="tm-row" role="button" tabindex="0" aria-label="{{t.aria}}" onClick="{{t.open}}" onKeyDown="{{t.key}}" style="display: flex; flex-direction: column; gap: 10px; padding: 14px 16px; border-top: {{t.divider}}">
+            <div style="display: flex; align-items: center; gap: 12px">
+              <div aria-hidden="true" style="width: 40px; height: 40px; border-radius: 20px; flex-shrink: 0; background: {{t.avatar}}; color: #15140E; display: flex; align-items: center; justify-content: center; font-size: 16px; font-weight: 800">{{t.letter}}</div>
+              <div style="display: flex; flex-direction: column; gap: 3px; flex-grow: 1; min-width: 0">
+                <div style="display: flex; align-items: center; gap: 6px">
+                  <span style="font-size: 15px; font-weight: 800">{{t.ticker}}</span>
+                  <span style="font-size: 11px; font-weight: 800; letter-spacing: .06em; padding: 4px 6px; border-radius: 6px; background: {{c.surface2}}; color: {{c.text2}}">{{t.chain}}</span>
+                </div>
+                <span style="font-size: 12px; font-weight: 600; color: {{c.text3}}">{{t.time}} · held {{t.held}} · {{t.inOut}}</span>
+              </div>
+              <div style="display: flex; flex-direction: column; align-items: flex-end; gap: 4px">
+                <span style="font-size: 15px; font-weight: 800; color: {{t.pnlColor}}">{{t.pnl}}</span>
+                <span style="font-size: 11px; font-weight: 700; padding: 4px 8px; border-radius: 999px; background: {{t.tagBg}}; color: {{t.tagFg}}">{{t.tag}}</span>
+              </div>
+            </div>
+            <sc-if value="{{t.hasNote}}" hint-placeholder-val="{{ false }}">
+              <div style="display: flex; gap: 8px; align-items: flex-start; margin-left: 52px; padding: 10px 12px; border-radius: 14px; background: {{c.surface2}}">
+                <span style="font-size: 13px; line-height: 1.45; font-weight: 600; flex-grow: 1; color: {{c.text}}">{{t.note}}</span>
+                <button class="tm-press" onClick="{{t.ask}}" data-tip="Ask M8 about this trade" data-tip-pos="left" style="height: 32px; padding: 0 12px; flex-shrink: 0; align-self: center; border: none; border-radius: 999px; background: {{c.surface}}; color: {{c.text}}; font-family: inherit; font-size: 12px; font-weight: 800; cursor: pointer">Ask M8</button>
+              </div>
+            </sc-if>
+            <sc-if value="{{t.hasRepeat}}" hint-placeholder-val="{{ false }}">
+              <a class="tm-hover" href="#trade-sep-18" onClick="{{t.openRepeat}}" style="display: flex; align-items: center; gap: 8px; margin-left: 52px; min-height: 44px; padding: 6px 12px; box-sizing: border-box; border-radius: 14px; border: 1px solid {{c.lossBg}}; color: inherit; text-decoration: none">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="{{c.loss}}" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="flex-shrink: 0"><path d="M3 12a9 9 0 1 0 3-6.7"></path><path d="M3 4v4h4"></path></svg>
+                <span style="font-size: 12px; line-height: 1.4; font-weight: 700; color: {{c.text2}}; flex-grow: 1">{{t.repeat}}</span>
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="{{c.text3}}" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="flex-shrink: 0"><path d="M9 18l6-6-6-6"></path></svg>
+              </a>
+            </sc-if>
+          </div>
+        </sc-for>
+      </div>
+    </div>
+  </sc-for>
+
+  <sc-if value="{{compactConvo}}" hint-placeholder-val="{{ false }}">
+    <div style="margin: 24px 16px 0 16px; padding: 12px 12px 12px 14px; border-radius: 22px; background: {{c.surface}}; display: flex; align-items: center; gap: 12px">
+      <svg width="28" height="28" viewBox="0 0 36 36" aria-hidden="true" style="flex-shrink: 0"><rect x="0" y="0" width="36" height="36" rx="12" fill="{{accent}}"></rect><rect x="11" y="12" width="4.5" height="9" rx="2.25" fill="#15140E"></rect><rect x="20.5" y="12" width="4.5" height="9" rx="2.25" fill="#15140E"></rect></svg>
+      <span style="flex-grow: 1; font-size: 13px; line-height: 1.45; font-weight: 600; color: {{c.text2}}">{{convoLine}}</span>
+      <button class="tm-press" onClick="{{nav.openActive}}" data-tip="Open this chat with M8" data-tip-pos="left" style="height: 36px; padding: 0 14px; flex-shrink: 0; border: none; border-radius: 999px; background: {{c.surface2}}; color: {{c.text}}; font-family: inherit; font-size: 13px; font-weight: 800; cursor: pointer">Open</button>
+    </div>
+  </sc-if>
+  </sc-if>
+
+  <!-- Conversation (Oct 7 only; other days get a one-line summary) -->
+  <sc-if value="{{isToday}}" hint-placeholder-val="{{ true }}">
+  <div style="display: flex; align-items: baseline; justify-content: space-between; margin: 32px 20px 0 20px">
+    <h2 style="margin: 0; font-size: 20px; font-weight: 800; letter-spacing: -0.01em">The conversation</h2>
+    <span style="font-size: 13px; font-weight: 600; color: {{c.text3}}">Telegram · 4:22 PM</span>
+  </div>
+  <div style="margin: 14px 16px 0 16px; padding: 16px; border-radius: 28px; background: {{c.surface}}; display: flex; flex-direction: column; gap: 10px">
+    <div style="display: flex; gap: 10px; align-items: flex-start">
+      <svg width="28" height="28" viewBox="0 0 36 36" aria-hidden="true" style="flex-shrink: 0"><rect x="0" y="0" width="36" height="36" rx="12" fill="{{accent}}"></rect><rect x="11" y="12" width="4.5" height="9" rx="2.25" fill="#15140E"></rect><rect x="20.5" y="12" width="4.5" height="9" rx="2.25" fill="#15140E"></rect></svg>
+      <p style="margin: 0; padding-top: 4px; font-size: 15px; line-height: 1.5; font-weight: 500">{{v.nudge}}</p>
+    </div>
+    <div style="align-self: flex-end; max-width: 270px; padding: 12px 16px; border-radius: 20px 20px 6px 20px; background: {{c.surface2}}; display: flex; flex-direction: column; gap: 6px">
+      <div style="display: flex; align-items: center; gap: 6px; font-size: 12px; font-weight: 800; color: {{c.text2}}">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="9" y="3" width="6" height="11" rx="3"></rect><path d="M5 11a7 7 0 0 0 14 0"></path><path d="M12 18v3"></path></svg>
+        Voice note · 0:07
+      </div>
+      <span style="font-size: 15px; line-height: 1.45; font-weight: 600">i chased them, they were pumping and i didn't want to miss out</span>
+    </div>
+    <div style="display: flex; gap: 10px; align-items: flex-start">
+      <svg width="28" height="28" viewBox="0 0 36 36" aria-hidden="true" style="flex-shrink: 0"><rect x="0" y="0" width="36" height="36" rx="12" fill="{{accent}}"></rect><rect x="11" y="12" width="4.5" height="9" rx="2.25" fill="#15140E"></rect><rect x="20.5" y="12" width="4.5" height="9" rx="2.25" fill="#15140E"></rect></svg>
+      <p style="margin: 0; padding-top: 4px; font-size: 15px; line-height: 1.5; font-weight: 500">{{v.followUp}}</p>
+    </div>
+    <a class="tm-press" href="https://t.me/" onClick="{{tg}}" style="align-self: center; margin-top: 6px; min-height: 44px; display: flex; align-items: center; gap: 6px; font-size: 14px; font-weight: 700; color: {{c.text2}}; text-decoration: none">
+      Continue in Telegram
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 17L17 7"></path><path d="M8 7h9v9"></path></svg>
+    </a>
+  </div>
+
+  </sc-if>
+
+  <div aria-hidden="true" style="height: 24px; flex-shrink: 0"></div>
+
+  <!-- Tab bar -->
+  <sc-if value="{{showNav}}" hint-placeholder-val="{{ true }}">
+  <nav aria-label="Main" style="margin: auto 16px 20px 16px; padding: 6px; border-radius: 999px; background: {{c.surface}}; display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 4px">
+    <a class="tm-press" href="#journal" onClick="{{nav.journal}}" aria-current="page" style="height: 56px; border-radius: 999px; background: {{accent}}; color: #15140E; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px; font-size: 12px; font-weight: 800; text-decoration: none">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 4h11a3 3 0 0 1 3 3v13H8a3 3 0 0 1-3-3z"></path><path d="M5 17a3 3 0 0 1 3-3h11"></path></svg>
+      Journal
+    </a>
+    <a class="tm-press" href="#stats" onClick="{{nav.stats}}" style="height: 56px; border-radius: 999px; color: {{c.text2}}; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px; font-size: 12px; font-weight: 700; text-decoration: none">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 20V10"></path><path d="M12 20V4"></path><path d="M19 20v-7"></path></svg>
+      Stats
+    </a>
+    <a class="tm-press" href="#m8" onClick="{{nav.m8}}" style="height: 56px; border-radius: 999px; color: {{c.text2}}; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px; font-size: 12px; font-weight: 700; text-decoration: none">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3.5" y="3.5" width="17" height="17" rx="6"></rect><path d="M9.5 9.5v4"></path><path d="M14.5 9.5v4"></path></svg>
+      M8
+    </a>
+    <a class="tm-press" href="#settings" onClick="{{nav.settings}}" style="height: 56px; border-radius: 999px; color: {{c.text2}}; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px; font-size: 12px; font-weight: 700; text-decoration: none">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 7h10"></path><path d="M18 7h2"></path><circle cx="16" cy="7" r="2"></circle><path d="M4 17h2"></path><path d="M10 17h10"></path><circle cx="8" cy="17" r="2"></circle></svg>
+      Settings
+    </a>
+  </nav>
+  </sc-if>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"onToast":{"editor":null},"onShare":{"editor":null},"onModal":{"editor":null},"onDay":{"editor":null},"day":{"editor":null},"introDelay":{"editor":null},"onNav":{"editor":null},"hideNav":{"editor":null},"theme":{"editor":"enum","options":["dark","light"],"default":"dark","section":"Look"},"accent":{"editor":"color","default":"#7CD4FF","options":["#7CD4FF","#FFD23F","#6495ED","#B4A5FF","#FF85C8","#FF9152","#FFB547"],"section":"Look"},"voice":{"editor":"enum","options":["friend","coach","degen"],"default":"friend","section":"M8"},"$preview":{"width":390,"height":2620}}'>
+class Component extends DCLogic {
+  componentDidMount() {
+    this._shown = this.curDay();
+    this.startTick(this.props.introDelay || 0);
+  }
+  componentWillUnmount() { if (this._raf) cancelAnimationFrame(this._raf); clearTimeout(this._tick0); clearTimeout(this._swapT); }
+  // Selected day: the proto passes `day` + `onDay`; on the canvas the day lives in local state.
+  curDay() { return this.props.day || (this.state && this.state.day) || this.jm().TODAY; }
+  startTick(delay) {
+    if (this._raf) cancelAnimationFrame(this._raf);
+    clearTimeout(this._tick0);
+    const iso = this.curDay();
+    const end = this.jm().build(iso, { voice: 'friend' }).heroCents || 0;
+    // Count the hero number up (skipped when reduced motion is on).
+    if (window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches) { this.setState({ tick: end, tickDay: iso }); return; }
+    let t0 = null; const dur = 700;
+    const step = (t) => { if (t0 === null) t0 = t; const k = Math.min(1, (t - t0) / dur); this.setState({ tick: end * (1 - Math.pow(1 - k, 3)), tickDay: iso }); if (k < 1) this._raf = requestAnimationFrame(step); };
+    this._tick0 = setTimeout(() => { this._raf = requestAnimationFrame(step); }, delay || 0);
+  }
+  componentDidUpdate() {
+    // A new day replays the load-in: line redraws, hero counts up again.
+    const iso = this.curDay();
+    if (iso === this._shown) return;
+    this._shown = iso;
+    clearTimeout(this._swapT);
+    this.setState({ curveOff: true });
+    this._swapT = setTimeout(() => this.setState({ curveOff: false }), 30);
+    this.startTick(0);
+  }
+  dayView(c, accent, voice, go) {
+    const jm = this.jm();
+    const st = this.state || {};
+    const iso = this.curDay();
+    const d = jm.build(iso, { voice });
+    const inf = jm.info(iso);
+    const dateShort = inf.mon + ' ' + inf.date;
+    const toast = (t) => { if (this.props.onToast) this.props.onToast(t); };
+    const modal = (m) => { if (this.props.onModal) this.props.onModal(m); };
+    const stop = (e) => { if (e) { if (e.stopPropagation) e.stopPropagation(); if (e.preventDefault) e.preventDefault(); } };
+    const setDay = (to) => { if (!to) return; this.setState({ day: to }); if (this.props.onDay) this.props.onDay(to); };
+    const openCal = (e) => { stop(e); modal({ kind: 'calendar', selected: iso, onPick: setDay }); };
+    const atFirst = jm.idxOf(iso) <= 0, atLast = iso === jm.TODAY;
+    const pInf = jm.info(jm.shift(iso, -1)), nInf = jm.info(jm.shift(iso, 1));
+
+    const week = jm.week(iso).map((w) => {
+      const sel = w.iso === iso;
+      let bg = c.surface, fg = c.text, dot = 'transparent', opacity = 1;
+      if (sel) { bg = accent; fg = '#15140E'; dot = '#15140E'; }
+      else if (w.disabled) { fg = c.text3; opacity = 0.55; }
+      else if (w.state === 'rest') { fg = c.text2; dot = c.line; }
+      else dot = w.state === 'gain' ? c.gain : c.loss;
+      return Object.assign({}, w, {
+        bg, fg, dot, opacity, label: w.label + (sel ? ', selected' : ''),
+        current: sel ? 'date' : 'false', disabledStr: String(w.disabled), cursor: w.disabled ? 'not-allowed' : 'pointer',
+        pick: (e) => { stop(e); if (!w.disabled && !sel) setDay(w.iso); }
+      });
+    });
+
+    // Hero
+    const target = d.heroCents || 0;
+    let tv;
+    if (st.tick == null) tv = this.props.introDelay != null ? 0 : target;
+    else if (st.tickDay !== iso) tv = 0;
+    else tv = st.tick;
+    const sign = d.pnl > 0 ? '+' : d.pnl < 0 ? '-' : '';
+    const heroPnl = sign + '$' + tv.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+
+    // Journal entry, editable per day
+    const entries = st.entries || {};
+    const edited = entries[iso] != null;
+    const entryText = edited ? entries[iso] : (d.entry || '');
+    const openEdit = (e) => {
+      stop(e);
+      modal({ kind: 'editEntry', text: entryText, onSave: (t) => this.setState({ entries: Object.assign({}, (this.state || {}).entries, { [iso]: t }) }) });
+    };
+
+    // One thing for tomorrow -> rule
+    const ruleLabel = (r) => !r ? '' : r.type === 'cooldown' ? r.value + ' min cooldown after a red trade' : r.type === 'dailyLoss' ? 'stop at -$' + r.value + ' a day' : r.type === 'maxTrades' ? r.value + ' trades a day max' : r.type === 'maxPosition' ? 'max $' + r.value + ' per trade' : 'no new entries after ' + r.value;
+    const rs = (st.rules || {})[iso] || null;
+    const setRule = (val) => this.setState({ rules: Object.assign({}, (this.state || {}).rules, { [iso]: val }) });
+    const ruleYes = (e) => { stop(e); if (!d.rule) return; setRule({ on: true, rule: d.rule }); toast({ text: 'Rule set: ' + ruleLabel(d.rule), kind: 'success', undo: 'Rule removed', onUndo: () => setRule(null) }); };
+    const ruleNo = (e) => { stop(e); setRule({ skip: true }); };
+    const editRule = (e) => {
+      stop(e);
+      const cur = rs && rs.rule ? rs.rule : d.rule;
+      modal({ kind: 'rule', rule: cur, onSave: (r) => setRule({ on: true, rule: r }), onDelete: () => { setRule(null); toast({ text: 'Rule deleted', kind: 'info' }); } });
+    };
+
+    // Trades
+    const CHAIN = { SOL: 'Solana', BASE: 'Base', BNB: 'BNB Chain', RH: 'Robinhood Chain' };
+    const held = (m) => (m >= 60 ? Math.floor(m / 60) + 'h ' + (m % 60) + 'm' : m + 'm');
+    const tradeObj = (t, date) => ({ coin: t.coin, pnl: t.pnl, date: date || dateShort, time: jm.clockAP(t.t), chain: CHAIN[t.chain] || t.chain, note: t.note, tags: [t.tag], sizeX: t.sizeX, repeat: t.repeat, cost: t.cost, held: t.held });
+    const sep18 = { coin: '$PEPU', pnl: -188, date: 'Sep 18', time: '1:41 PM', chain: 'Solana', note: 'Back in 2 min after the red one, at 2.5x my normal size. Tilted.', tags: ['Revenge'], sizeX: 2.5, cost: 750, held: 7 };
+    const tagStyle = (tag) => (tag === 'FOMO' || tag === 'Revenge' || tag === 'Late entry') ? { tagBg: c.lossBg, tagFg: c.text } : { tagBg: c.surface2, tagFg: c.text2 };
+    const sessions = (d.sessions || []).map((s) => ({
+      name: s.name, range: s.range, pnl: s.pnl, pnlColor: s.pnlNum >= 0 ? c.gain : c.loss,
+      trades: s.trades.map((t, k) => {
+        const open = () => modal({ kind: 'trade', trade: tradeObj(t) });
+        return Object.assign({
+          time: jm.clock(t.t), ticker: t.coin, letter: t.coin.charAt(1), avatar: jm.avatarOf(t.coin), chain: t.chain,
+          held: held(t.held), inOut: '$' + t.cost + ' → $' + (t.cost + t.pnl), pnl: jm.money(t.pnl), pnlColor: t.pnl >= 0 ? c.gain : c.loss,
+          tag: t.tag, divider: k === 0 ? 'none' : '1px solid ' + c.line,
+          hasNote: !!t.note, note: t.note || '', hasRepeat: !!t.repeat, repeat: t.repeat || '',
+          aria: t.coin + ', ' + jm.money(t.pnl) + ', ' + t.tag + '. Open trade details',
+          open: (e) => { if (e && e.preventDefault) e.preventDefault(); open(); },
+          key: (e) => { if (e && (e.key === 'Enter' || e.key === ' ')) { e.preventDefault(); open(); } },
+          ask: (e) => { stop(e); go('ask')(); },
+          openRepeat: (e) => { stop(e); modal({ kind: 'trade', trade: sep18 }); }
+        }, tagStyle(t.tag));
+      })
+    }));
+
+    const curve = d.curve || { gainLine: '', lossLine: '', gainArea: '', lossArea: '', zeroY: 90, peakX: 0, peakY: 0, lunch: false, lunchX: 0, aria: '' };
+    const restBlurb = 'Rest days count too. M8 only checks in after you trade, so there was nothing to journal.';
+    // What the share sheet needs for this day (Oct 7 has its own hand-written card).
+    const sharePayload = (d) => {
+      const vol = d.trades.reduce((s, t) => s + t.cost, 0) || 1;
+      const pctOf = (p, cost) => Math.round(p / (cost || 1) * 1000) / 10;
+      const R = d.rule;
+      const ruleText = !R ? '' : R.type === 'cooldown' ? 'No new entries for ' + R.value + ' min after a red trade' : R.type === 'dailyLoss' ? 'Stop for the day at -$' + R.value : R.type === 'maxTrades' ? 'Max ' + R.value + ' trades a day' : R.type === 'noTradingAfter' ? 'No new entries after ' + R.value : R.type === 'maxPosition' ? 'Max $' + R.value + ' per position' : '';
+      const firstSentence = (t) => { const m = String(t || '').match(/^[^.!?]*[.!?]/); return (m ? m[0] : String(t || '')).replace(/[.!?]$/, ''); };
+      const short = (t) => { const parts = String(t || '').match(/[^.!?]+[.!?]+/g) || [String(t || '')]; let out = ''; for (const p of parts) { if ((out + p).length > 150 && out) break; out += p; } return out.trim(); };
+      return {
+        iso: d.iso, title: d.titleShort, pnl: d.pnl, pct: pctOf(d.pnl, vol), n: d.n,
+        wins: d.trades.filter((t) => t.pnl > 0).length,
+        entry: short(d.entry), lesson: ruleText || firstSentence(d.oneThing),
+        notes: d.trades.filter((t) => t.note).sort((a, b) => a.pnl - b.pnl).slice(0, 2).map((t) => ({ coin: t.coin, pnl: t.pnl, pct: pctOf(t.pnl, t.cost), note: firstSentence(t.note) })),
+        gainLine: d.curve.gainLine, lossLine: d.curve.lossLine
+      };
+    };
+    return {
+      dd: d, week, openCal, isToday: d.isToday, rest: !!d.rest, trading: !d.rest,
+      prevDay: (e) => { stop(e); if (!atFirst) setDay(jm.shift(iso, -1)); },
+      nextDay: (e) => { stop(e); if (!atLast) setDay(jm.shift(iso, 1)); },
+      prevDis: String(atFirst), nextDis: String(atLast),
+      prevTip: atFirst ? 'Tracking started Sep 8' : 'Previous day (' + pInf.dow + ' ' + pInf.mon + ' ' + pInf.date + ')',
+      nextTip: atLast ? 'This is today' : 'Next day (' + nInf.dow + ' ' + nInf.mon + ' ' + nInf.date + ')',
+      prevFg: atFirst ? c.text3 : c.text, nextFg: atLast ? c.text3 : c.text,
+      shareDis: String(!!d.rest), shareTip: d.rest ? 'Nothing to share on a rest day' : 'Share this day',
+      share: (e) => { stop(e); if (d.rest) return; if (this.props.onShare) this.props.onShare(sharePayload(d)); else go('share')(); },
+      heroPnl, heroColor: d.pnl < 0 ? c.loss : c.gain,
+      curveOn: !st.curveOff, curve, lunchOpacity: curve.lunch ? 1 : 0, peakOpacity: curve.hasPeak ? 1 : 0,
+      axisShort: d.axisShort || [], axisLong: d.axisLong || [],
+      chips3: (d.chips || []).slice(0, 3), chips4: d.chips || [],
+      entryText, entryMeta: (d.entryMeta || '') + (edited ? ' · edited' : ''), openEdit,
+      fromVoice: !!d.byVoice, fromText: !d.byVoice, fromDur: d.byVoice ? d.fromDur : '',
+      take: d.take || '', hasReceipts: !!d.receipts, receipts: d.receipts || { title: '', sub: '' },
+      openReceipts: (e) => { stop(e); if (d.receipts) modal({ kind: 'receipts', pattern: d.receipts.pattern }); },
+      oneThing: d.oneThing || '',
+      ruleAsk: !!d.rule && !rs, ruleOn: !!(rs && rs.on), ruleSkip: !!(rs && rs.skip), ruleNone: !d.rule && !rs,
+      ruleOnLabel: rs && rs.rule ? 'Rule on: ' + ruleLabel(rs.rule) : '', ruleYes, ruleNo, editRule,
+      sessions, wonLost: d.wonLost || '',
+      compactConvo: !d.rest && !d.isToday, convoLine: d.convoLine || '',
+      tg: (e) => { stop(e); toast({ text: 'Opening Telegram…', kind: 'info' }); },
+      restTitle: d.restTitle || '', restBlurb,
+      goPrevTrading: (e) => { stop(e); setDay(jm.prevTrading(iso)); },
+      hasPrevTrading: !!jm.prevTrading(iso)
+    };
+  }
+  // Day model shared by Main (mobile) and Desktop. Numbers come from DAILY/TRADES (same data as Stats); words from templates.
+  jm() {
+    if (this._jm) return this._jm;
+    const DAILY = [210, -145, 88, -310, 65, 0, 0, 402, -96, 140, -540, 45, 0, 37, 305, -120, 180, -75, 612, 0, -38, 60, -150, 120, -64, 0, 0, 412, -88, 234];
+    const TRADES = [6, 5, 4, 14, 3, 0, 0, 7, 5, 6, 19, 4, 0, 3, 6, 4, 5, 4, 8, 0, 3, 4, 6, 5, 4, 0, 0, 6, 3, 8];
+    const TODAY = '2026-10-07';
+    const DOW = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+    const DOWL = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+    const MON = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+    const MONL = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
+    const pad = (n) => String(n).padStart(2, '0');
+    const parts = (iso) => iso.split('-').map(Number);
+    const utc = (iso) => { const p = parts(iso); return Date.UTC(p[0], p[1] - 1, p[2]); };
+    const START = Date.UTC(2026, 8, 8);
+    const idxOf = (iso) => Math.round((utc(iso) - START) / 86400000);
+    const isoAt = (i) => { const d = new Date(START + i * 86400000); return d.getUTCFullYear() + '-' + pad(d.getUTCMonth() + 1) + '-' + pad(d.getUTCDate()); };
+    const shift = (iso, n) => { const d = new Date(utc(iso) + n * 86400000); return d.getUTCFullYear() + '-' + pad(d.getUTCMonth() + 1) + '-' + pad(d.getUTCDate()); };
+    const info = (iso) => { const d = new Date(utc(iso)); const w = d.getUTCDay(); return { dow: DOW[w], dowL: DOWL[w], mon: MON[d.getUTCMonth()], monL: MONL[d.getUTCMonth()], date: d.getUTCDate(), wd: w }; };
+    const money = (v) => (v > 0 ? '+' : v < 0 ? '-' : '') + '$' + Math.abs(Math.round(v)).toLocaleString('en-US');
+    const plain = (v) => '$' + Math.abs(Math.round(v)).toLocaleString('en-US');
+    const clock = (m) => { const h = Math.floor(m / 60), mm = m % 60; return ((h + 11) % 12 + 1) + ':' + pad(mm); };
+    const clockAP = (m) => clock(m) + (m >= 720 ? ' PM' : ' AM');
+    const toMin = (s, pm) => { const p = s.split(':').map(Number); let h = p[0]; if (pm && h < 12) h += 12; return h * 60 + p[1]; };
+    const rng = (seed) => () => { seed |= 0; seed = seed + 0x6D2B79F5 | 0; let t = Math.imul(seed ^ seed >>> 15, 1 | seed); t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t; return ((t ^ t >>> 14) >>> 0) / 4294967296; };
+    const COINS = [['$BONKZ', 'SOL'], ['$GIGAZ', 'SOL'], ['$MOODY', 'SOL'], ['$PNUTZ', 'SOL'], ['$CHILLR', 'SOL'], ['$FWOGI', 'SOL'], ['$GOATZ', 'SOL'], ['$SNEK', 'SOL'], ['$GOBLN', 'SOL'], ['$FROGZ', 'SOL'], ['$SLURP', 'SOL'], ['$NUBCAT', 'SOL'], ['$LAMBO', 'SOL'], ['$WAGMI2', 'SOL'], ['$BRETTY', 'BASE'], ['$TOSHY', 'BASE'], ['$DEGENZ', 'BASE'], ['$KEYKAT', 'BASE'], ['$CHAD', 'BASE'], ['$DUCKY', 'BNB'], ['$PUPCAKE', 'BNB'], ['$MOONCAT', 'RH'], ['$HOODIE', 'RH'], ['$ROBO', 'RH']];
+    const AVATARS = ['#8FD3FF', '#9EE6C1', '#C3A6FF', '#FFE08A', '#A5B4FC', '#FFB86B', '#FF9EC4', '#F9A8A8'];
+    const AV = { '$GOBLN': '#8FD3FF', '$SNEK': '#9EE6C1', '$CHAD': '#C3A6FF', '$MOONCAT': '#FFE08A', '$FROGO': '#A5B4FC', '$DUCKY': '#FFB86B', '$WIFHAT': '#FF9EC4', '$PEPU2': '#F9A8A8', '$PEPU': '#F9A8A8' };
+    const avatarOf = (coin) => { if (AV[coin]) return AV[coin]; let h = 0; for (const ch of coin) h = (h * 31 + ch.charCodeAt(0)) >>> 0; return AVATARS[h % AVATARS.length]; };
+
+    // A trade: { t (minutes from midnight), coin, chain, held (min), cost, pnl, tag, note?, repeat?, after? (min after a loss), sizeX? }
+    const T = (time, pm, coin, chain, held, cost, pnl, tag, extra) => Object.assign({ t: toMin(time, pm), coin, chain, held, cost, pnl, tag }, extra || {});
+    const BESPOKE = {
+      '2026-10-07': [
+        T('9:02', 0, '$GOBLN', 'SOL', 34, 300, 288, 'Plan', { note: 'Sold half at 2x and rode the rest. Textbook.' }),
+        T('9:41', 0, '$SNEK', 'SOL', 18, 250, 146, 'Plan'),
+        T('10:05', 0, '$CHAD', 'BASE', 9, 200, -38, 'Cut fast', { note: 'Cut it at -19% without hesitating. Good loss.' }),
+        T('10:30', 0, '$MOONCAT', 'RH', 52, 300, 197, 'Plan'),
+        T('11:12', 0, '$FROGO', 'SOL', 21, 150, 54, 'Plan'),
+        T('11:31', 0, '$DUCKY', 'BNB', 17, 150, -38, 'Cut fast'),
+        T('1:34', 1, '$WIFHAT', 'SOL', 26, 500, -221, 'FOMO', { note: 'Bought after a +180% candle at 2x my morning size. Pure FOMO.', sizeX: 2 }),
+        T('1:58', 1, '$PEPU2', 'SOL', 22, 600, -154, 'Revenge', { note: 'Jumped back in 4 min after closing $WIFHAT red, at 2x my normal size. Wanted it back.', repeat: 'Same as Sep 18: $PEPU, 2 min after a loss, 2.5x size, -$188', after: 4, sizeX: 2 })
+      ],
+      '2026-09-18': [
+        T('9:05', 0, '$BONKZ', 'SOL', 22, 300, 96, 'Plan'),
+        T('9:31', 0, '$GIGAZ', 'SOL', 15, 250, 42, 'Plan'),
+        T('9:58', 0, '$SNEK', 'SOL', 8, 250, -35, 'Cut fast'),
+        T('10:20', 0, '$CHAD', 'BASE', 31, 300, 61, 'Plan'),
+        T('10:47', 0, '$MOODY', 'SOL', 6, 200, -28, 'Cut fast'),
+        T('11:15', 0, '$FWOGI', 'SOL', 19, 200, 34, 'Took profit'),
+        T('1:12', 1, '$LAMBO', 'SOL', 5, 300, -84, 'FOMO', { note: 'Bought the top of a green candle. That one started it.' }),
+        T('1:19', 1, '$LAMBO', 'SOL', 9, 400, -61, 'Revenge', { after: 2 }),
+        T('1:39', 1, '$BONKZ', 'SOL', 1, 300, -72, 'FOMO'),
+        T('1:41', 1, '$PEPU', 'SOL', 7, 750, -188, 'Revenge', { after: 2, sizeX: 2.5, note: 'Back in 2 min after the red one, at 2.5x my normal size. Tilted.' }),
+        T('1:50', 1, '$PEPU', 'SOL', 12, 500, 38, 'Revenge', { after: 2 }),
+        T('2:24', 1, '$HOODIE', 'RH', 14, 300, 55, 'Plan'),
+        T('2:40', 1, '$DEGENZ', 'BASE', 4, 450, -146, 'FOMO'),
+        T('2:47', 1, '$DEGENZ', 'BASE', 6, 400, -44, 'Revenge', { after: 3 }),
+        T('2:55', 1, '$GOATZ', 'SOL', 21, 350, -58, 'Revenge', { after: 2 }),
+        T('3:30', 1, '$NUBCAT', 'SOL', 11, 300, 72, 'Took profit'),
+        T('3:44', 1, '$SLURP', 'SOL', 3, 400, -116, 'FOMO'),
+        T('3:50', 1, '$SLURP', 'SOL', 5, 350, -49, 'Revenge', { after: 3 }),
+        T('3:58', 1, '$WAGMI2', 'SOL', 9, 300, -57, 'Revenge', { after: 3, note: 'Stopped here. Should have stopped two hours earlier.' })
+      ],
+      '2026-09-24': [
+        T('9:20', 0, '$FROGZ', 'SOL', 41, 300, 142, 'Plan', { note: 'Under 10 minutes old, normal size. This is my setup.' }),
+        T('9:55', 0, '$TOSHY', 'BASE', 28, 250, 96, 'Plan'),
+        T('10:40', 0, '$KEYKAT', 'BASE', 4, 300, -48, 'Cut fast'),
+        T('10:46', 0, '$KEYKAT', 'BASE', 12, 450, -74, 'Revenge', { after: 2, sizeX: 1.5, note: 'Went straight back in after the red one. Never again after a red one.' }),
+        T('11:30', 0, '$MOONCAT', 'RH', 33, 300, 64, 'Plan')
+      ]
+    };
+
+    const NOTES = {
+      win: ['Waited for the dip after launch instead of chasing. Paid off.', 'Took half at 2x, let the rest ride.', 'Under an hour old, normal size. My setup.', 'Sold into strength for once.'],
+      cut: ['Wrong read, cut it quick.', 'Cut it the second it lost the level. Good loss.'],
+      fomo: ['Bought because it was green. No reason.', 'Late. It had already done 3x when I got in.', 'Chased the candle. Knew it while I was clicking.'],
+      revenge: ['Wanted the last one back. Classic.', 'Re-entered right after a loss. Same mistake.']
+    };
+    const genTrades = (i) => {
+      const n = TRADES[i], P = DAILY[i];
+      if (!n) return [];
+      const r = rng(i * 7919 + 101);
+      const pick = (a) => a[Math.floor(r() * a.length)];
+      let wins = n === 1 ? (P > 0 ? 1 : 0) : Math.round(n * (P > 0 ? 0.55 + r() * 0.15 : 0.3 + r() * 0.15));
+      if (P > 0 && wins < 1) wins = 1;
+      if (P < 0 && wins >= n) wins = n - 1;
+      const losses = n - wins;
+      const wRaw = Array.from({ length: wins }, () => 40 + r() * 260);
+      const lRaw = Array.from({ length: losses }, () => 20 + r() * 160);
+      let L = lRaw.reduce((s, v) => s + v, 0), W = P + L;
+      if (wins === 0) { L = -P; W = 0; } else if (losses === 0) { W = P; L = 0; } else if (W < wins * 20) { L += wins * 20 - W; W = wins * 20; }
+      const scale = (arr, total) => {
+        const s = arr.reduce((a, v) => a + v, 0) || 1;
+        const out = arr.map((v) => Math.max(5, Math.round(v / s * total)));
+        const diff = Math.round(total) - out.reduce((a, v) => a + v, 0);
+        if (out.length) { const k = out.indexOf(Math.max.apply(null, out)); out[k] += diff; }
+        return out;
+      };
+      const ws = scale(wRaw, W), ls = scale(lRaw, L).map((v) => -v);
+      // Interleave outcomes deterministically
+      const pnls = ws.concat(ls);
+      for (let k = pnls.length - 1; k > 0; k--) { const j = Math.floor(r() * (k + 1)); const t = pnls[k]; pnls[k] = pnls[j]; pnls[j] = t; }
+      const two = n >= 5;
+      const mCount = two ? Math.ceil(n * 0.6) : n;
+      const pmOnly = !two && r() < 0.4;
+      // Each session gets a time window; trades are spread across it with jitter.
+      const win = (s0, s1, count) => { const a = s0 + Math.floor(r() * 30); const step = Math.max(6, Math.floor((s1 - a) / Math.max(1, count))); return { a, step }; };
+      const wins0 = pmOnly ? win(13 * 60 + 5, 16 * 60 + 30, n) : win(8 * 60 + 45, 12 * 60 + 5, mCount);
+      const wins1 = two ? win(13 * 60 + 5, 16 * 60 + 45, n - mCount) : null;
+      const pool = COINS.slice();
+      const out = [];
+      let prev = null;
+      pnls.forEach((pnl, k) => {
+        const sess = two && k >= mCount ? 1 : 0;
+        const w = sess ? wins1 : wins0, kk = sess ? k - mCount : k;
+        const t = w.a + kk * w.step + Math.floor(r() * Math.max(1, w.step * 0.4));
+        const ci = Math.floor(r() * pool.length); const coin = pool.splice(ci, 1)[0];
+        let cost = 100 + 50 * Math.floor(r() * 9);
+        if (pnl < 0 && -pnl > cost * 0.7) cost = Math.ceil(-pnl / 0.6 / 50) * 50;
+        const held = 3 + Math.floor(r() * Math.min(48, Math.max(6, w.step - 4)));
+        const gapAfterLoss = prev && prev.pnl < 0 ? t - (prev.t + prev.held) : 99;
+        let tag;
+        if (pnl > 0) tag = r() < 0.75 ? 'Plan' : 'Took profit';
+        else if (-pnl < cost * 0.25) tag = 'Cut fast';
+        else if (gapAfterLoss >= 0 && gapAfterLoss <= 10) tag = 'Revenge';
+        else tag = r() < 0.6 ? 'FOMO' : 'Late entry';
+        const tr = { t, s: sess, coin: coin[0], chain: coin[1], held, cost, pnl, tag };
+        if (tag === 'Revenge') tr.after = Math.max(1, gapAfterLoss);
+        out.push(tr);
+        prev = tr;
+      });
+      // First-person notes on the biggest win and the biggest loss
+      const best = out.reduce((a, b) => (b.pnl > a.pnl ? b : a), out[0]);
+      const worst = out.reduce((a, b) => (b.pnl < a.pnl ? b : a), out[0]);
+      if (best.pnl > 0) best.note = pick(NOTES.win);
+      if (worst.pnl < 0 && worst !== best) worst.note = pick(worst.tag === 'Cut fast' ? NOTES.cut : worst.tag === 'Revenge' ? NOTES.revenge : NOTES.fomo);
+      return out;
+    };
+
+    const ENTRY = {
+      bigGreen: (d) => 'Good day. ' + d.best.coin + ' did the heavy lifting, ' + money(d.best.pnl) + '. I kept size normal and didn\'t force anything after that.',
+      green: (d) => 'Small green day. ' + d.n + ' trades, mostly in and out. ' + d.best.coin + ' was the only real winner and I\'m fine with that.',
+      red: (d) => 'Red but controlled. Cut ' + d.worst.coin + ' when it lost the level and didn\'t chase it back. Slow tape, nothing to force.',
+      bigRed: (d) => 'Bad one. ' + d.worst.coin + ' hit me for ' + plain(d.worst.pnl) + ' and I kept trading to win it back. Should have stopped after two reds.',
+      busy: (d) => 'Too many trades. ' + d.n + ' of them, and half were boredom entries. ' + (d.pnl >= 0 ? 'Still green, but the good ones came early.' : 'The good ones came early; the rest gave it back.')
+    };
+    const QUOTE = {
+      bigGreen: ['good day, didnt overdo it', 'that one ran, i just held it'], green: ['small green, fine', 'meh day, still green'],
+      red: ['slow day, cut the losers', 'red but i didnt chase'], bigRed: ['bad day. kept trying to make it back', 'i knew i should stop and i didnt'],
+      busy: ['way too many trades today', 'i was bored and kept clicking']
+    };
+    const TAKE = {
+      bigGreen: { friend: (d) => 'This is what your edge looks like: ' + d.best.coin + ' early, normal size, out on time. More days like this, fewer trades around them.', coach: (d) => 'A strong day built on one well-sized trade in ' + d.best.coin + '. Notice what you did not do afterwards: you did not size up.', degen: (d) => d.best.coin + ' carried. You didn\'t give it back. Growth, ser.' },
+      green: { friend: () => 'Quiet and green. Nothing to fix here, just don\'t turn a slow day into a busy one.', coach: () => 'A small win with small risk. This is a perfectly good day.', degen: () => 'Boring green. Boring green pays.' },
+      red: { friend: (d) => 'Small red, losses cut fast. That\'s a good losing day, honestly.', coach: (d) => 'Your losses were small and you stopped. A losing day handled well.', degen: (d) => 'Took the L like an adult. Respect.' },
+      bigRed: { friend: (d) => 'The first loss was fine. The trades after it are what cost you ' + plain(d.pnl) + '.', coach: (d) => 'Most of today\'s loss came after your first red trade. That is the pattern to work on.', degen: (d) => 'First L was the market. The rest were you.' },
+      busy: { friend: (d) => d.n + ' trades is a lot for you. Your average is 5. The extra ones are where the money goes.', coach: (d) => 'You made ' + d.n + ' trades against a normal of 5. The later ones performed worst.', degen: (d) => d.n + ' trades. Touch grass.' }
+    };
+    const ONE = {
+      bigGreen: { text: { friend: 'Same size tomorrow. Don\'t scale up after a big day.', coach: 'Keep tomorrow\'s size the same as today\'s.', degen: 'Don\'t 3x size because you feel like a genius.' } },
+      green: { text: { friend: 'Same plan tomorrow.', coach: 'Repeat today\'s process tomorrow.', degen: 'Do it again.' } },
+      red: { text: { friend: 'Same plan tomorrow. Small losses are part of it.', coach: 'Keep cutting losers this fast.', degen: 'Keep cutting fast.' } },
+      bigRed: { text: { friend: 'Stop for the day at -$200.', coach: 'Set a daily loss limit of $200.', degen: '-$200 and you log off.' }, rule: { type: 'dailyLoss', value: 200 }, toast: 'Rule set: stop trading at -$200 for the day' },
+      busy: { text: { friend: 'Cap it at 10 trades a day.', coach: 'Set a limit of 10 trades per day.', degen: '10 trades, then the app closes.' }, rule: { type: 'maxTrades', value: 10 }, toast: 'Rule set: 10 trades a day max' }
+    };
+    const OCT7V = {
+      friend: { take: 'Third chase after a red trade this week, and all three came after 1 PM. Your mornings are carrying you. The afternoons are where it leaks.', oneThing: 'No new entries for 20 min after a red trade.' },
+      coach: { take: 'This is your third chase after a losing trade this week, and all three were after 1 PM. Your mornings are consistently strong; the leak is in the afternoon.', oneThing: 'Add a 20-minute cooldown after any losing trade.' },
+      degen: { take: 'Third chase this week, all after lunch. Mornings you\'re him. Afternoons you\'re exit liquidity.', oneThing: 'Red trade = touch grass for 20 min.' }
+    };
+    const OCT7 = {
+      entry: 'Clean morning. Small size, and I took profit into strength on $GOBLN and $MOONCAT. After lunch I aped $WIFHAT and $PEPU2 while they were already ripping and gave back $375. Still green, but it was a $647 day before the chase.',
+      from: '"i chased them, they were pumping and i didn\'t want to miss out"', dur: '0:07', meta: 'Written by M8 from your voice note · 4:31 PM'
+    };
+    const SEP18 = {
+      entry: 'Worst day this month. Morning was fine, up $170. Then $LAMBO went red and I spent the whole afternoon trying to win it back. $PEPU, 2 min after a loss at 2.5x size, was the worst of it. 19 trades. I should have stopped after the second red one.',
+      from: '"i just kept clicking. i knew it and i kept clicking"', dur: '0:11', meta: 'Written by M8 from your voice note · 6:12 PM',
+      take: { friend: '7 of your 19 trades came within 10 minutes of a loss, and they lost $419 together. The morning was a normal day. The afternoon was one long revenge trade.', coach: 'Seven re-entries within 10 minutes of a loss cost $419. Your morning process was intact; the afternoon was reactive.', degen: '7 revenge trades, -$419. The morning was you. The afternoon was the tilt.' },
+      receipts: { title: '7 re-entries within 10 min of a loss', sub: 'They lost $419 together · see all 14 this month', pattern: 'reentry' }
+    };
+    const SEP24 = {
+      entry: 'Green, but I did the thing again. Cut $KEYKAT at -$48 and went straight back in, lost another $74. Never again after a red one.',
+      from: '"never again after a red one. i mean it this time"', dur: '0:06', meta: 'Written by M8 from your voice note · 1:40 PM',
+      take: { friend: 'Great morning on $FROGZ and $TOSHY. The $KEYKAT re-entry 6 min after a loss is the Sep 18 move again, just smaller.', coach: 'Your setup worked on $FROGZ and $TOSHY. The $KEYKAT re-entry repeats the Sep 18 pattern at a smaller size.', degen: '$FROGZ and $TOSHY: chef. $KEYKAT round two: Sep 18 flashbacks.' },
+      receipts: { title: '2nd chase after a red trade this month', sub: 'Same move as Sep 18 · you wrote "never again"', pattern: 'chase' }
+    };
+
+    const memo = {};
+    const build = (iso, o) => { const k = iso + '|' + o.voice; if (!memo[k]) memo[k] = buildRaw(iso, o); return memo[k]; };
+    const buildRaw = (iso, o) => {
+      const i = idxOf(iso);
+      const inf = info(iso);
+      const inRange = i >= 0 && i < DAILY.length;
+      const isToday = iso === TODAY;
+      const trades = !inRange ? [] : (BESPOKE[iso] || genTrades(i)).map((t) => Object.assign({}, t));
+      const n = trades.length;
+      const pnl = trades.reduce((s, t) => s + t.pnl, 0);
+      const base = {
+        iso, idx: i, isToday, inRange, rest: inRange && n === 0, n, pnl,
+        titleShort: inf.dow + ', ' + inf.mon + ' ' + inf.date,
+        titleLong: inf.dowL + ', ' + inf.monL + ' ' + inf.date,
+        heroLabel: isToday ? 'Net PnL today' : 'Net PnL'
+      };
+      if (!n) return Object.assign(base, { restTitle: 'No trades on ' + inf.dow + ', ' + inf.mon + ' ' + inf.date });
+      trades.sort((a, b) => a.t - b.t);
+      // Sessions: split at the first gap over 60 min that crosses noon
+      // Sessions: generated trades carry s; bespoke ones split at noon.
+      const sOf = (t) => (t.s != null ? t.s : t.t >= 12 * 60 ? 1 : 0);
+      let split = n;
+      for (let k = 1; k < n; k++) if (sOf(trades[k]) !== sOf(trades[0])) { split = k; break; }
+      const groups = split < n ? [trades.slice(0, split), trades.slice(split)] : [trades];
+      const sessName = (g, gi) => groups.length === 2 ? (gi === 0 ? 'Morning' : 'After lunch') : (g[0].t >= 12 * 60 ? 'Afternoon' : 'Morning');
+      const sessions = groups.map((g, gi) => {
+        const end = Math.max.apply(null, g.map((t) => t.t + t.held));
+        const sp = g.reduce((s, t) => s + t.pnl, 0);
+        return { name: sessName(g, gi), range: clock(g[0].t) + ' - ' + clockAP(end), pnlNum: sp, pnl: money(sp), trades: g };
+      });
+      // Realized curve: one point per exit
+      const first = trades[0].t, last = Math.max.apply(null, trades.map((t) => t.t + t.held));
+      const exits = trades.map((t) => ({ m: t.t + t.held, pnl: t.pnl })).sort((a, b) => a.m - b.m);
+      let cum = 0;
+      const pts = [{ m: first, v: 0 }].concat(exits.map((e) => { cum += e.pnl; return { m: e.m, v: cum }; }));
+      const wins = trades.filter((t) => t.pnl > 0).length;
+      const vol = trades.reduce((s, t) => s + t.cost, 0);
+      const avgHold = Math.round(trades.reduce((s, t) => s + t.held, 0) / n);
+      const best = trades.reduce((a, b) => (b.pnl > a.pnl ? b : a), trades[0]);
+      const worst = trades.reduce((a, b) => (b.pnl < a.pnl ? b : a), trades[0]);
+      const cat = n >= 10 ? 'busy' : pnl >= 300 ? 'bigGreen' : pnl > 0 ? 'green' : pnl <= -250 ? 'bigRed' : 'red';
+      const r = rng(i * 131 + 7);
+      const byVoice = r() < 0.7;
+      const replyAt = last + 90 + Math.floor(r() * 60);
+      const peak = pts.reduce((a, b) => (b.v > a.v ? b : a), pts[0]);
+      const low = pts.reduce((a, b) => (b.v < a.v ? b : a), pts[0]);
+      let curve;
+      if (isToday) {
+        curve = {
+          gainLine: '0,90 37.3,54.6 61.1,36.6 76.7,41.3 147.1,17 158.6,10.4 174.1,15 284,15',
+          lossLine: '284,15 310.9,42.2 331.6,61.2 342,61.2',
+          gainArea: '0,90 37.3,54.6 61.1,36.6 76.7,41.3 147.1,17 158.6,10.4 174.1,15 284,15 284,96 0,96',
+          lossArea: '284,15 310.9,42.2 331.6,61.2 342,61.2 342,96 284,96',
+          zeroY: 90, peakX: 158.6, peakY: 10.4, hasPeak: true, lunch: true, lunchX: 186.5,
+          aria: 'Realized PnL through the day: climbs to +$647 by 11:33, drops to +$234 after two trades after lunch'
+        };
+      } else {
+        const hi = Math.max(0, peak.v), lo = Math.min(0, low.v), span = (hi - lo) || 1;
+        const X = (m) => +(((m - first) / Math.max(1, last - first)) * 342).toFixed(1);
+        const Y = (v) => +(90 - ((v - lo) / span) * 80).toFixed(1);
+        const P = pts.map((p) => [X(p.m), Y(p.v)]);
+        const pk = pts.indexOf(peak);
+        const up = P.slice(0, pk + 1), down = P.slice(pk);
+        const s = (a) => a.map((p) => p[0] + ',' + p[1]).join(' ');
+        const area = (a) => a.length ? s(a) + ' ' + a[a.length - 1][0] + ',96 ' + a[0][0] + ',96' : '';
+        const lunchM = groups.length === 2 ? Math.round((groups[0][groups[0].length - 1].t + groups[0][groups[0].length - 1].held + groups[1][0].t) / 2) : null;
+        curve = {
+          hasPeak: pk > 0 && peak.v > 0,
+          gainLine: up.length > 1 ? s(up) : '', lossLine: down.length > 1 ? s(down) : '', gainArea: up.length > 1 ? area(up) : '', lossArea: down.length > 1 ? area(down) : '',
+          zeroY: Y(0), peakX: P[pk][0], peakY: P[pk][1], lunch: lunchM !== null, lunchX: lunchM !== null ? X(lunchM) : 0,
+          aria: 'Realized PnL through the day: ' + (peak.v > 0 ? 'peaks at ' + money(peak.v) + ' at ' + clockAP(peak.m) + ', ' : '') + 'ends ' + money(pnl)
+        };
+      }
+      // Axis labels
+      const span = last - first;
+      const axis = (k) => Array.from({ length: k }, (_, j) => j === 0 ? clockAP(first) : j === k - 1 ? clockAP(last) : clock(Math.round(first + span * j / (k - 1))));
+      const axisShort = isToday ? ['9:00', 'lunch', '2:30 PM'] : (curve.lunch ? [clockAP(first), 'lunch', clockAP(last)] : axis(3));
+      const axisLong = isToday ? ['9:00 AM', '10:00', '11:00', 'lunch', '1:00 PM', '2:30 PM'] : axis(6);
+      const chains = [];
+      trades.forEach((t) => { if (chains.indexOf(t.chain) < 0) chains.push(t.chain); });
+      const story = iso === '2026-09-18' ? SEP18 : iso === '2026-09-24' ? SEP24 : null;
+      const voice = o.voice;
+      const one = ONE[cat];
+      const d = Object.assign(base, {
+        trades, sessions, curve, axisShort, axisLong, best, worst, cat,
+        heroCents: isToday ? 234.12 : Math.abs(pnl) + ((i * 37) % 100) / 100,
+        heroSub: isToday ? 'Peaked at +$647 before lunch' : (pnl >= 0 ? 'Peaked at ' + money(peak.v) + ' at ' + clockAP(peak.m) : (low.v < pnl ? 'Low of ' + money(low.v) + ' at ' + clockAP(low.m) : 'Lost ' + plain(pnl) + ' over ' + n + (n === 1 ? ' trade' : ' trades'))),
+        subShort: isToday ? '2 sessions · 3 wallets' : sessions.length + (sessions.length === 1 ? ' session' : ' sessions') + ' · ' + chains.length + (chains.length === 1 ? ' chain' : ' chains'),
+        subLong: isToday ? '2 sessions · 3 wallets · SOL, BASE, BNB, RH' : sessions.length + (sessions.length === 1 ? ' session' : ' sessions') + ' · ' + chains.join(', '),
+        chips: [
+          { k: 'Trades', v: String(n), tip: 'Positions closed. One trade is first buy to fully out.' },
+          { k: 'Win rate', v: Math.round(wins / n * 100) + '%', tip: wins + ' of ' + n + ' trades closed green.' },
+          { k: 'Volume', v: '$' + (vol >= 1000 ? (vol / 1000).toFixed(1) + 'k' : vol), tip: 'Total you bought in with: $' + vol.toLocaleString('en-US') + '.' },
+          { k: 'Avg hold', v: avgHold + 'm', tip: 'Average time from first buy to fully out.' }
+        ],
+        wonLost: wins + ' won · ' + (n - wins) + ' lost',
+        entry: isToday ? OCT7.entry : story ? story.entry : ENTRY[cat]({ n, pnl, best, worst }),
+        from: isToday ? OCT7.from : story ? story.from : '"' + QUOTE[cat][Math.floor(r() * QUOTE[cat].length)] + '"',
+        fromDur: isToday ? OCT7.dur : story ? story.dur : (byVoice ? '0:' + pad(4 + Math.floor(r() * 12)) : 'text'),
+        entryMeta: isToday ? OCT7.meta : story ? story.meta : 'Written by M8 from your ' + (byVoice ? 'voice note' : 'text reply') + ' · ' + clockAP(replyAt),
+        byVoice: isToday || !!story || byVoice,
+        take: isToday ? OCT7V[voice].take : story ? story.take[voice] : TAKE[cat][voice]({ n, pnl, best, worst }),
+        receipts: isToday ? { title: '3rd chase after a red trade this week', sub: 'Also Sep 18 and Sep 24 · you wrote "never again" on the 24th', pattern: 'chase' } : story ? story.receipts : null,
+        oneThing: isToday ? OCT7V[voice].oneThing : iso === '2026-09-18' ? ONE.bigRed.text[voice] : one.text[voice],
+        rule: iso === '2026-09-18' ? ONE.bigRed.rule : isToday ? { type: 'cooldown', value: 20 } : (one.rule || null),
+        ruleToast: iso === '2026-09-18' ? ONE.bigRed.toast : isToday ? 'Rule set: 20 min cooldown after a red trade' : (one.toast || ''),
+        convoLine: 'M8 checked in at ' + clockAP(last + 120 > 23 * 60 ? last + 30 : last + 120) + ' on Telegram · you replied ' + (isToday || story || byVoice ? 'by voice' : 'by text')
+      });
+      return d;
+    };
+    const week = (iso) => {
+      const w = info(iso).wd; const mon = shift(iso, -((w + 6) % 7));
+      return Array.from({ length: 7 }, (_, k) => {
+        const di = shift(mon, k); const j = idxOf(di); const f = info(di);
+        const inR = j >= 0 && j < DAILY.length;
+        const n = inR ? TRADES[j] : 0, v = inR ? DAILY[j] : 0;
+        const state = !inR ? (utc(di) > utc(TODAY) ? 'future' : 'before') : n === 0 ? 'rest' : v >= 0 ? 'gain' : 'loss';
+        const label = f.dowL + ' ' + f.mon + ' ' + f.date + (state === 'gain' ? ', up ' + plain(v) : state === 'loss' ? ', down ' + plain(v) : state === 'rest' ? ', rest day' : state === 'future' ? ', not traded yet' : ', before tracking started');
+        const tip = state === 'future' ? 'Not traded yet' : state === 'before' ? 'Before tracking started' : f.dow + ' ' + f.mon + ' ' + f.date + ' · ' + (state === 'rest' ? 'Rest day' : money(v) + ' · ' + n + (n === 1 ? ' trade' : ' trades'));
+        return { iso: di, dow: f.dow, date: String(f.date), state, label, tip, disabled: !inR };
+      });
+    };
+    const prevTrading = (iso) => { for (let j = idxOf(iso) - 1; j >= 0; j--) if (TRADES[j] > 0) return isoAt(j); return null; };
+    this._jm = { build, week, clock, clockAP, avatarOf, plain, shift, idxOf, isoAt, info, prevTrading, money, TODAY, FIRST: isoAt(0), DAYS: DAILY.length };
+    return this._jm;
+  }
+  renderVals() {
+    const theme = this.props.theme ?? 'dark';
+    const accent = this.props.accent ?? '#7CD4FF';
+    const voice = this.props.voice ?? 'friend';
+
+    const themes = {
+      dark: {
+        bg: '#0D0E13', surface: '#171922', surface2: '#21242F', line: '#2C303D',
+        text: '#F3F4F7', text2: '#A9AEBE', text3: '#858B9E',
+        gain: '#3FD98E', loss: '#FF6B6B',
+        gainBg: 'rgba(63,217,142,0.14)', lossBg: 'rgba(255,107,107,0.14)',
+        tipBg: '#F3F4F7', tipFg: '#12131A', rowHover: 'rgba(255,255,255,0.045)', rowPress: 'rgba(255,255,255,0.08)'
+      },
+      light: {
+        bg: '#F4F4F7', surface: '#FFFFFF', surface2: '#EEEFF3', line: '#E3E5EB',
+        text: '#12131A', text2: '#4F5566', text3: '#666C7E',
+        gain: '#0B8A51', loss: '#D23434',
+        gainBg: 'rgba(11,138,81,0.10)', lossBg: 'rgba(210,52,52,0.10)',
+        tipBg: '#12131A', tipFg: '#F3F4F7', rowHover: 'rgba(18,19,26,0.045)', rowPress: 'rgba(18,19,26,0.08)'
+      }
+    };
+    const c = themes[theme] || themes.dark;
+    // Theme-aware helpers from design/tokens.json: accent ink for foreground use on light, warn and danger.
+    const tkLight = (theme) === 'light';
+    const tkn = {
+      ink: tkLight ? ({ '#7CD4FF': '#0072AA', '#FFD23F': '#866700', '#6495ED': '#1B63E5', '#B4A5FF': '#6849FF', '#FF85C8': '#D10073', '#FF9152': '#BD4500', '#FFB547': '#9E5E00' }[String(accent).toUpperCase()] || accent) : accent,
+      flash: accent + '38',
+      warn: tkLight ? '#A86400' : '#FFE07A', warnSoft: tkLight ? 'rgba(168,100,0,0.10)' : 'rgba(255,224,122,0.14)',
+      danger: tkLight ? '#D23434' : '#FF6B6B',
+      pulse: tkLight ? 'rgba(11,138,81,0.35)' : 'rgba(63,217,142,0.45)'
+    };
+
+    const voices = {
+      friend: {
+        label: 'Trench friend',
+        summary: 'Clean morning. Small size, and you took profit into strength on $GOBLN and $MOONCAT. After lunch you aped $WIFHAT and $PEPU2 while they were already ripping and handed back $375. Still green, but that was a $647 day before the chase.',
+        take: 'Third chase after a red trade this week, and all three came after 1 PM. Your mornings are carrying you. The afternoons are where it leaks.',
+        oneThing: 'No new entries for 20 min after a red trade.',
+        nudge: '8 trades today, up $234. Morning was great, but you lost $375 on two coins after lunch. What happened there?',
+        followUp: 'Got it, logged both as FOMO. Want a 20 min cooldown after red trades? I’ll ping you if you break it.'
+      },
+      coach: {
+        label: 'Calm coach',
+        summary: 'Your morning was disciplined: small sizes, and profits taken into strength on $GOBLN and $MOONCAT. After lunch you entered $WIFHAT and $PEPU2 after they had already run, and gave back $375. You finished green, but well below your $647 peak.',
+        take: 'This is your third chase after a losing trade this week, and all three were after 1 PM. Your mornings are consistently strong; the leak is in the afternoon.',
+        oneThing: 'Add a 20-minute cooldown after any losing trade.',
+        nudge: '8 trades today, up $234 overall. A strong morning, then two trades after lunch lost $375. What was going on there?',
+        followUp: 'Thank you. I’ve tagged both as FOMO. Would a 20-minute cooldown after losses help? I can alert you if it’s broken.'
+      },
+      degen: {
+        label: 'Blunt degen',
+        summary: 'Morning you was cooking. $GOBLN and $MOONCAT, sold into the pump like a pro. Then lunch hit and you market-bought two green candles because they were green. -$375. You were up $647, ser.',
+        take: 'Third chase this week, all after lunch. Mornings you\'re him. Afternoons you\'re exit liquidity.',
+        oneThing: 'Red trade = touch grass for 20 min.',
+        nudge: '8 trades, +$234. Morning: chef. After lunch: -$375 on two coins. Explain yourself.',
+        followUp: 'Tagged FOMO, obviously. Want me to put you in a 20 min timeout after red trades?'
+      }
+    };
+    const v = voices[voice] || voices.friend;
+
+    const go = (to) => (e) => { if (e && e.preventDefault) e.preventDefault(); if (this.props.onNav) this.props.onNav(to); };
+    const nav = { journal: go('journal'), stats: go('stats'), m8: go('m8'), settings: go('settings'), ask: go('ask'), askFresh: go('askFresh'), share: go('share'), back: go('back'), history: go('history'), expand: go('expand'), collapse: go('collapse'), close: go('close'), openActive: go('openActive'), newTopic: go('newTopic') };
+    const day = this.dayView(c, accent, voice, go);
+    return Object.assign(day, { tkn,
+      nav, showNav: !this.props.hideNav, c, accent, v, voiceLabel: v.label,
+      subShort: day.dd.subShort || 'Rest day',
+      minH: this.props.hideNav ? '0' : '2620px'
+    });
+  }
+}
+</script>
+</body>
+</html>

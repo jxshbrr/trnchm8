@@ -1,0 +1,57 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>TrenchM8 - Citrus night accent options</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="anonymous">
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0}
+</style>
+</helmet>
+<div style="width: 3170px; height: 2840px; box-sizing: border-box; padding: 40px; background: #08090C; font-family: Manrope, system-ui, sans-serif; color: #F3F4F7; display: flex; gap: 60px">
+  <sc-for list="{{accents}}" as="a" hint-placeholder-count="7">
+    <div style="width: 390px; flex-shrink: 0; display: flex; flex-direction: column; gap: 20px">
+      <div style="height: 100px; display: flex; gap: 14px; align-items: flex-start">
+        <span style="width: 52px; height: 52px; flex-shrink: 0; border-radius: 16px; background: {{a.hex}}"></span>
+        <div style="display: flex; flex-direction: column; gap: 4px">
+          <div style="display: flex; align-items: baseline; gap: 8px">
+            <span style="font-size: 22px; font-weight: 800">{{a.name}}</span>
+            <span style="font-size: 13px; font-weight: 700; color: #858B9E">{{a.hex}}</span>
+          </div>
+          <span style="font-size: 14px; line-height: 1.45; font-weight: 600; color: #A9AEBE">{{a.note}}</span>
+        </div>
+      </div>
+      <div style="border-radius: 28px; overflow: hidden">
+        <dc-import name="Main" theme="dark" accent="{{a.hex}}" voice="{{voice}}" hint-size="390px,2620px"></dc-import>
+      </div>
+    </div>
+  </sc-for>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"voice":{"editor":"enum","options":["friend","coach","degen"],"default":"friend","section":"M8"},"$preview":{"width":3170,"height":2840}}'>
+class Component extends DCLogic {
+  renderVals() {
+    return {
+      voice: this.props.voice ?? 'friend',
+      accents: [
+        { name: 'Citrus', hex: '#FFD23F', note: 'Current. Most visible on black, but reads as Binance and as "warning".' },
+        { name: 'Cornflower', hex: '#6495ED', note: 'Calm and trustworthy. The most "fintech", the least degen.' },
+        { name: 'Sky', hex: '#7CD4FF', note: 'Bright and clean. Close to Telegram blue, so it feels native there.' },
+        { name: 'Lilac', hex: '#B4A5FF', note: 'Soft and friendly. The closest to Phantom, which is the risk.' },
+        { name: 'Bubblegum', hex: '#FF85C8', note: 'The most memey and ownable. Nobody in trading uses it.' },
+        { name: 'Tangerine', hex: '#FF9152', note: 'Energetic and warm. Sits a little close to loss red.' },
+        { name: 'Apricot', hex: '#FFB547', note: 'Warm gold without the Binance yellow. Degen-adjacent.' }
+      ]
+    };
+  }
+}
+</script>
+</body>
+</html>

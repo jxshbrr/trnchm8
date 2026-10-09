@@ -1,0 +1,130 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>M8 on Discord - onboarding</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<style>
+body{margin:0}
+a{color:#00A8FC;text-decoration:none}a:hover{text-decoration:underline}
+button{font-family:inherit;cursor:pointer}
+.dc-btn{transition:filter .15s ease,transform .1s ease}
+.dc-btn:hover{filter:brightness(.88)}
+.dc-btn:active{transform:scale(.97)}
+.dc-icon:hover{background:#3F4147 !important;color:#DBDEE1 !important}
+.dc-dot{animation:dc-dot 1.2s infinite ease-in-out}
+.dc-dot:nth-child(2){animation-delay:.15s}.dc-dot:nth-child(3){animation-delay:.3s}
+@keyframes dc-dot{0%,60%,100%{opacity:.35;transform:translateY(0)}30%{opacity:1;transform:translateY(-2px)}}
+@media (prefers-reduced-motion: reduce){.dc-dot{animation:none}.dc-btn{transition:none}}
+</style>
+</helmet>
+<div style="width: 390px; min-height: 1583px; box-sizing: border-box; display: flex; flex-direction: column; background: #313338; color: #DBDEE1; font-family: 'gg sans', 'Noto Sans', Whitney, 'Helvetica Neue', system-ui, sans-serif; font-size: 16px; line-height: 1.375; -webkit-font-smoothing: antialiased">
+
+  <div style="display: flex; align-items: center; gap: 8px; height: 56px; padding: 0 8px 0 4px; box-sizing: border-box; background: #313338; border-bottom: 1px solid #1F2023; flex-shrink: 0">
+    <button class="dc-icon" aria-label="Back" style="width: 40px; height: 40px; padding: 0; border: none; border-radius: 20px; background: transparent; color: #B5BAC1; display: flex; align-items: center; justify-content: center"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M19 12H5"></path><path d="M12 19l-7-7 7-7"></path></svg></button>
+    <div style="position: relative; width: 32px; height: 32px; flex-shrink: 0">
+      <svg width="32" height="32" viewBox="0 0 36 36" aria-hidden="true" style="flex-shrink: 0; display: block"><rect x="0" y="0" width="36" height="36" rx="18" fill="{{accent}}"></rect><rect x="11" y="12" width="4.5" height="9" rx="2.25" fill="#15140E"></rect><rect x="20.5" y="12" width="4.5" height="9" rx="2.25" fill="#15140E"></rect></svg>
+      <span style="position: absolute; right: -3px; bottom: -3px; width: 10px; height: 10px; border-radius: 50%; background: #23A55A; border: 3px solid #313338"></span>
+    </div>
+    <div style="display: flex; align-items: center; gap: 6px; flex-grow: 1; min-width: 0; padding-left: 4px">
+      <span style="font-size: 17px; font-weight: 700; color: #F2F3F5">M8</span>
+      <span style="display: inline-flex; align-items: center; height: 15px; padding: 0 4px; border-radius: 4px; background: #5865F2; color: #FFFFFF; font-size: 10px; font-weight: 600; line-height: 15px; letter-spacing: 0.02em; flex-shrink: 0">APP</span>
+      <span style="display: flex; color: #80848E"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 18l6-6-6-6"></path></svg></span>
+    </div>
+    <button class="dc-icon" aria-label="Start voice call" style="width: 40px; height: 40px; padding: 0; border: none; border-radius: 20px; background: transparent; color: #B5BAC1; display: flex; align-items: center; justify-content: center"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"></path></svg></button>
+    <button class="dc-icon" aria-label="Search" style="width: 40px; height: 40px; padding: 0; border: none; border-radius: 20px; background: transparent; color: #B5BAC1; display: flex; align-items: center; justify-content: center"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="11" cy="11" r="7"></circle><path d="M21 21l-4.35-4.35"></path></svg></button>
+  </div>
+  <div style="display: flex; flex-direction: column; padding: 4px 0 16px 0">
+    <div style="display: flex; align-items: center; gap: 8px; margin: 16px 16px 0 16px">
+      <div style="flex-grow: 1; height: 1px; background: #3F4147"></div>
+      <span style="font-size: 12px; font-weight: 600; color: #949BA4">October 7, 2026</span>
+      <div style="flex-grow: 1; height: 1px; background: #3F4147"></div>
+    </div>
+    <div style="position: relative; display: flex; align-items: center; gap: 4px; margin-top: 16px; padding: 0 16px 0 72px; height: 20px; font-size: 14px; color: #949BA4; white-space: nowrap">
+      <span style="position: absolute; left: 35px; top: 10px; width: 30px; height: 10px; box-sizing: border-box; border-left: 2px solid #4E5058; border-top: 2px solid #4E5058; border-top-left-radius: 6px"></span>
+      <svg width="16" height="16" viewBox="0 0 40 40" aria-hidden="true" style="flex-shrink: 0; display: block"><circle cx="20" cy="20" r="20" fill="#5865F2"></circle><path transform="translate(9.5 10) scale(0.875)" fill="#FFFFFF" fill-rule="evenodd" d="M20.317 4.3698a19.7913 19.7913 0 00-4.8851-1.5152.0741.0741 0 00-.0785.0371c-.211.3753-.4447.8648-.6083 1.2495-1.8447-.2762-3.68-.2762-5.4868 0-.1636-.3933-.4058-.8742-.6177-1.2495a.077.077 0 00-.0785-.037 19.7363 19.7363 0 00-4.8852 1.515.0699.0699 0 00-.0321.0277C.5334 9.0458-.319 13.5799.0992 18.0578a.0824.0824 0 00.0312.0561c2.0528 1.5076 4.0413 2.4228 5.9929 3.0294a.0777.0777 0 00.0842-.0276c.4616-.6304.8731-1.2952 1.226-1.9942a.076.076 0 00-.0416-.1057c-.6528-.2476-1.2743-.5495-1.8722-.8923a.077.077 0 01-.0076-.1277c.1258-.0943.2517-.1923.3718-.2914a.0743.0743 0 01.0776-.0105c3.9278 1.7933 8.18 1.7933 12.0614 0a.0739.0739 0 01.0785.0095c.1202.099.246.1981.3728.2924a.077.077 0 01-.0066.1276 12.2986 12.2986 0 01-1.873.8914.0766.0766 0 00-.0407.1067c.3604.698.7719 1.3628 1.225 1.9932a.076.076 0 00.0842.0286c1.961-.6067 3.9495-1.5219 6.0023-3.0294a.077.077 0 00.0313-.0552c.5004-5.177-.8382-9.6739-3.5485-13.6604a.061.061 0 00-.0312-.0286zM8.02 15.3312c-1.1825 0-2.1569-1.0857-2.1569-2.419 0-1.3332.9555-2.4189 2.157-2.4189 1.2108 0 2.1757 1.0952 2.1568 2.419 0 1.3332-.9555 2.4189-2.1569 2.4189zm7.9748 0c-1.1825 0-2.1569-1.0857-2.1569-2.419 0-1.3332.9554-2.4189 2.1569-2.4189 1.2108 0 2.1757 1.0952 2.1568 2.419 0 1.3332-.946 2.4189-2.1568 2.4189Z"></path></svg>
+      <span style="color: #F2F3F5; font-weight: 500; margin-left: 2px">josh</span>
+      <span>used</span>
+      <span style="color: #00A8FC">/start</span>
+    </div>
+    <div style="display: flex; gap: 12px; margin-top: 4px; padding: 2px 16px">
+      <svg width="40" height="40" viewBox="0 0 36 36" aria-hidden="true" style="flex-shrink: 0; display: block"><rect x="0" y="0" width="36" height="36" rx="18" fill="{{accent}}"></rect><rect x="11" y="12" width="4.5" height="9" rx="2.25" fill="#15140E"></rect><rect x="20.5" y="12" width="4.5" height="9" rx="2.25" fill="#15140E"></rect></svg>
+      <div style="display: flex; flex-direction: column; min-width: 0; flex-grow: 1">
+        <div style="display: flex; align-items: center; gap: 6px; height: 22px">
+          <span style="font-size: 16px; font-weight: 600; color: #F2F3F5">M8</span>
+          <span style="display: inline-flex; align-items: center; height: 15px; padding: 0 4px; border-radius: 4px; background: #5865F2; color: #FFFFFF; font-size: 10px; font-weight: 600; line-height: 15px; letter-spacing: 0.02em; flex-shrink: 0">APP</span>
+          <span style="font-size: 12px; color: #949BA4; margin-left: 2px">Today at 9:41 AM</span>
+        </div>
+        <div style="font-size: 16px; line-height: 1.375; color: #DBDEE1; overflow-wrap: anywhere"><b>gm. I'm M8.</b><br>I watch your wallets, text you after you trade, and turn your replies into a trading journal. You never write a thing.<br><br>First: paste a wallet you trade from. Solana, Base, BNB or Robinhood Chain.<div style="font-size: 13px; line-height: 1.3; color: #949BA4; margin-top: 2px">Read-only. I'll never ask you to sign anything or connect.</div></div>
+      </div>
+    </div>
+    <div style="display: flex; gap: 12px; margin-top: 16px; padding: 2px 16px">
+      <svg width="40" height="40" viewBox="0 0 40 40" aria-hidden="true" style="flex-shrink: 0; display: block"><circle cx="20" cy="20" r="20" fill="#5865F2"></circle><path transform="translate(9.5 10) scale(0.875)" fill="#FFFFFF" fill-rule="evenodd" d="M20.317 4.3698a19.7913 19.7913 0 00-4.8851-1.5152.0741.0741 0 00-.0785.0371c-.211.3753-.4447.8648-.6083 1.2495-1.8447-.2762-3.68-.2762-5.4868 0-.1636-.3933-.4058-.8742-.6177-1.2495a.077.077 0 00-.0785-.037 19.7363 19.7363 0 00-4.8852 1.515.0699.0699 0 00-.0321.0277C.5334 9.0458-.319 13.5799.0992 18.0578a.0824.0824 0 00.0312.0561c2.0528 1.5076 4.0413 2.4228 5.9929 3.0294a.0777.0777 0 00.0842-.0276c.4616-.6304.8731-1.2952 1.226-1.9942a.076.076 0 00-.0416-.1057c-.6528-.2476-1.2743-.5495-1.8722-.8923a.077.077 0 01-.0076-.1277c.1258-.0943.2517-.1923.3718-.2914a.0743.0743 0 01.0776-.0105c3.9278 1.7933 8.18 1.7933 12.0614 0a.0739.0739 0 01.0785.0095c.1202.099.246.1981.3728.2924a.077.077 0 01-.0066.1276 12.2986 12.2986 0 01-1.873.8914.0766.0766 0 00-.0407.1067c.3604.698.7719 1.3628 1.225 1.9932a.076.076 0 00.0842.0286c1.961-.6067 3.9495-1.5219 6.0023-3.0294a.077.077 0 00.0313-.0552c.5004-5.177-.8382-9.6739-3.5485-13.6604a.061.061 0 00-.0312-.0286zM8.02 15.3312c-1.1825 0-2.1569-1.0857-2.1569-2.419 0-1.3332.9555-2.4189 2.157-2.4189 1.2108 0 2.1757 1.0952 2.1568 2.419 0 1.3332-.9555 2.4189-2.1569 2.4189zm7.9748 0c-1.1825 0-2.1569-1.0857-2.1569-2.419 0-1.3332.9554-2.4189 2.1569-2.4189 1.2108 0 2.1757 1.0952 2.1568 2.419 0 1.3332-.946 2.4189-2.1568 2.4189Z"></path></svg>
+      <div style="display: flex; flex-direction: column; min-width: 0; flex-grow: 1">
+        <div style="display: flex; align-items: center; gap: 6px; height: 22px">
+          <span style="font-size: 16px; font-weight: 600; color: #F2F3F5">josh</span>
+          
+          <span style="font-size: 12px; color: #949BA4; margin-left: 2px">Today at 9:42 AM</span>
+        </div>
+        <div style="font-size: 16px; line-height: 1.375; color: #DBDEE1; overflow-wrap: anywhere">7xKpQ2vNfL8dRj4tYc1Hs9aEwBmZ63fQa</div>
+      </div>
+    </div>
+    <div style="display: flex; gap: 12px; margin-top: 16px; padding: 2px 16px">
+      <svg width="40" height="40" viewBox="0 0 36 36" aria-hidden="true" style="flex-shrink: 0; display: block"><rect x="0" y="0" width="36" height="36" rx="18" fill="{{accent}}"></rect><rect x="11" y="12" width="4.5" height="9" rx="2.25" fill="#15140E"></rect><rect x="20.5" y="12" width="4.5" height="9" rx="2.25" fill="#15140E"></rect></svg>
+      <div style="display: flex; flex-direction: column; min-width: 0; flex-grow: 1">
+        <div style="display: flex; align-items: center; gap: 6px; height: 22px">
+          <span style="font-size: 16px; font-weight: 600; color: #F2F3F5">M8</span>
+          <span style="display: inline-flex; align-items: center; height: 15px; padding: 0 4px; border-radius: 4px; background: #5865F2; color: #FFFFFF; font-size: 10px; font-weight: 600; line-height: 15px; letter-spacing: 0.02em; flex-shrink: 0">APP</span>
+          <span style="font-size: 12px; color: #949BA4; margin-left: 2px">Today at 9:42 AM</span>
+        </div>
+        <div style="font-size: 16px; line-height: 1.375; color: #DBDEE1; overflow-wrap: anywhere">Solana wallet <code style="font-family: Consolas, 'Andale Mono WT', Menlo, monospace; font-size: 0.85em; padding: 1px 4px; border-radius: 4px; background: #2B2D31; border: 1px solid #1E1F22; color: #DBDEE1; white-space: nowrap">7xKp…3fQa</code> added. Pulling your last 30 days of trades now, about a minute.<div style="display: flex; flex-wrap: wrap; gap: 8px; margin-top: 8px"><button class="dc-btn" style="height: 36px; padding: 0 14px; border: none; border-radius: 8px; background: #4E5058; color: #FFFFFF; font-size: 14px; font-weight: 600; display: inline-flex; align-items: center; gap: 6px; white-space: nowrap;">Add another</button><button class="dc-btn" style="height: 36px; padding: 0 14px; border: none; border-radius: 8px; background: #5865F2; color: #FFFFFF; font-size: 14px; font-weight: 600; display: inline-flex; align-items: center; gap: 6px; white-space: nowrap;">That's all</button></div></div>
+      </div>
+    </div>
+    <span style="align-self: center; margin-top: 10px; padding: 0 24px; font-size: 12px; font-style: italic; color: #949BA4; text-align: center">You tapped "That's all"</span>
+    <div style="margin-top: 10px; padding: 2px 16px 2px 68px; font-size: 16px; line-height: 1.375; color: #DBDEE1; overflow-wrap: anywhere"><b>Pick my voice.</b> Same facts, different delivery:<div style="margin-top: 8px; display: flex; flex-direction: column; border-radius: 8px; overflow: hidden; border: 1px solid #1E1F22">
+          <div style="display: flex; align-items: center; height: 40px; padding: 0 10px 0 12px; background: #1E1F22; border-bottom: 1px solid #3F4147"><span style="flex-grow: 1; font-size: 15px; color: #949BA4">Pick a voice</span><span style="display: flex; color: #DBDEE1"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M18 15l-6-6-6 6"></path></svg></span></div>
+          <div style="display: flex; flex-direction: column; padding: 4px 0; background: #2B2D31"><div style="display: flex; align-items: center; gap: 10px; padding: 8px 12px; background: #404249;"><div style="display: flex; flex-direction: column; flex-grow: 1; min-width: 0"><span style="font-size: 15px; font-weight: 500; color: #F2F3F5">Trench friend</span><span style="font-size: 13px; line-height: 1.3; color: #B5BAC1">you chased those two after lunch. what happened?</span></div><span style="display: flex; color: #5865F2"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6L9 17l-5-5"></path></svg></span></div><div style="display: flex; align-items: center; gap: 10px; padding: 8px 12px; "><div style="display: flex; flex-direction: column; flex-grow: 1; min-width: 0"><span style="font-size: 15px; font-weight: 500; color: #F2F3F5">Calm coach</span><span style="font-size: 13px; line-height: 1.3; color: #B5BAC1">Two trades after lunch lost $375. What was going on there?</span></div><span style="width: 18px"></span></div><div style="display: flex; align-items: center; gap: 10px; padding: 8px 12px; "><div style="display: flex; flex-direction: column; flex-grow: 1; min-width: 0"><span style="font-size: 15px; font-weight: 500; color: #F2F3F5">Blunt degen</span><span style="font-size: 13px; line-height: 1.3; color: #B5BAC1">-$375 after lunch. explain yourself.</span></div><span style="width: 18px"></span></div></div>
+        </div></div>
+    <span style="align-self: center; margin-top: 10px; padding: 0 24px; font-size: 12px; font-style: italic; color: #949BA4; text-align: center">You picked "Trench friend". The reply is ephemeral.</span>
+    <div style="margin-top: 10px; padding: 2px 16px 2px 68px; font-size: 16px; line-height: 1.375; color: #DBDEE1; overflow-wrap: anywhere">Trench friend it is. Switch anytime with <span style="padding: 0 2px; border-radius: 3px; background: rgba(88,101,242,0.3); color: #C9CDFB; font-weight: 500">/voice</span>.<div style="display: flex; align-items: center; gap: 4px; margin-top: 4px; font-size: 12px; color: #949BA4"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12z"></path><circle cx="12" cy="12" r="3"></circle></svg><span>Only you can see this ·</span><span style="color: #00A8FC">Dismiss message</span></div></div>
+    <div style="margin-top: 10px; padding: 2px 16px 2px 68px; font-size: 16px; line-height: 1.375; color: #DBDEE1; overflow-wrap: anywhere">Last thing: looks like you're on <b>New York time (ET)</b>. Right?<div style="display: flex; flex-wrap: wrap; gap: 8px; margin-top: 8px"><button class="dc-btn" style="height: 36px; padding: 0 14px; border: none; border-radius: 8px; background: #5865F2; color: #FFFFFF; font-size: 14px; font-weight: 600; display: inline-flex; align-items: center; gap: 6px; white-space: nowrap;">Yep</button><button class="dc-btn" style="height: 36px; padding: 0 14px; border: none; border-radius: 8px; background: #4E5058; color: #FFFFFF; font-size: 14px; font-weight: 600; display: inline-flex; align-items: center; gap: 6px; white-space: nowrap;">Change</button></div></div>
+    <span style="align-self: center; margin-top: 10px; padding: 0 24px; font-size: 12px; font-style: italic; color: #949BA4; text-align: center">You tapped "Yep"</span>
+    <div style="display: flex; gap: 12px; margin-top: 10px; padding: 2px 16px">
+      <svg width="40" height="40" viewBox="0 0 36 36" aria-hidden="true" style="flex-shrink: 0; display: block"><rect x="0" y="0" width="36" height="36" rx="18" fill="{{accent}}"></rect><rect x="11" y="12" width="4.5" height="9" rx="2.25" fill="#15140E"></rect><rect x="20.5" y="12" width="4.5" height="9" rx="2.25" fill="#15140E"></rect></svg>
+      <div style="display: flex; flex-direction: column; min-width: 0; flex-grow: 1">
+        <div style="display: flex; align-items: center; gap: 6px; height: 22px">
+          <span style="font-size: 16px; font-weight: 600; color: #F2F3F5">M8</span>
+          <span style="display: inline-flex; align-items: center; height: 15px; padding: 0 4px; border-radius: 4px; background: #5865F2; color: #FFFFFF; font-size: 10px; font-weight: 600; line-height: 15px; letter-spacing: 0.02em; flex-shrink: 0">APP</span>
+          <span style="font-size: 12px; color: #949BA4; margin-left: 2px">Today at 9:44 AM</span>
+        </div>
+        <div style="font-size: 16px; line-height: 1.375; color: #DBDEE1; overflow-wrap: anywhere"><div style="display: flex; margin-top: 2px; border-radius: 4px; overflow: hidden; background: #2B2D31; border: 1px solid #26272B"><div style="width: 4px; flex-shrink: 0; background: #23A55A"></div><div style="display: flex; flex-direction: column; gap: 8px; padding: 10px 14px 14px 12px; min-width: 0; flex-grow: 1"><span style="font-size: 16px; font-weight: 700; line-height: 1.3; color: #F2F3F5">Your last 30 days</span><div style="display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px 12px"><div style="display: flex; flex-direction: column; gap: 2px; min-width: 0"><span style="font-size: 14px; font-weight: 700; color: #F2F3F5">Trades</span><span style="font-size: 14px; line-height: 1.375; color: #DBDEE1">142</span></div><div style="display: flex; flex-direction: column; gap: 2px; min-width: 0"><span style="font-size: 14px; font-weight: 700; color: #F2F3F5">PnL</span><span style="font-size: 14px; line-height: 1.375; color: #3FD98E">up $1,284</span></div><div style="display: flex; flex-direction: column; gap: 2px; min-width: 0"><span style="font-size: 14px; font-weight: 700; color: #F2F3F5">Win rate</span><span style="font-size: 14px; line-height: 1.375; color: #DBDEE1">48%</span></div></div><div style="font-size: 14px; line-height: 1.375; color: #DBDEE1">One thing jumped out: you're <b>up $2,910 on coins under 1 hour old</b>, and <b>down $1,626 on everything older</b>. Fresh launches are your edge. Old coins are where it leaks.</div><div style="display: flex; align-items: center; gap: 8px; margin-top: 2px; font-size: 12px; font-weight: 500; color: #949BA4"><svg width="20" height="20" viewBox="0 0 36 36" aria-hidden="true" style="flex-shrink: 0; display: block"><rect x="0" y="0" width="36" height="36" rx="10" fill="{{accent}}"></rect><rect x="11" y="12" width="4.5" height="9" rx="2.25" fill="#15140E"></rect><rect x="20.5" y="12" width="4.5" height="9" rx="2.25" fill="#15140E"></rect></svg><span>TrenchM8 · journaled by M8</span></div></div></div></div>
+      </div>
+    </div>
+    <div style="margin-top: 4px; padding: 2px 16px 2px 68px; font-size: 16px; line-height: 1.375; color: #DBDEE1; overflow-wrap: anywhere">I'll text you about 2h after your next session. Your 7-day trial starts now, everything unlocked.<div style="display: flex; flex-wrap: wrap; gap: 8px; margin-top: 8px"><button class="dc-btn" style="height: 36px; padding: 0 14px; border: none; border-radius: 8px; background: #4E5058; color: #FFFFFF; font-size: 14px; font-weight: 600; display: inline-flex; align-items: center; gap: 6px; white-space: nowrap;">Open my journal<span style="display: flex; opacity: 0.85"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 3h6v6"></path><path d="M10 14L21 3"></path><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path></svg></span></button></div></div>
+  </div>
+  <div style="margin-top: auto; display: flex; flex-direction: column; flex-shrink: 0">
+    <div style="display: flex; align-items: center; gap: 8px; padding: 8px 12px 14px 12px">
+      <button class="dc-icon" aria-label="Attach" style="width: 40px; height: 40px; padding: 0; border: none; border-radius: 20px; background: #383A40; color: #B5BAC1; display: flex; align-items: center; justify-content: center; flex-shrink: 0"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 5v14"></path><path d="M5 12h14"></path></svg></button>
+      <div style="flex-grow: 1; min-width: 0; height: 40px; box-sizing: border-box; padding: 0 12px 0 16px; border-radius: 20px; background: #383A40; display: flex; align-items: center; gap: 10px">
+        <span style="flex-grow: 1; font-size: 16px; color: #949BA4">Message @M8</span>
+        <span style="display: flex; color: #B5BAC1"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="8" width="18" height="4" rx="1"></rect><path d="M12 8v13"></path><path d="M19 12v7a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2v-7"></path><path d="M7.5 8a2.5 2.5 0 0 1 0-5C9 3 12 8 12 8s3-5 4.5-5a2.5 2.5 0 0 1 0 5"></path></svg></span>
+        <span style="display: flex; color: #B5BAC1"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"></circle><path d="M8 14s1.5 2 4 2 4-2 4-2"></path><path d="M9 9h.01"></path><path d="M15 9h.01"></path></svg></span>
+      </div>
+      <button class="dc-icon" aria-label="Record voice message" style="width: 40px; height: 40px; padding: 0; border: none; border-radius: 20px; background: #383A40; color: #B5BAC1; display: flex; align-items: center; justify-content: center; flex-shrink: 0"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="9" y="2" width="6" height="12" rx="3"></rect><path d="M19 10v2a7 7 0 0 1-14 0v-2"></path><path d="M12 19v3"></path></svg></button>
+    </div>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"accent":{"editor":"color","default":"#7CD4FF","options":["#7CD4FF","#FFD23F","#6495ED","#B4A5FF","#FF85C8","#FF9152","#FFB547"]},"$preview":{"width":390,"height":1583}}'>
+class Component extends DCLogic {
+  renderVals() {
+    return { accent: this.props.accent ?? '#7CD4FF' };
+  }
+}
+</script>
+</body>
+</html>

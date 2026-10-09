@@ -1,0 +1,945 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>TrenchM8 - Settings</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="anonymous">
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0}
+/* TrenchM8 motion: 120-150ms press/hover, 250-350ms UI, 600-900ms load-in. Ease-out. Fades only when reduced motion is on. */
+@keyframes tm-in{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+@keyframes tm-fade{from{opacity:0}to{opacity:1}}
+@keyframes tm-draw{to{stroke-dashoffset:0}}
+@keyframes tm-shimmer{0%{background-position:-400px 0}100%{background-position:400px 0}}
+@keyframes tm-dot{0%,80%,100%{opacity:.3;transform:translateY(0)}40%{opacity:1;transform:translateY(-3px)}}
+@keyframes tm-toast{from{opacity:0;transform:translateY(12px) scale(.98)}to{opacity:1;transform:none}}
+@keyframes tm-pop{0%{opacity:0;transform:scale(.6)}60%{opacity:1;transform:scale(1.08)}100%{transform:scale(1)}}
+@keyframes tm-spin{to{transform:rotate(360deg)}}
+@keyframes tm-pulse{0%{box-shadow:0 0 0 0 var(--tm-pulse,rgba(63,217,142,.45))}100%{box-shadow:0 0 0 10px rgba(0,0,0,0)}}
+@keyframes tm-fill{from{width:0}to{width:100%}}
+@keyframes tm-out{from{opacity:1}to{opacity:0}}
+@keyframes tm-flash{0%{background-color:var(--tm-flash,rgba(124,212,255,.22))}100%{background-color:transparent}}
+.tm-press{transition:transform .12s ease,filter .15s ease,background-color .15s ease,opacity .15s ease}
+.tm-press:hover{filter:brightness(1.12)}
+.tm-press:active{transform:scale(.97)}
+.tm-press:focus-visible,.tm-hover:focus-visible{outline:2px solid var(--tm-focus,#7CD4FF);outline-offset:2px}
+.tm-hover{transition:filter .15s ease,transform .15s ease}
+.tm-hover:hover{filter:brightness(1.18)}
+.tm-in{animation:tm-in .35s cubic-bezier(.2,.8,.2,1) both}
+.tm-fade{animation:tm-fade .6s ease both;animation-delay:var(--tm-d,0s)}
+.tm-draw{stroke-dasharray:1;stroke-dashoffset:1;animation:tm-draw .9s cubic-bezier(.2,.8,.2,1) calc(var(--tm-d,0s) + .15s) forwards}
+.tm-skel{background:linear-gradient(90deg,var(--sk1) 0%,var(--sk2) 50%,var(--sk1) 100%);background-size:800px 100%;animation:tm-shimmer 1.2s linear infinite}
+.tm-dot{display:inline-block;width:6px;height:6px;border-radius:3px;background:currentColor;animation:tm-dot 1.2s ease-in-out infinite}
+.tm-toast{animation:tm-toast .25s cubic-bezier(.2,.8,.2,1) both}
+.tm-pop{animation:tm-pop .45s cubic-bezier(.2,.8,.2,1) both}
+.tm-spin{animation:tm-spin .8s linear infinite}
+.tm-pulse{animation:tm-pulse 1.6s ease-out infinite}
+.tm-flash{animation:tm-flash 1.6s ease-out both}
+.tm-out{animation:tm-out .22s ease both;pointer-events:none}
+@media (prefers-reduced-motion:reduce){.tm-in,.tm-toast,.tm-pop{animation:tm-fade .2s ease both}.tm-draw{animation:none;stroke-dasharray:none;stroke-dashoffset:0}.tm-skel,.tm-dot,.tm-pulse,.tm-spin{animation:none}.tm-press:active{transform:none}}
+/* Tooltips: data-tip="text" (+ data-tip-pos="bottom|left|right", data-tip-wrap for long text). Desktop hover/keyboard only. */
+[data-tip]{position:relative}
+[data-tip]::after{content:attr(data-tip);position:absolute;left:50%;bottom:calc(100% + 8px);transform:translate(-50%,4px);padding:6px 10px;border-radius:10px;background:var(--tm-tip-bg,#F3F4F7);color:var(--tm-tip-fg,#12131A);font:600 12px/1.35 Manrope,system-ui,sans-serif;letter-spacing:0;text-transform:none;text-align:left;white-space:nowrap;pointer-events:none;opacity:0;visibility:hidden;transition:opacity .12s ease,transform .12s ease,visibility 0s linear .12s;z-index:80;box-shadow:0 8px 24px rgba(0,0,0,.28)}
+[data-tip]:hover::after,[data-tip]:focus-visible::after{opacity:1;visibility:visible;transform:translate(-50%,0);transition:opacity .12s ease .35s,transform .12s ease .35s,visibility 0s linear .35s}
+[data-tip-pos=bottom]::after{bottom:auto;top:calc(100% + 8px);transform:translate(-50%,-4px)}
+[data-tip-pos=left]::after{left:auto;right:calc(100% + 8px);bottom:50%;transform:translate(4px,50%)}
+[data-tip-pos=left]:hover::after,[data-tip-pos=left]:focus-visible::after{transform:translate(0,50%)}
+[data-tip-pos=right]::after{left:calc(100% + 8px);bottom:50%;transform:translate(-4px,50%)}
+[data-tip-pos=right]:hover::after,[data-tip-pos=right]:focus-visible::after{transform:translate(0,50%)}
+[data-tip-wrap]::after{white-space:normal;width:max-content;max-width:240px}
+@media (hover:none){[data-tip]::after{display:none}}
+[data-tip=""]::after{display:none}
+/* Clickable rows (no inline background on the row itself) and clickable cards */
+.tm-row{transition:background-color .15s ease;cursor:pointer}
+.tm-row:hover{background-color:var(--tm-row-hover,rgba(255,255,255,.045))}
+.tm-row:active{background-color:var(--tm-row-press,rgba(255,255,255,.08))}
+.tm-lift{transition:filter .15s ease,box-shadow .15s ease;cursor:pointer}
+.tm-lift:hover{filter:brightness(1.07)}
+.tm-press[aria-disabled=true],.tm-press:disabled{opacity:.45;cursor:not-allowed;filter:none}
+.tm-press[aria-disabled=true]:active,.tm-press:disabled:active{transform:none}
+@keyframes tm-shake{0%,100%{transform:none}20%,60%{transform:translateX(-4px)}40%,80%{transform:translateX(4px)}}
+.tm-shake{animation:tm-shake .3s ease}
+@keyframes tm-sheet{from{transform:translateY(24px);opacity:0}to{transform:none;opacity:1}}
+@keyframes tm-dialog{from{transform:translateY(8px) scale(.98);opacity:0}to{transform:none;opacity:1}}
+@keyframes tm-drawer{from{transform:translateX(32px);opacity:0}to{transform:none;opacity:1}}
+.tm-sheet{animation:tm-sheet .3s cubic-bezier(.2,.8,.2,1) both}
+.tm-dialog{animation:tm-dialog .22s cubic-bezier(.2,.8,.2,1) both}
+.tm-drawer{animation:tm-drawer .28s cubic-bezier(.2,.8,.2,1) both}
+@keyframes tm-wave{0%,100%{transform:scaleY(.35)}50%{transform:scaleY(1)}}
+.tm-wave{animation:tm-wave .9s ease-in-out infinite;transform-origin:center}
+@media (prefers-reduced-motion:reduce){.tm-sheet,.tm-dialog,.tm-drawer{animation:tm-fade .2s ease both}.tm-shake,.tm-wave{animation:none}}
+/* Settings-local: new-row ring, option rows, field focus */
+@keyframes st-new{0%{box-shadow:0 0 0 2px var(--st-accent)}100%{box-shadow:0 0 0 2px transparent}}
+.st-opt{background:transparent;border:none;cursor:pointer}
+.st-field{transition:border-color .15s ease}
+.st-field:focus{border-color:var(--st-accent)!important}
+@media (prefers-reduced-motion:reduce){[style*="st-new"]{animation:tm-fade .2s ease both!important}}
+</style>
+</helmet>
+<div ref="{{setRoot}}" style="--tm-tip-bg: {{c.tipBg}}; --tm-tip-fg: {{c.tipFg}}; --tm-row-hover: {{c.rowHover}}; --tm-row-press: {{c.rowPress}}; --st-accent: {{tkn.ink}}; --tm-focus: {{tkn.ink}}; --tm-flash: {{tkn.flash}}; width: 100%; min-height: 100%; box-sizing: border-box; background: {{c.bg}}; color: {{c.text}}; font-family: Manrope, system-ui, sans-serif; font-variant-numeric: tabular-nums; -webkit-font-smoothing: antialiased; display: flex; flex-direction: column; align-items: center">
+<sc-if value="{{desktop}}" hint-placeholder-val="{{ true }}">
+  <!-- Top bar: flat at the top of the page, a floating glass bar once you scroll -->
+  <header style="position: sticky; top: 0; z-index: 10; width: 100%; box-sizing: border-box; padding: {{hdr.outerPad}}; display: flex; justify-content: center; transition: padding .3s ease">
+    <div style="width: 100%; max-width: {{hdr.maxW}}; box-sizing: border-box; padding: {{hdr.innerPad}}; border-radius: {{hdr.radius}}; background: {{hdr.bg}}; border: 1px solid {{hdr.border}}; box-shadow: {{hdr.shadow}}; backdrop-filter: {{hdr.blur}}; -webkit-backdrop-filter: {{hdr.blur}}; display: flex; align-items: center; gap: 20px; flex-wrap: wrap; transition: max-width .3s ease, padding .3s ease, border-radius .3s ease, background-color .3s ease, border-color .3s ease, box-shadow .3s ease">
+      <a class="tm-press" href="#journal" onClick="{{nav.journal}}" style="display: flex; align-items: center; gap: 10px; color: inherit; text-decoration: none">
+        <svg width="32" height="32" viewBox="0 0 36 36" aria-hidden="true"><rect x="0" y="0" width="36" height="36" rx="12" fill="{{accent}}"></rect><rect x="11" y="12" width="4.5" height="9" rx="2.25" fill="#15140E"></rect><rect x="20.5" y="12" width="4.5" height="9" rx="2.25" fill="#15140E"></rect></svg>
+        <span style="font-size: 17px; font-weight: 800; letter-spacing: -0.01em">TrenchM8</span>
+      </a>
+      <nav aria-label="Main" style="display: flex; gap: 4px; padding: 4px; border-radius: 999px; background: {{hdr.navBg}}; transition: background-color .3s ease">
+        <a class="tm-press" href="#journal" onClick="{{nav.journal}}" style="height: 40px; padding: 0 16px; border-radius: 999px; color: {{c.text2}}; font-weight: 700; display: flex; align-items: center; gap: 8px; font-size: 14px; text-decoration: none; white-space: nowrap">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 4h11a3 3 0 0 1 3 3v13H8a3 3 0 0 1-3-3z"></path><path d="M5 17a3 3 0 0 1 3-3h11"></path></svg>
+          Journal
+        </a>
+        <a class="tm-press" href="#stats" onClick="{{nav.stats}}" style="height: 40px; padding: 0 16px; border-radius: 999px; color: {{c.text2}}; font-weight: 700; display: flex; align-items: center; gap: 8px; font-size: 14px; text-decoration: none; white-space: nowrap">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 20V10"></path><path d="M12 20V4"></path><path d="M19 20v-7"></path></svg>
+          Stats
+        </a>
+        <a class="tm-press" href="#settings" onClick="{{nav.settings}}" aria-current="page" style="height: 40px; padding: 0 16px; border-radius: 999px; background: {{accent}}; color: #15140E; font-weight: 800; display: flex; align-items: center; gap: 8px; font-size: 14px; text-decoration: none; white-space: nowrap">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 7h10"></path><path d="M18 7h2"></path><circle cx="16" cy="7" r="2"></circle><path d="M4 17h2"></path><path d="M10 17h10"></path><circle cx="8" cy="17" r="2"></circle></svg>
+          Settings
+        </a>
+      </nav>
+      <div style="margin-left: auto; display: flex; align-items: center; gap: 8px">
+        <a class="tm-press" href="#settings" onClick="{{nav.settings}}" aria-label="M8 chat used today: {{usage.pct}}. Resets at midnight. Check-ins and journaling don't count." data-tip="34% of today's M8 chat used. Resets at midnight." data-tip-pos="bottom" style="height: 40px; padding: 0 14px; border-radius: 999px; border: 1px solid {{c.line}}; color: {{c.text2}}; display: flex; align-items: center; gap: 10px; text-decoration: none; white-space: nowrap">
+          <span style="font-size: 12px; font-weight: 700">M8 today</span>
+          <span aria-hidden="true" style="width: 64px; height: 6px; border-radius: 3px; background: {{c.surface2}}; overflow: hidden"><span style="display: block; width: {{usage.pct}}; height: 6px; border-radius: 3px; background: {{usage.color}}"></span></span>
+          <span style="font-size: 12px; font-weight: 800; color: {{c.text}}">{{usage.pct}}</span>
+        </a>
+        <a class="tm-press" href="#m8" onClick="{{nav.m8}}" data-tip="Open M8 (M)" data-tip-pos="bottom" style="height: 44px; padding: 0 18px 0 8px; border-radius: 999px; background: {{hdr.navBg}}; color: {{c.text}}; display: flex; align-items: center; gap: 8px; font-size: 14px; font-weight: 800; text-decoration: none; white-space: nowrap; transition: background-color .3s ease">
+          <svg width="28" height="28" viewBox="0 0 36 36" aria-hidden="true"><rect x="0" y="0" width="36" height="36" rx="12" fill="{{accent}}"></rect><rect x="11" y="12" width="4.5" height="9" rx="2.25" fill="#15140E"></rect><rect x="20.5" y="12" width="4.5" height="9" rx="2.25" fill="#15140E"></rect></svg>
+          Talk to M8
+        </a>
+      </div>
+    </div>
+  </header>
+</sc-if>
+<div style="width: 100%; max-width: 1440px; box-sizing: border-box; padding: {{pad}}; display: flex; flex-wrap: wrap; align-items: flex-start; gap: 24px">
+
+  <main style="flex: 999 1 560px; min-width: 0; display: flex; flex-direction: column; gap: 16px">
+    <div style="display: flex; flex-direction: column; gap: 2px; padding: 4px 4px 0 4px">
+      <h1 style="margin: 0; font-size: 28px; font-weight: 800; letter-spacing: -0.02em">Settings</h1>
+      <span style="font-size: 14px; font-weight: 600; color: {{c.text3}}">Changes save as you make them. You can also tell M8 in Telegram.</span>
+    </div>
+
+    <!-- Plan + billing -->
+    <section aria-labelledby="plan-h" style="padding: 20px; border-radius: 28px; background: {{c.surface}}; display: flex; flex-wrap: wrap; gap: 20px">
+      <div style="flex: 1 1 260px; min-width: 0; display: flex; flex-direction: column; gap: 10px">
+        <div style="display: flex; align-items: center; gap: 8px">
+          <h2 id="plan-h" style="margin: 0; font-size: 18px; font-weight: 800">Your plan</h2>
+          <span style="font-size: 11px; font-weight: 800; padding: 4px 9px; border-radius: 999px; background: {{gainSoft}}; color: {{c.text}}">Active</span>
+        </div>
+        <div style="display: flex; align-items: baseline; gap: 8px">
+          <span style="font-size: 34px; line-height: 1; font-weight: 800; letter-spacing: -0.02em">{{plan.days}} days</span>
+          <span style="font-size: 14px; font-weight: 600; color: {{c.text3}}">left · until {{plan.until}}</span>
+        </div>
+        <div role="progressbar" aria-label="Plan time left" aria-valuemin="0" aria-valuemax="100" aria-valuenow="{{plan.barNow}}" style="height: 8px; border-radius: 4px; background: {{c.surface2}}"><div style="width: {{plan.bar}}; height: 8px; border-radius: 4px; background: {{accent}}; transition: width .6s cubic-bezier(.2,.8,.2,1)"></div></div>
+        <sc-if value="{{plan.justPaid}}" hint-placeholder-val="{{ false }}">
+          <div class="tm-in" role="status" style="display: flex; align-items: center; gap: 10px; padding: 10px 12px; border-radius: 16px; background: {{gainSoft}}">
+            <span class="tm-pop" style="width: 24px; height: 24px; flex-shrink: 0; border-radius: 12px; background: {{c.gain}}; color: {{c.onGain}}; display: flex; align-items: center; justify-content: center"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5"></path></svg></span>
+            <span style="font-size: 13px; font-weight: 700">Payment received. {{plan.paidLabel}} added, active until {{plan.until}}.</span>
+          </div>
+        </sc-if>
+        <div style="display: flex; flex-direction: column; gap: 6px; padding: 12px 14px; border-radius: 16px; background: {{c.surface2}}">
+          <div style="display: flex; align-items: baseline; justify-content: space-between; gap: 8px">
+            <span style="font-size: 13px; font-weight: 800">M8 chat today</span>
+            <span data-tip="34% of today's M8 chat used. Resets at midnight." data-tip-pos="left" tabindex="0" style="font-size: 13px; font-weight: 800; cursor: help">{{usage.pct}}</span>
+          </div>
+          <div style="height: 6px; border-radius: 3px; background: {{c.bg}}"><div style="width: {{usage.pct}}; height: 6px; border-radius: 3px; background: {{usage.color}}"></div></div>
+          <span style="font-size: 12px; font-weight: 600; color: {{c.text3}}">Resets at midnight. Check-ins, journaling and alerts never count.</span>
+        </div>
+        <span style="font-size: 13px; line-height: 1.45; font-weight: 600; color: {{c.text2}}">Crypto doesn't auto-renew. M8 will remind you 3 days before, and on the day. If it lapses, your journal stays readable and tracking pauses.</span>
+      </div>
+      <div style="flex: 1 1 300px; min-width: 0; display: flex; flex-direction: column; gap: 8px">
+        <span id="add-time-h" style="font-size: 12px; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; color: {{c.text3}}">Add time</span>
+        <div role="radiogroup" aria-labelledby="add-time-h" style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px">
+          <sc-for list="{{planOpts}}" as="p" hint-placeholder-count="2">
+            <button class="tm-press" role="radio" aria-checked="{{p.checked}}" onClick="{{p.pick}}" style="position: relative; padding: 14px; border-radius: 20px; border: 2px solid {{p.border}}; background: {{p.bg}}; color: {{c.text}}; font-family: inherit; text-align: left; cursor: pointer; display: flex; flex-direction: column; gap: 2px">
+              <span style="font-size: 13px; font-weight: 700; color: {{c.text2}}">{{p.len}}</span>
+              <span style="font-size: 22px; font-weight: 800">{{p.price}}</span>
+              <span style="font-size: 12px; font-weight: {{p.subWeight}}; color: {{p.subColor}}">{{p.sub}}</span>
+              <sc-if value="{{p.on}}" hint-placeholder-val="{{ false }}">
+                <span class="tm-pop" aria-hidden="true" style="position: absolute; top: 12px; right: 12px; width: 22px; height: 22px; border-radius: 11px; background: {{accent}}; color: #15140E; display: flex; align-items: center; justify-content: center"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.4" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.5 4.5L19 7.5"></path></svg></span>
+              </sc-if>
+            </button>
+          </sc-for>
+        </div>
+        <button class="tm-press" onClick="{{pay}}" style="height: 52px; border: none; border-radius: 999px; background: {{accent}}; color: #15140E; font-family: inherit; font-size: 15px; font-weight: 800; cursor: pointer">{{payLabel}}</button>
+        <span style="font-size: 12px; font-weight: 600; color: {{c.text3}}; text-align: center">Opens secure checkout. Time stacks on top of what you have.</span>
+      </div>
+      <div style="flex: 1 1 100%; display: flex; flex-direction: column">
+        <span style="font-size: 12px; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; color: {{c.text3}}; padding-bottom: 6px">History</span>
+        <sc-for list="{{payments}}" as="p" hint-placeholder-count="3">
+          <div style="display: flex; align-items: center; gap: 12px; padding: 10px 8px; margin: 0 -8px; border-top: 1px solid {{c.line}}; border-radius: 10px; font-size: 13px; font-weight: 600; animation: {{p.anim}}">
+            <span style="width: 64px; color: {{c.text3}}">{{p.date}}</span>
+            <span style="flex-grow: 1">{{p.what}}</span>
+            <span style="font-weight: 800">{{p.amount}}</span>
+          </div>
+        </sc-for>
+      </div>
+    </section>
+
+    <div style="display: flex; flex-wrap: wrap; gap: 16px">
+
+      <!-- Wallets -->
+      <section aria-labelledby="wallets-h" style="flex: 1 1 380px; min-width: 0; padding: 20px; border-radius: 28px; background: {{c.surface}}; display: flex; flex-direction: column; gap: 12px">
+        <div style="display: flex; align-items: baseline; justify-content: space-between">
+          <h2 id="wallets-h" style="margin: 0; font-size: 18px; font-weight: 800">Wallets</h2>
+          <span style="font-size: 13px; font-weight: 700; color: {{walletCountColor}}">{{walletCount}} of 5</span>
+        </div>
+        <sc-if value="{{noWallets}}" hint-placeholder-val="{{ false }}">
+          <div class="tm-in" style="padding: 16px; border-radius: 18px; border: 1px dashed {{c.line}}; font-size: 13px; line-height: 1.45; font-weight: 600; color: {{c.text2}}">No wallets yet. Paste one below and M8 starts tracking it, with your last 30 days imported.</div>
+        </sc-if>
+        <sc-for list="{{wallets}}" as="w" hint-placeholder-count="3">
+          <div style="display: flex; flex-direction: column; gap: 10px; padding: 12px; border-radius: 18px; background: {{c.surface2}}; animation: {{w.anim}}">
+            <div style="display: flex; align-items: center; gap: 12px">
+              <div style="display: flex; flex-direction: column; gap: 3px; flex-grow: 1; min-width: 0">
+                <div style="display: flex; align-items: center; gap: 6px; flex-wrap: wrap">
+                  <span style="font-size: 14px; font-weight: 800">{{w.label}}</span>
+                  <span data-tip="{{w.full}}" data-tip-pos="bottom" tabindex="0" style="font-size: 12px; font-weight: 600; color: {{c.text2}}; font-family: ui-monospace, 'SF Mono', Menlo, monospace; cursor: help">{{w.addr}}</span>
+                </div>
+                <sc-if value="{{w.importing}}" hint-placeholder-val="{{ false }}">
+                  <span aria-live="polite" style="display: flex; align-items: center; gap: 6px; font-size: 12px; font-weight: 700; color: {{c.text2}}"><span class="tm-spin" aria-hidden="true" style="width: 10px; height: 10px; border-radius: 6px; border: 2px solid {{c.line}}; border-top-color: {{tkn.ink}}"></span>{{w.chains}} · importing your last 30 days · {{w.pctLabel}}</span>
+                </sc-if>
+                <sc-if value="{{w.synced}}" hint-placeholder-val="{{ true }}">
+                  <span style="font-size: 12px; font-weight: 600; color: {{c.text3}}">{{w.chains}} · synced {{w.syncedAt}}</span>
+                </sc-if>
+              </div>
+              <button class="tm-press" aria-label="Remove {{w.label}}" data-tip="Remove wallet" data-tip-pos="left" onClick="{{w.remove}}" style="width: 44px; height: 44px; flex-shrink: 0; border: none; border-radius: 22px; background: transparent; color: {{c.text3}}; display: flex; align-items: center; justify-content: center; cursor: pointer">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M18 6L6 18"></path><path d="M6 6l12 12"></path></svg>
+              </button>
+            </div>
+            <sc-if value="{{w.importing}}" hint-placeholder-val="{{ false }}">
+              <div aria-hidden="true" style="height: 6px; border-radius: 3px; background: {{c.bg}}; overflow: hidden"><div style="height: 6px; width: {{w.pct}}; border-radius: 3px; background: {{accent}}; transition: width .5s ease"></div></div>
+            </sc-if>
+          </div>
+        </sc-for>
+        <div style="display: flex; flex-direction: column; gap: 6px">
+          <div style="display: flex; gap: 8px; align-items: flex-end">
+            <label style="flex-grow: 1; display: flex; flex-direction: column; gap: 4px; min-width: 0">
+              <span style="font-size: 12px; font-weight: 700; color: {{c.text3}}">Add a wallet</span>
+              <input ref="{{setAddrEl}}" onInput="{{addrInput}}" onKeyDown="{{addrKey}}" placeholder="Solana or EVM address" aria-invalid="{{addr.invalid}}" aria-describedby="wallet-msg" spellcheck="false" autocomplete="off" class="st-field" style="height: 48px; box-sizing: border-box; border: 1px solid {{addr.border}}; border-radius: 16px; padding: 0 14px; background: transparent; color: {{c.text}}; font-family: inherit; font-size: 14px; width: 100%; outline: none">
+            </label>
+            <sc-if value="{{addr.canAdd}}" hint-placeholder-val="{{ true }}">
+              <button class="tm-press" onClick="{{addWallet}}" aria-busy="{{addBusyStr}}" style="height: 48px; padding: 0 18px; border: none; border-radius: 999px; background: {{addBg}}; color: {{addFg}}; font-family: inherit; font-size: 14px; font-weight: 800; cursor: pointer; display: flex; align-items: center; gap: 8px; white-space: nowrap"><sc-if value="{{addBusy}}" hint-placeholder-val="{{ false }}"><span class="tm-spin" aria-hidden="true" style="width: 14px; height: 14px; border-radius: 8px; border: 2px solid {{c.line}}; border-top-color: {{c.text}}"></span></sc-if>{{addLabel}}</button>
+            </sc-if>
+            <sc-if value="{{addr.full}}" hint-placeholder-val="{{ false }}">
+              <button class="tm-press" onClick="{{addWallet}}" aria-disabled="true" data-tip="5 of 5 wallets. Remove one to add another." data-tip-pos="left" style="height: 48px; padding: 0 18px; border: none; border-radius: 999px; background: {{c.surface2}}; color: {{c.text}}; font-family: inherit; font-size: 14px; font-weight: 800; white-space: nowrap">Add</button>
+            </sc-if>
+          </div>
+          <div id="wallet-msg" aria-live="polite">
+            <sc-if value="{{addr.hasError}}" hint-placeholder-val="{{ false }}">
+              <span class="tm-in" role="alert" style="display: flex; align-items: center; gap: 6px; font-size: 12px; font-weight: 700; color: {{c.loss}}"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="9"></circle><path d="M12 8v5"></path><path d="M12 16.5h.01"></path></svg>{{addr.error}}</span>
+            </sc-if>
+            <sc-if value="{{addr.hasHint}}" hint-placeholder-val="{{ false }}">
+              <span style="display: flex; align-items: center; gap: 6px; font-size: 12px; font-weight: 700; color: {{c.gain}}"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5"></path></svg>{{addr.hint}}</span>
+            </sc-if>
+            <sc-if value="{{addr.hasNote}}" hint-placeholder-val="{{ true }}">
+              <span style="font-size: 12px; line-height: 1.45; font-weight: 600; color: {{c.text3}}">Read-only. One EVM address covers Base, BNB and Robinhood Chain and counts once.</span>
+            </sc-if>
+          </div>
+        </div>
+      </section>
+
+      <!-- M8 -->
+      <section aria-labelledby="m8-h" style="flex: 1 1 380px; min-width: 0; padding: 20px; border-radius: 28px; background: {{c.surface}}; display: flex; flex-direction: column; gap: 14px">
+        <div style="display: flex; align-items: baseline; justify-content: space-between; gap: 8px">
+          <h2 id="m8-h" style="margin: 0; font-size: 18px; font-weight: 800">M8</h2>
+          <span aria-live="polite" style="font-size: 12px; font-weight: 800; color: {{sv.voice.color}}">{{sv.voice.label}}</span>
+        </div>
+        <div role="radiogroup" aria-label="M8's voice" style="display: flex; flex-direction: column; gap: 6px">
+          <span style="font-size: 12px; font-weight: 700; color: {{c.text3}}">Voice</span>
+          <sc-for list="{{voices}}" as="v" hint-placeholder-count="3">
+            <button class="tm-press" role="radio" aria-checked="{{v.checked}}" onClick="{{v.pick}}" style="padding: 12px 14px; border-radius: 18px; border: 2px solid {{v.border}}; background: {{c.surface2}}; color: {{c.text}}; font-family: inherit; text-align: left; cursor: pointer; display: flex; flex-direction: column; gap: 2px">
+              <span style="font-size: 14px; font-weight: 800">{{v.name}}</span>
+              <span style="font-size: 13px; font-weight: 600; color: {{c.text2}}">"{{v.sample}}"</span>
+            </button>
+          </sc-for>
+        </div>
+        <div style="display: flex; flex-direction: column; gap: 6px">
+          <div style="display: flex; align-items: baseline; justify-content: space-between; gap: 8px">
+            <span id="delay-h" style="font-size: 12px; font-weight: 700; color: {{c.text3}}">Check in after I stop trading for</span>
+            <span aria-live="polite" style="font-size: 12px; font-weight: 800; color: {{sv.delay.color}}">{{sv.delay.label}}</span>
+          </div>
+          <div role="radiogroup" aria-labelledby="delay-h" style="display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 2px; padding: 4px; border-radius: 999px; background: {{c.surface2}}">
+            <sc-for list="{{delays}}" as="d" hint-placeholder-count="4">
+              <button class="tm-press" role="radio" aria-checked="{{d.checked}}" onClick="{{d.pick}}" style="height: 36px; border: none; border-radius: 999px; background: {{d.bg}}; color: {{d.fg}}; font-family: inherit; font-size: 13px; font-weight: {{d.weight}}; cursor: pointer">{{d.label}}</button>
+            </sc-for>
+          </div>
+        </div>
+        <div style="display: flex; flex-direction: column">
+          <sc-for list="{{toggles}}" as="t" hint-placeholder-count="4">
+            <div style="display: flex; align-items: center; gap: 12px; padding: 10px 0; border-top: 1px solid {{c.line}}">
+              <div style="display: flex; flex-direction: column; gap: 2px; flex-grow: 1; min-width: 0">
+                <div style="display: flex; align-items: baseline; gap: 8px">
+                  <span style="font-size: 14px; font-weight: 700; opacity: {{t.dim}}; transition: opacity .15s ease">{{t.name}}</span>
+                  <span aria-live="polite" style="font-size: 12px; font-weight: 800; color: {{t.sv.color}}">{{t.sv.label}}</span>
+                </div>
+                <sc-if value="{{t.noPicker}}" hint-placeholder-val="{{ true }}">
+                  <span style="font-size: 12px; font-weight: 600; color: {{c.text3}}">{{t.detail}}</span>
+                </sc-if>
+                <sc-if value="{{t.hasPicker}}" hint-placeholder-val="{{ false }}">
+                  <div style="position: relative; display: flex; align-items: center; gap: 6px; font-size: 12px; font-weight: 600; color: {{c.text3}}">
+                    {{t.lead}}
+                    <button class="tm-press" aria-haspopup="listbox" aria-expanded="{{t.expanded}}" aria-label="{{t.name}} time: {{t.pickLabel}}" onClick="{{t.openPick}}" style="height: 26px; padding: 0 8px 0 10px; border: 1px solid {{c.line}}; border-radius: 999px; background: transparent; color: {{c.text}}; font-family: inherit; font-size: 12px; font-weight: 800; cursor: pointer; display: flex; align-items: center; gap: 4px">{{t.pickLabel}}<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9l6 6 6-6"></path></svg></button>
+                    <sc-if value="{{t.pickOpen}}" hint-placeholder-val="{{ false }}">
+                      <div aria-hidden="true" onClick="{{closePop}}" style="position: fixed; inset: 0; z-index: 30"></div>
+                      <div role="listbox" aria-label="{{t.name}} time" class="tm-in" style="position: absolute; top: calc(100% + 6px); left: 0; z-index: 31; width: 160px; padding: 6px; box-sizing: border-box; border-radius: 18px; background: {{c.pop}}; border: 1px solid {{c.line}}; box-shadow: {{c.popShadow}}; display: flex; flex-direction: column; gap: 2px">
+                        <sc-for list="{{t.options}}" as="o" hint-placeholder-count="5">
+                          <button class="tm-row st-opt" role="option" aria-selected="{{o.sel}}" onClick="{{o.pick}}" style="height: 38px; padding: 0 10px 0 12px; border-radius: 12px; color: {{c.text}}; font-family: inherit; font-size: 13px; font-weight: {{o.weight}}; display: flex; align-items: center; justify-content: space-between; text-align: left">{{o.label}}<sc-if value="{{o.mark}}" hint-placeholder-val="{{ false }}"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="{{c.text}}" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5"></path></svg></sc-if></button>
+                        </sc-for>
+                      </div>
+                    </sc-if>
+                  </div>
+                </sc-if>
+              </div>
+              <button class="tm-press" role="switch" aria-checked="{{t.on}}" aria-label="{{t.name}}" onClick="{{t.flip}}" style="width: 52px; height: 32px; flex-shrink: 0; border: none; border-radius: 16px; background: {{t.track}}; position: relative; cursor: pointer; padding: 0; transition: background-color .18s ease, transform .12s ease">
+                <span style="position: absolute; top: 4px; left: {{t.knobLeft}}; width: 24px; height: 24px; border-radius: 12px; background: {{t.knob}}; transition: left .18s cubic-bezier(.2,.8,.2,1), background-color .18s ease"></span>
+              </button>
+            </div>
+          </sc-for>
+        </div>
+      </section>
+
+      <!-- Rules -->
+      <section aria-labelledby="rules-h" style="flex: 1 1 380px; min-width: 0; padding: 20px; border-radius: 28px; background: {{c.surface}}; display: flex; flex-direction: column; gap: 10px">
+        <div style="display: flex; align-items: baseline; justify-content: space-between">
+          <h2 id="rules-h" style="margin: 0; font-size: 18px; font-weight: 800">Rules</h2>
+          <span style="font-size: 13px; font-weight: 600; color: {{c.text3}}">M8 alerts you when you break one</span>
+        </div>
+        <sc-if value="{{noRules}}" hint-placeholder-val="{{ false }}">
+          <div class="tm-in" style="padding: 16px; border-radius: 18px; border: 1px dashed {{c.line}}; font-size: 13px; line-height: 1.45; font-weight: 600; color: {{c.text2}}">No rules yet. Rules are promises to yourself; M8 checks them after every trade.</div>
+        </sc-if>
+        <sc-for list="{{rules}}" as="r" hint-placeholder-count="3">
+          <div style="display: flex; align-items: center; gap: 12px; padding: 12px 12px 12px 14px; border-radius: 18px; background: {{c.surface2}}; animation: {{r.anim}}">
+            <div style="display: flex; flex-direction: column; gap: 2px; flex-grow: 1; min-width: 0">
+              <span style="font-size: 14px; font-weight: 800">{{r.name}}</span>
+              <span style="font-size: 12px; font-weight: 600; color: {{c.text3}}">{{r.detail}}</span>
+            </div>
+            <button class="tm-press" aria-label="Edit rule: {{r.name}}" onClick="{{r.edit}}" style="height: 36px; padding: 0 14px; border: none; border-radius: 999px; background: {{c.surface}}; color: {{c.text}}; font-family: inherit; font-size: 13px; font-weight: 700; cursor: pointer">Edit</button>
+          </div>
+        </sc-for>
+        <button class="tm-press" onClick="{{addRule}}" style="height: 48px; border: 2px dashed {{c.line}}; border-radius: 18px; background: transparent; color: {{c.text2}}; font-family: inherit; font-size: 14px; font-weight: 800; cursor: pointer">+ Add a rule</button>
+        <sc-if value="{{showSuggest}}" hint-placeholder-val="{{ true }}">
+          <div style="display: flex; flex-direction: column; gap: 10px; padding: 12px 12px 12px 12px; border-radius: 16px; background: {{c.surface2}}">
+            <div style="display: flex; gap: 10px; align-items: flex-start">
+              <svg width="20" height="20" viewBox="0 0 36 36" aria-hidden="true" style="flex-shrink: 0; margin-top: 1px"><rect x="0" y="0" width="36" height="36" rx="12" fill="{{accent}}"></rect><rect x="11" y="12" width="4.5" height="9" rx="2.25" fill="#15140E"></rect><rect x="20.5" y="12" width="4.5" height="9" rx="2.25" fill="#15140E"></rect></svg>
+              <span style="flex-grow: 1; font-size: 13px; line-height: 1.45; font-weight: 600">Suggested: <b>No new entries after 1 PM</b>. Your after-1 PM trades are -$860 this month.</span>
+              <button class="tm-press" aria-label="Dismiss suggestion" data-tip="Dismiss suggestion" data-tip-pos="left" onClick="{{dismissSuggest}}" style="width: 28px; height: 28px; flex-shrink: 0; margin: -4px -4px 0 0; border: none; border-radius: 14px; background: transparent; color: {{c.text3}}; display: flex; align-items: center; justify-content: center; cursor: pointer"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"><path d="M18 6L6 18"></path><path d="M6 6l12 12"></path></svg></button>
+            </div>
+            <button class="tm-press" onClick="{{acceptSuggest}}" style="align-self: flex-start; margin-left: 30px; height: 34px; padding: 0 14px; border: none; border-radius: 999px; background: {{accent}}; color: #15140E; font-family: inherit; font-size: 13px; font-weight: 800; cursor: pointer">Add this rule</button>
+          </div>
+        </sc-if>
+      </section>
+
+      <!-- Memory -->
+      <section aria-labelledby="mem-h" style="flex: 1 1 380px; min-width: 0; padding: 20px; border-radius: 28px; background: {{c.surface}}; display: flex; flex-direction: column; gap: 10px">
+        <div style="display: flex; flex-direction: column; gap: 2px">
+          <h2 id="mem-h" style="margin: 0; font-size: 18px; font-weight: 800">What M8 remembers about you</h2>
+          <span style="font-size: 13px; font-weight: 600; color: {{c.text3}}">Learned from your chats and trades. Remove anything that's wrong.</span>
+        </div>
+        <sc-for list="{{memory}}" as="m" hint-placeholder-count="5">
+          <div style="display: flex; align-items: center; gap: 10px; padding: 10px 6px 10px 14px; border-radius: 16px; background: {{c.surface2}}; animation: {{m.anim}}">
+            <span style="font-size: 14px; line-height: 1.4; font-weight: 600; flex-grow: 1">{{m.text}}</span>
+            <button class="tm-press" aria-label="Forget: {{m.text}}" onClick="{{m.forget}}" style="height: 36px; padding: 0 12px; flex-shrink: 0; border: none; border-radius: 999px; background: transparent; color: {{c.text3}}; font-family: inherit; font-size: 12px; font-weight: 800; cursor: pointer">Forget</button>
+          </div>
+        </sc-for>
+        <sc-if value="{{noMemory}}" hint-placeholder-val="{{ false }}">
+          <div class="tm-in" style="padding: 14px; border-radius: 16px; border: 1px dashed {{c.line}}; font-size: 13px; font-weight: 600; color: {{c.text2}}">M8 doesn't remember anything about you right now.</div>
+        </sc-if>
+        <label style="display: flex; flex-direction: column; gap: 4px">
+          <span style="font-size: 12px; font-weight: 700; color: {{c.text3}}">Tell M8 something</span>
+          <span style="position: relative; display: block">
+            <input ref="{{setMemEl}}" onInput="{{memInput}}" onKeyDown="{{memKey}}" placeholder="e.g. I'm trying to trade less on weekends" autocomplete="off" class="st-field" style="height: 48px; box-sizing: border-box; border: 1px solid {{c.line}}; border-radius: 16px; padding: 0 52px 0 14px; background: transparent; color: {{c.text}}; font-family: inherit; font-size: 14px; width: 100%; outline: none">
+            <sc-if value="{{memHasDraft}}" hint-placeholder-val="{{ false }}">
+              <button class="tm-press tm-pop" aria-label="Tell M8" data-tip="Tell M8" data-tip-pos="left" onClick="{{tell}}" style="position: absolute; right: 6px; top: 6px; width: 36px; height: 36px; border: none; border-radius: 18px; background: {{accent}}; color: #15140E; display: flex; align-items: center; justify-content: center; cursor: pointer"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 19V5"></path><path d="M5 12l7-7 7 7"></path></svg></button>
+            </sc-if>
+          </span>
+        </label>
+      </section>
+    </div>
+
+    <!-- Appearance -->
+    <section aria-labelledby="look-h" style="padding: 20px; border-radius: 28px; background: {{c.surface}}; display: flex; flex-wrap: wrap; gap: 20px 32px; align-items: flex-start">
+      <div style="flex: 1 1 240px; min-width: 0; display: flex; flex-direction: column; gap: 4px">
+        <h2 id="look-h" style="margin: 0; font-size: 18px; font-weight: 800">Appearance</h2>
+        <span style="font-size: 13px; line-height: 1.45; font-weight: 600; color: {{c.text3}}">Your accent shows up across the site and on the charts and recap cards M8 sends you.</span>
+      </div>
+      <div style="flex: 2 1 420px; min-width: 0; display: flex; flex-direction: column; gap: 14px">
+        <div style="display: flex; flex-direction: column; gap: 6px">
+          <span style="font-size: 12px; font-weight: 700; color: {{c.text3}}">Theme</span>
+          <div role="group" aria-label="Theme" style="display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 2px; padding: 4px; border-radius: 999px; background: {{c.surface2}}; max-width: 360px">
+            <sc-for list="{{themeOpts}}" as="o" hint-placeholder-count="3">
+              <button class="tm-press" aria-pressed="{{o.pressed}}" onClick="{{o.pick}}" style="height: 36px; border: none; border-radius: 999px; background: {{o.bg}}; color: {{o.fg}}; font-family: inherit; font-size: 13px; font-weight: 800; cursor: pointer">{{o.label}}</button>
+            </sc-for>
+          </div>
+        </div>
+        <div role="radiogroup" aria-label="Accent color" style="display: flex; flex-direction: column; gap: 8px">
+          <span style="font-size: 12px; font-weight: 700; color: {{c.text3}}">Accent · {{accentName}}</span>
+          <div style="display: flex; flex-wrap: wrap; gap: 12px">
+            <sc-for list="{{swatches}}" as="w" hint-placeholder-count="7">
+              <button class="tm-press" role="radio" aria-checked="{{w.checked}}" aria-label="{{w.name}}" data-tip="{{w.name}}" onClick="{{w.pick}}" style="width: 44px; height: 44px; border: none; border-radius: 22px; background: {{w.hex}}; box-shadow: {{w.ring}}; cursor: pointer; padding: 0"></button>
+            </sc-for>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Account -->
+    <section aria-labelledby="acct-h" style="padding: 20px; border-radius: 28px; background: {{c.surface}}; display: flex; flex-direction: column; gap: 16px">
+      <div style="display: flex; flex-direction: column; gap: 4px">
+        <h2 id="acct-h" style="margin: 0; font-size: 18px; font-weight: 800">Account</h2>
+        <span style="font-size: 13px; font-weight: 600; color: {{c.text2}}">Signed in with Telegram as <b>@trenchwalker</b></span>
+      </div>
+      <div style="display: flex; flex-wrap: wrap; gap: 16px 24px; align-items: flex-start">
+        <div style="flex: 2 1 380px; min-width: 0; display: flex; flex-direction: column; gap: 8px">
+          <div style="display: flex; align-items: baseline; justify-content: space-between; gap: 8px">
+            <span style="font-size: 12px; font-weight: 700; color: {{c.text3}}">Where M8 messages you</span>
+            <span aria-live="polite" style="font-size: 12px; font-weight: 800; color: {{sv.apps.color}}">{{sv.apps.label}}</span>
+          </div>
+          <sc-for list="{{apps}}" as="a" hint-placeholder-count="2">
+            <div style="display: flex; align-items: center; gap: 12px; padding: 12px; border-radius: 18px; background: {{c.surface2}}; animation: {{a.anim}}">
+              <span aria-hidden="true" style="width: 36px; height: 36px; flex-shrink: 0; border-radius: 12px; background: {{a.tile}}; color: #FFFFFF; display: flex; align-items: center; justify-content: center">
+                <sc-if value="{{a.isTelegram}}" hint-placeholder-val="{{ true }}"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M21.5 4.5L2.5 11.8l6.3 2.2 2.4 6.5 3.4-4.3 5 3.6z"></path><path d="M8.8 14l9-6.6"></path></svg></sc-if>
+                <sc-if value="{{a.isDiscord}}" hint-placeholder-val="{{ false }}"><svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M8.2 5.2c-1.6.3-3 .8-4.2 1.5C2.3 9.4 1.8 12 2 14.6c1.5 1.2 3 1.9 4.5 2.3l1-1.6c-.6-.2-1.1-.5-1.6-.8l.4-.3c3.2 1.5 6.4 1.5 9.5 0l.4.3c-.5.3-1 .6-1.6.8l1 1.6c1.5-.4 3-1.1 4.5-2.3.3-3-.5-5.6-2-7.9-1.2-.7-2.6-1.2-4.2-1.5l-.5 1c-1.2-.2-2.4-.2-3.6 0zM9 11.2c.8 0 1.4.7 1.4 1.5s-.6 1.5-1.4 1.5-1.4-.7-1.4-1.5.6-1.5 1.4-1.5zm6 0c.8 0 1.4.7 1.4 1.5s-.6 1.5-1.4 1.5-1.4-.7-1.4-1.5.6-1.5 1.4-1.5z"></path></svg></sc-if>
+              </span>
+              <div style="display: flex; flex-direction: column; gap: 2px; flex-grow: 1; min-width: 0">
+                <div style="display: flex; align-items: center; gap: 6px">
+                  <span style="font-size: 14px; font-weight: 800">{{a.name}}</span>
+                  <sc-if value="{{a.isPrimary}}" hint-placeholder-val="{{ false }}"><span style="font-size: 11px; font-weight: 800; padding: 4px 8px; border-radius: 999px; background: {{accent}}; color: #15140E">Primary</span></sc-if>
+                </div>
+                <span style="font-size: 12px; font-weight: 600; color: {{c.text3}}">{{a.sub}}</span>
+              </div>
+              <sc-if value="{{a.canConnect}}" hint-placeholder-val="{{ false }}">
+                <button class="tm-press" onClick="{{a.connect}}" style="height: 36px; padding: 0 14px; flex-shrink: 0; border: none; border-radius: 999px; background: {{accent}}; color: #15140E; font-family: inherit; font-size: 13px; font-weight: 800; cursor: pointer">Connect</button>
+              </sc-if>
+              <sc-if value="{{a.canPrimary}}" hint-placeholder-val="{{ false }}">
+                <button class="tm-press" onClick="{{a.makePrimary}}" data-tip="Send check-ins, briefs and alerts here" data-tip-pos="left" style="height: 36px; padding: 0 14px; flex-shrink: 0; border: none; border-radius: 999px; background: {{c.surface}}; color: {{c.text}}; font-family: inherit; font-size: 13px; font-weight: 700; cursor: pointer; white-space: nowrap">Make primary</button>
+              </sc-if>
+              <sc-if value="{{a.canDisconnect}}" hint-placeholder-val="{{ false }}">
+                <button class="tm-press" aria-label="Disconnect {{a.name}}" data-tip="Disconnect" data-tip-pos="left" onClick="{{a.disconnect}}" style="width: 36px; height: 36px; flex-shrink: 0; border: none; border-radius: 18px; background: transparent; color: {{c.text3}}; display: flex; align-items: center; justify-content: center; cursor: pointer"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M18 6L6 18"></path><path d="M6 6l12 12"></path></svg></button>
+              </sc-if>
+            </div>
+          </sc-for>
+          <span style="font-size: 12px; line-height: 1.45; font-weight: 600; color: {{c.text3}}">Check-ins, briefs and alerts go to your primary app only. You can chat with M8 in both.</span>
+        </div>
+        <div style="flex: 1 1 240px; min-width: 0; display: flex; flex-direction: column; gap: 8px">
+          <div style="display: flex; align-items: baseline; justify-content: space-between; gap: 8px">
+            <span id="tz-h" style="font-size: 12px; font-weight: 700; color: {{c.text3}}">Timezone</span>
+            <span aria-live="polite" style="font-size: 12px; font-weight: 800; color: {{sv.tz.color}}">{{sv.tz.label}}</span>
+          </div>
+          <div style="position: relative">
+            <button class="tm-press" aria-haspopup="listbox" aria-expanded="{{tz.expanded}}" aria-labelledby="tz-h" onClick="{{tz.toggle}}" style="width: 100%; height: 48px; padding: 0 12px 0 14px; border: 1px solid {{c.line}}; border-radius: 16px; background: transparent; color: {{c.text}}; font-family: inherit; font-size: 14px; font-weight: 700; cursor: pointer; display: flex; align-items: center; justify-content: space-between; text-align: left">{{tz.label}}<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="{{c.text3}}" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9l6 6 6-6"></path></svg></button>
+            <sc-if value="{{tz.isOpen}}" hint-placeholder-val="{{ false }}">
+              <div aria-hidden="true" onClick="{{closePop}}" style="position: fixed; inset: 0; z-index: 30"></div>
+              <div role="listbox" aria-labelledby="tz-h" class="tm-in" style="position: absolute; top: calc(100% + 6px); left: 0; right: 0; z-index: 31; max-height: 248px; overflow-y: auto; padding: 6px; box-sizing: border-box; border-radius: 18px; background: {{c.pop}}; border: 1px solid {{c.line}}; box-shadow: {{c.popShadow}}; display: flex; flex-direction: column; gap: 2px">
+                <sc-for list="{{tz.options}}" as="o" hint-placeholder-count="9">
+                  <button class="tm-row st-opt" role="option" aria-selected="{{o.sel}}" onClick="{{o.pick}}" style="min-height: 38px; padding: 0 10px 0 12px; border-radius: 12px; color: {{c.text}}; font-family: inherit; font-size: 13px; font-weight: {{o.weight}}; display: flex; align-items: center; justify-content: space-between; gap: 8px; text-align: left">{{o.label}}<sc-if value="{{o.mark}}" hint-placeholder-val="{{ false }}"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="{{c.text}}" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5"></path></svg></sc-if></button>
+                </sc-for>
+              </div>
+            </sc-if>
+          </div>
+          <span style="font-size: 12px; line-height: 1.45; font-weight: 600; color: {{c.text3}}">Check-in, brief and recap times follow this.</span>
+        </div>
+      </div>
+      <div style="display: flex; flex-wrap: wrap; gap: 8px; padding-top: 16px; border-top: 1px solid {{c.line}}">
+        <button class="tm-press" onClick="{{exportData}}" style="height: 44px; padding: 0 16px; border: none; border-radius: 999px; background: {{c.surface2}}; color: {{c.text}}; font-family: inherit; font-size: 13px; font-weight: 700; cursor: pointer">Export my data</button>
+        <button class="tm-press" onClick="{{logoutAll}}" style="height: 44px; padding: 0 16px; border: none; border-radius: 999px; background: {{c.surface2}}; color: {{c.text}}; font-family: inherit; font-size: 13px; font-weight: 700; cursor: pointer">Log out everywhere</button>
+        <button class="tm-press" onClick="{{deleteAccount}}" style="height: 44px; padding: 0 16px; border: 2px solid {{c.loss}}; border-radius: 999px; background: transparent; color: {{c.text}}; font-family: inherit; font-size: 13px; font-weight: 800; cursor: pointer">Delete account</button>
+      </div>
+    </section>
+
+    <!-- Mobile tab bar -->
+    <sc-if value="{{mobileNav}}" hint-placeholder-val="{{ false }}">
+      <nav aria-label="Main" style="margin: 12px 0 8px 0; padding: 6px; border-radius: 999px; background: {{c.surface}}; display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 4px">
+        <a class="tm-press" href="#journal" onClick="{{nav.journal}}" style="height: 56px; border-radius: 999px; color: {{c.text2}}; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px; font-size: 12px; font-weight: 700; text-decoration: none">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 4h11a3 3 0 0 1 3 3v13H8a3 3 0 0 1-3-3z"></path><path d="M5 17a3 3 0 0 1 3-3h11"></path></svg>
+          Journal
+        </a>
+        <a class="tm-press" href="#stats" onClick="{{nav.stats}}" style="height: 56px; border-radius: 999px; color: {{c.text2}}; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px; font-size: 12px; font-weight: 700; text-decoration: none">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 20V10"></path><path d="M12 20V4"></path><path d="M19 20v-7"></path></svg>
+          Stats
+        </a>
+        <a class="tm-press" href="#m8" onClick="{{nav.m8}}" style="height: 56px; border-radius: 999px; color: {{c.text2}}; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px; font-size: 12px; font-weight: 700; text-decoration: none">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3.5" y="3.5" width="17" height="17" rx="6"></rect><path d="M9.5 9.5v4"></path><path d="M14.5 9.5v4"></path></svg>
+          M8
+        </a>
+        <a class="tm-press" href="#settings" onClick="{{nav.settings}}" aria-current="page" style="height: 56px; border-radius: 999px; background: {{accent}}; color: #15140E; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px; font-size: 12px; font-weight: 800; text-decoration: none">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 7h10"></path><path d="M18 7h2"></path><circle cx="16" cy="7" r="2"></circle><path d="M4 17h2"></path><path d="M10 17h10"></path><circle cx="8" cy="17" r="2"></circle></svg>
+          Settings
+        </a>
+      </nav>
+    </sc-if>
+  </main>
+</div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"onToast":{"editor":null},"onModal":{"editor":null},"onNav":{"editor":null},"hideNav":{"editor":null},"onAccent":{"editor":null},"onTheme":{"editor":null},"onVoice":{"editor":null},"voice":{"editor":null},"theme":{"editor":"enum","options":["dark","light"],"default":"dark","section":"Look"},"accent":{"editor":"color","default":"#7CD4FF","options":["#7CD4FF","#FFD23F","#6495ED","#B4A5FF","#FF85C8","#FF9152","#FFB547"],"section":"Look"},"layout":{"editor":"enum","options":["desktop","mobile"],"default":"desktop","section":"Look"},"$preview":{"width":1440,"height":1900}}'>
+class Component extends DCLogic {
+  componentDidMount() {
+    // Morph the top bar once the page scrolls. The page may scroll inside a container (prototype) or the window.
+    const boxes = [];
+    for (let el = this._root ? this._root.parentElement : null; el; el = el.parentElement) {
+      const o = getComputedStyle(el).overflowY;
+      if (o === 'auto' || o === 'scroll') boxes.push(el);
+    }
+    const read = () => {
+      const y = Math.max(window.scrollY || 0, ...boxes.map((b) => b.scrollTop));
+      const s = y > 12;
+      if (s !== !!(this.state && this.state.scrolled)) this.setState({ scrolled: s });
+    };
+    boxes.forEach((b) => b.addEventListener('scroll', read, { passive: true }));
+    window.addEventListener('scroll', read, { passive: true });
+    // Esc closes an open time or timezone list.
+    this._onKey = (e) => { if (e.key === 'Escape' && this.state && this.state.pop) this.setState({ pop: null }); };
+    document.addEventListener('keydown', this._onKey);
+    this._unscroll = () => { boxes.forEach((b) => b.removeEventListener('scroll', read)); window.removeEventListener('scroll', read); document.removeEventListener('keydown', this._onKey); };
+    read();
+  }
+  componentWillUnmount() { if (this._unscroll) this._unscroll(); (this._t || []).forEach(clearTimeout); }
+  later(fn, ms) { this._t = this._t || []; this._t.push(setTimeout(fn, ms)); }
+  shake(el) {
+    if (!el || !el.classList) return;
+    el.classList.remove('tm-shake'); void el.offsetWidth; el.classList.add('tm-shake');
+    if (el.focus) el.focus();
+  }
+  // Inline "Saving…" then "Saved" next to whatever changed.
+  saved(key) {
+    this.setState({ saving: key, saved: null });
+    this.later(() => { if ((this.state || {}).saving === key) this.setState({ saving: null, saved: key }); }, 450);
+    this.later(() => { if ((this.state || {}).saved === key) this.setState({ saved: null }); }, 2400);
+  }
+  renderVals() {
+    const st = this.state || {};
+    const theme = st.theme || (this.props.theme ?? 'dark');
+    const accent = st.accent || (this.props.accent ?? '#7CD4FF');
+    const layout = this.props.layout ?? 'desktop';
+
+    const themes = {
+      dark: {
+        bg: '#0D0E13', surface: '#171922', surface2: '#21242F', line: '#2C303D',
+        text: '#F3F4F7', text2: '#A9AEBE', text3: '#858B9E',
+        gain: '#3FD98E', loss: '#FF6B6B', gainRgb: '63,217,142', offTrack: '#3A3E4C', onGain: '#0D0E13',
+        pop: '#21242F', popShadow: '0 16px 40px rgba(0,0,0,0.45)',
+        tipBg: '#F3F4F7', tipFg: '#12131A', rowHover: 'rgba(255,255,255,0.045)', rowPress: 'rgba(255,255,255,0.08)'
+      },
+      light: {
+        bg: '#F4F4F7', surface: '#FFFFFF', surface2: '#EEEFF3', line: '#E3E5EB',
+        text: '#12131A', text2: '#4F5566', text3: '#666C7E',
+        gain: '#0B8A51', loss: '#D23434', gainRgb: '11,138,81', offTrack: '#C9CCD6', onGain: '#FFFFFF',
+        pop: '#FFFFFF', popShadow: '0 16px 40px rgba(18,19,26,0.16)',
+        tipBg: '#12131A', tipFg: '#F3F4F7', rowHover: 'rgba(18,19,26,0.045)', rowPress: 'rgba(18,19,26,0.08)'
+      }
+    };
+    const c = themes[theme] || themes.dark;
+    // Theme-aware helpers from design/tokens.json: accent ink for foreground use on light, warn and danger.
+    const tkLight = (theme) === 'light';
+    const tkn = {
+      ink: tkLight ? ({ '#7CD4FF': '#0072AA', '#FFD23F': '#866700', '#6495ED': '#1B63E5', '#B4A5FF': '#6849FF', '#FF85C8': '#D10073', '#FF9152': '#BD4500', '#FFB547': '#9E5E00' }[String(accent).toUpperCase()] || accent) : accent,
+      flash: accent + '38',
+      warn: tkLight ? '#A86400' : '#FFE07A', warnSoft: tkLight ? 'rgba(168,100,0,0.10)' : 'rgba(255,224,122,0.14)',
+      danger: tkLight ? '#D23434' : '#FF6B6B'
+    };
+    const NEW = 'tm-in .35s cubic-bezier(.2,.8,.2,1) both, st-new 1.8s ease-out both';
+    const anim = (on) => (on ? NEW : 'none');
+    const toast = (t) => { if (this.props.onToast) this.props.onToast(t); };
+    // Modals live in the prototype. On the static canvas board there is no host, so say so instead of failing silently.
+    const modal = (m) => { if (this.props.onModal) this.props.onModal(m); else toast({ text: 'Opens in the clickable prototype', kind: 'info' }); };
+    const sv = (key) => {
+      if (st.saving === key) return { label: 'Saving…', color: c.text3 };
+      if (st.saved === key) return { label: 'Saved', color: c.gain };
+      return { label: '', color: c.text3 };
+    };
+    const uid = () => 'n' + Date.now().toString(36) + Math.floor(Math.random() * 1e4);
+
+    // ---- Plan + billing
+    const planDefs = {
+      '30': { len: '30 days', price: '$20', sub: 'USDC on Solana', days: 30 },
+      '90': { len: '90 days', price: '$50', sub: 'Save $10', days: 90 }
+    };
+    const planSel = st.plan || '90';
+    const extra = st.extraDays || 0;
+    const fmtUntil = (x) => new Date(2026, 9, 30 + x).toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+    const daysLeft = 22 + extra;
+    const barPct = Math.round((daysLeft / (30 + extra)) * 100);
+    const plan = {
+      days: daysLeft, until: fmtUntil(extra), bar: barPct + '%', barNow: String(barPct),
+      justPaid: !!st.justPaid, paidLabel: st.justPaid ? planDefs[st.justPaid].len : ''
+    };
+    const planOpts = ['30', '90'].map((k) => {
+      const p = planDefs[k], on = k === planSel;
+      return Object.assign({}, p, {
+        on, checked: String(on), border: on ? tkn.ink : c.line, bg: 'transparent',
+        subColor: k === '90' ? c.text : c.text3, subWeight: k === '90' ? 700 : 600,
+        pick: () => this.setState({ plan: k })
+      });
+    });
+    const P0 = [
+      { id: 'p1', date: 'Sep 30', what: '30 days · paid in USDC', amount: '$20' },
+      { id: 'p2', date: 'Aug 31', what: '30 days · paid in USDC', amount: '$20' },
+      { id: 'p3', date: 'Aug 24', what: '7-day free trial', amount: '$0' }
+    ];
+    const payments = (st.payments || P0).map((p) => Object.assign({}, p, { anim: anim(p.id === st.freshP) }));
+    const pay = () => {
+      const k = planSel, p = planDefs[k];
+      modal({
+        kind: 'checkout', plan: k,
+        onPaid: () => {
+          const cur = this.state || {};
+          const nx = (cur.extraDays || 0) + p.days;
+          const id = uid();
+          this.setState({ extraDays: nx, justPaid: k, freshP: id, payments: [{ id, date: 'Oct 7', what: p.len + ' · paid in USDC', amount: p.price }].concat(cur.payments || P0) });
+          toast({ text: p.len + ' added. Active until ' + fmtUntil(nx) + '.', kind: 'success' });
+        }
+      });
+    };
+
+    // ---- Wallets
+    const W0 = [
+      { id: 'w1', label: 'Main', full: '7xKpQm2VtR8sZcYwLh4nJ6bDfE1gA9uTq5W3rXo3fQa', kind: 'sol', syncedAt: '1 min ago' },
+      { id: 'w2', label: 'Burner', full: 'Bq9dHk3TzP7xWcR2nYvE5mJ8sLfA4gQ1uKr6tZbm2Lw', kind: 'sol', syncedAt: '1 min ago' },
+      { id: 'w3', label: 'EVM', full: '0x4a7F2c9B1e8D3a6C5b0E9f4A2d7C1b8E3f6091c2', kind: 'evm', syncedAt: '9 min ago' }
+    ];
+    const list = st.wallets || W0;
+    const short = (a) => a.slice(0, 4) + '…' + a.slice(-4);
+    const chainsOf = (k) => (k === 'evm' ? 'Base, BNB, Robinhood' : 'Solana');
+    const isEvm = (s) => /^0x[0-9a-fA-F]{40}$/.test(s);
+    const isSol = (s) => /^[1-9A-HJ-NP-Za-km-z]{32,44}$/.test(s);
+    const updateWallet = (id, patch) => {
+      const cur = (this.state && this.state.wallets) || W0;
+      this.setState({ wallets: cur.map((w) => (w.id === id ? Object.assign({}, w, patch) : w)) });
+    };
+    const wallets = list.map((w) => Object.assign({}, w, {
+      addr: short(w.full), chains: chainsOf(w.kind), anim: anim(w.id === st.freshW),
+      importing: !!w.importing, synced: !w.importing,
+      pct: (w.pct || 0) + '%', pctLabel: (w.pct || 0) + '%',
+      remove: () => modal({
+        kind: 'confirm', danger: true, confirmLabel: 'Remove',
+        title: 'Stop tracking ' + w.label + '?',
+        body: 'Its trades stay in your journal. M8 stops watching it for new ones.',
+        onConfirm: () => {
+          const cur = (this.state && this.state.wallets) || W0;
+          const idx = cur.findIndex((x) => x.id === w.id);
+          this.setState({ wallets: cur.filter((x) => x.id !== w.id), freshW: null });
+          toast({
+            text: w.label + ' removed. Its trades stay in your journal.', kind: 'info', undo: w.label + ' is back',
+            onUndo: () => {
+              const now = ((this.state && this.state.wallets) || []).slice();
+              now.splice(Math.min(idx, now.length), 0, w);
+              this.setState({ wallets: now });
+            }
+          });
+        }
+      })
+    }));
+    const full = list.length >= 5;
+    const draft = (st.addrDraft || '').trim();
+    const draftKind = isEvm(draft) ? 'evm' : (isSol(draft) ? 'sol' : null);
+    const addrError = st.addrError || '';
+    const addr = {
+      full, canAdd: !full, invalid: String(!!addrError),
+      hasError: !!addrError, error: addrError,
+      hasHint: !addrError && !!draftKind,
+      hint: draftKind === 'evm' ? 'EVM address · tracks Base, BNB and Robinhood Chain' : 'Solana address',
+      hasNote: !addrError && !draftKind,
+      border: addrError ? c.loss : (draftKind ? c.gain : c.line)
+    };
+    const addBusy = st.busy === 'add';
+    const setAddrEl = (el) => { this._addrEl = el; };
+    const addrInput = (e) => this.setState({ addrDraft: e.target.value, addrError: null });
+    const addWallet = () => {
+      if (addBusy) return;
+      if (list.length >= 5) { this.shake(this._addrEl); return; }
+      const v = ((this._addrEl && this._addrEl.value) || (this.state && this.state.addrDraft) || '').trim();
+      const fail = (msg) => { this.setState({ addrError: msg }); this.shake(this._addrEl); };
+      if (!v) return fail('Paste a wallet address first.');
+      const kind = isEvm(v) ? 'evm' : (isSol(v) ? 'sol' : null);
+      if (!kind) return fail("That doesn't look like a Solana or EVM address.");
+      if (list.some((w) => w.full.toLowerCase() === v.toLowerCase())) return fail('That wallet is already tracked.');
+      this.setState({ busy: 'add', addrError: null });
+      this.later(() => {
+        const cur = (this.state && this.state.wallets) || W0;
+        const id = uid();
+        const nw = { id, label: 'Wallet ' + (cur.length + 1), full: v, kind, importing: true, pct: 6, syncedAt: 'just now' };
+        if (this._addrEl) this._addrEl.value = '';
+        this.setState({ busy: null, wallets: cur.concat([nw]), freshW: id, addrDraft: '' });
+        toast({ text: 'Wallet added. Importing your last 30 days…', kind: 'success' });
+        [[900, 31], [1800, 58], [2700, 84]].forEach((s) => this.later(() => updateWallet(id, { pct: s[1] }), s[0]));
+        this.later(() => {
+          updateWallet(id, { pct: 100, importing: false, syncedAt: 'just now' });
+          toast({ text: nw.label + ' is in: 23 trades from the last 30 days.', kind: 'success' });
+        }, 3600);
+      }, 1100);
+    };
+    const addrKey = (e) => {
+      if (e.key === 'Enter') { if (e.preventDefault) e.preventDefault(); addWallet(); }
+      else if (e.key === 'Escape' && this.state && this.state.addrError) this.setState({ addrError: null });
+    };
+
+    // ---- M8: voice, nudge delay, message toggles
+    const voiceDefs = [
+      { key: 'friend', name: 'Trench friend', sample: 'you chased those two after lunch. what happened?' },
+      { key: 'coach', name: 'Calm coach', sample: 'Two trades after lunch lost $375. What was going on there?' },
+      { key: 'degen', name: 'Blunt degen', sample: '-$375 after lunch. explain yourself.' }
+    ];
+    const voiceKey = st.voice || (this.props.voice ?? 'friend');
+    const voices = voiceDefs.map((v) => {
+      const on = v.key === voiceKey;
+      return Object.assign({}, v, {
+        checked: on ? 'true' : 'false', border: on ? tkn.ink : 'transparent',
+        pick: () => {
+          if (on) return;
+          this.setState({ voice: v.key }); this.saved('voice');
+          if (this.props.onVoice) this.props.onVoice(v.key);
+        }
+      });
+    });
+    const delay = st.delay || '2h';
+    const delays = ['1h', '2h', '3h', '4h'].map((d) => {
+      const on = d === delay;
+      return {
+        label: d, checked: String(on), bg: on ? accent : 'transparent', fg: on ? '#15140E' : c.text2, weight: on ? 800 : 700,
+        pick: () => { if (on) return; this.setState({ delay: d }); this.saved('delay'); }
+      };
+    });
+    const T0 = { brief: true, recap: true, alerts: true, weekend: false };
+    const tog = Object.assign({}, T0, st.tog || {});
+    const times = { brief: st.briefTime || '8:00 AM', recap: st.recapTime || '6:00 PM' };
+    const timeOpts = {
+      brief: ['6:00 AM', '7:00 AM', '8:00 AM', '9:00 AM', '10:00 AM'],
+      recap: ['4:00 PM', '5:00 PM', '6:00 PM', '7:00 PM', '8:00 PM']
+    };
+    const toggleDefs = [
+      { key: 'brief', name: 'Morning brief', lead: 'Every day at', picker: 'brief' },
+      { key: 'recap', name: 'Sunday recap', lead: 'Sundays at', picker: 'recap' },
+      { key: 'alerts', name: 'Live rule alerts', detail: 'When you break a rule mid-session' },
+      { key: 'weekend', name: 'Weekend check-ins', detail: 'Nudges on Saturday and Sunday' }
+    ];
+    const toggles = toggleDefs.map((t) => {
+      const on = !!tog[t.key];
+      const pk = t.picker;
+      return {
+        name: t.name, detail: t.detail || '', lead: t.lead || '',
+        hasPicker: !!pk, noPicker: !pk,
+        on: String(on), dim: on ? 1 : 0.55,
+        track: on ? accent : c.offTrack, knob: on ? '#15140E' : '#FFFFFF', knobLeft: on ? '24px' : '4px',
+        sv: sv('t-' + t.key),
+        flip: () => { this.setState({ tog: Object.assign({}, tog, { [t.key]: !on }) }); this.saved('t-' + t.key); },
+        pickLabel: pk ? times[pk] : '', pickOpen: !!pk && st.pop === pk, expanded: String(!!pk && st.pop === pk),
+        openPick: () => this.setState({ pop: st.pop === pk ? null : pk }),
+        options: (pk ? timeOpts[pk] : []).map((o) => ({
+          label: o, sel: String(o === times[pk]), mark: o === times[pk], weight: o === times[pk] ? 800 : 600,
+          pick: () => { this.setState({ [pk + 'Time']: o, pop: null }); if (o !== times[pk]) this.saved('t-' + t.key); }
+        }))
+      };
+    });
+
+    // ---- Rules
+    const R0 = [
+      { id: 'r1', type: 'dailyLoss', value: 150 },
+      { id: 'r2', type: 'maxTrades', value: 10 },
+      { id: 'r3', type: 'cooldown', value: 20, note: 'added yesterday in chat' }
+    ];
+    const ruleText = (r) => {
+      const v = r.value;
+      const t = {
+        dailyLoss: ['Daily loss limit', 'Stop after losing $' + v + ' in a day'],
+        maxTrades: ['Max trades', v + ' trades a day'],
+        cooldown: ['Cooldown', v + ' min after a red trade'],
+        maxPosition: ['Max position', 'No single buy over $' + v],
+        noTradingAfter: ['No late entries', 'No new entries after ' + v + ' ET']
+      }[r.type] || [String(r.type), String(v)];
+      return { name: t[0], detail: t[1] + (r.note ? ' · ' + r.note : '') };
+    };
+    const ruleList = st.rules || R0;
+    const setRules = (next, fresh) => this.setState({ rules: next, freshR: fresh || null });
+    const curRules = () => (this.state && this.state.rules) || R0;
+    const saveRule = (nr, editingId) => {
+      const cur = curRules();
+      const clean = { type: nr.type, value: nr.value };
+      const same = cur.find((x) => x.id === editingId) || cur.find((x) => x.type === clean.type);
+      const detail = ruleText(clean).detail;
+      if (same) {
+        setRules(cur.map((x) => (x.id === same.id ? Object.assign({ id: same.id }, clean) : x)), same.id);
+        toast({ text: 'Rule updated: ' + detail.charAt(0).toLowerCase() + detail.slice(1), kind: 'success' });
+      } else {
+        const id = uid();
+        setRules(cur.concat([Object.assign({ id }, clean)]), id);
+        toast({ text: 'Rule set: ' + detail.charAt(0).toLowerCase() + detail.slice(1), kind: 'success', undo: 'Rule removed', onUndo: () => setRules(curRules().filter((x) => x.id !== id)) });
+      }
+    };
+    const rules = ruleList.map((r) => Object.assign({}, ruleText(r), {
+      anim: anim(r.id === st.freshR),
+      edit: () => modal({
+        kind: 'rule', rule: { type: r.type, value: r.value },
+        onSave: (nr) => saveRule(nr, r.id),
+        onDelete: () => {
+          const cur = curRules();
+          const idx = cur.findIndex((x) => x.id === r.id);
+          setRules(cur.filter((x) => x.id !== r.id));
+          toast({
+            text: ruleText(r).name + ' rule deleted', kind: 'info', undo: 'Rule restored',
+            onUndo: () => { const now = curRules().slice(); now.splice(Math.min(idx, now.length), 0, r); setRules(now); }
+          });
+        }
+      })
+    }));
+    const addRule = () => modal({ kind: 'rule', onSave: (nr) => saveRule(nr, null) });
+    const showSuggest = !st.sugDismissed && !ruleList.some((r) => r.type === 'noTradingAfter');
+    const acceptSuggest = () => saveRule({ type: 'noTradingAfter', value: '1 PM' }, null);
+    const dismissSuggest = () => {
+      this.setState({ sugDismissed: true });
+      toast({ text: "Got it. M8 won't suggest it again this week.", kind: 'info', undo: 'Suggestion is back', onUndo: () => this.setState({ sugDismissed: false }) });
+    };
+
+    // ---- Memory
+    const M0 = [
+      'Your edge is fresh launches under 1 hour old.',
+      'You tend to chase right after a red trade.',
+      'Goal: stop revenge trading.',
+      'You trade best between 9 and 11 AM ET.',
+      'You size down on new chains until you trust them.'
+    ].map((text, i) => ({ id: 'm' + i, text }));
+    const forgotten = st.forgotten || [];
+    const memory = (st.mem || []).concat(M0).filter((m) => forgotten.indexOf(m.id) < 0).map((m) => ({
+      text: m.text, anim: anim(m.id === st.freshM),
+      forget: () => {
+        this.setState({ forgotten: ((this.state && this.state.forgotten) || []).concat([m.id]), freshM: null });
+        toast({ text: 'M8 forgot: "' + m.text + '"', kind: 'info', undo: 'Memory restored', onUndo: () => this.setState({ forgotten: ((this.state && this.state.forgotten) || []).filter((x) => x !== m.id) }) });
+      }
+    }));
+    const setMemEl = (el) => { this._memEl = el; };
+    const memInput = (e) => this.setState({ memDraft: e.target.value });
+    const tell = () => {
+      const v = ((this._memEl && this._memEl.value) || (this.state && this.state.memDraft) || '').trim();
+      if (!v) { this.shake(this._memEl); return; }
+      let text = v.charAt(0).toUpperCase() + v.slice(1);
+      if (!/[.!?]$/.test(text)) text += '.';
+      const id = uid();
+      if (this._memEl) this._memEl.value = '';
+      this.setState({ mem: [{ id, text }].concat((this.state && this.state.mem) || []), freshM: id, memDraft: '' });
+      toast({ text: 'M8 will remember that', kind: 'success', undo: 'Removed from memory', onUndo: () => this.setState({ mem: ((this.state && this.state.mem) || []).filter((x) => x.id !== id) }) });
+    };
+    const memKey = (e) => { if (e.key === 'Enter') { if (e.preventDefault) e.preventDefault(); tell(); } };
+
+    // ---- Appearance
+    const accentDefs = [
+      { name: 'Citrus', hex: '#FFD23F' }, { name: 'Cornflower', hex: '#6495ED' }, { name: 'Sky', hex: '#7CD4FF' },
+      { name: 'Lilac', hex: '#B4A5FF' }, { name: 'Bubblegum', hex: '#FF85C8' }, { name: 'Tangerine', hex: '#FF9152' },
+      { name: 'Apricot', hex: '#FFB547' }
+    ];
+    const swatches = accentDefs.map((a) => {
+      const on = a.hex.toLowerCase() === accent.toLowerCase();
+      return Object.assign({}, a, {
+        checked: on ? 'true' : 'false',
+        ring: on ? '0 0 0 3px ' + c.surface + ', 0 0 0 5px ' + c.text : 'none',
+        pick: () => { this.setState({ accent: a.hex }); if (this.props.onAccent) this.props.onAccent(a.hex); }
+      });
+    });
+    const current = accentDefs.find((a) => a.hex.toLowerCase() === accent.toLowerCase());
+    const themeOpts = [['dark', 'Dark'], ['light', 'Light'], ['system', 'System']].map((t) => {
+      const on = (st.themeChoice ? st.themeChoice : theme) === t[0];
+      return {
+        label: t[1], pressed: on ? 'true' : 'false',
+        bg: on ? accent : 'transparent', fg: on ? '#15140E' : c.text2,
+        pick: () => { const th = t[0] === 'light' ? 'light' : 'dark'; this.setState({ themeChoice: t[0], theme: th }); if (this.props.onTheme) this.props.onTheme(th); }
+      };
+    });
+
+    // ---- Account: linked apps, timezone, export, log out, delete
+    const discord = !!st.discord;
+    const primary = st.primary || 'telegram';
+    const setPrimary = (k, label) => {
+      const before = (this.state && this.state.primary) || 'telegram';
+      this.setState({ primary: k }); this.saved('apps');
+      toast({ text: label + ' is now your primary app. Check-ins go there.', kind: 'success', undo: 'Primary app changed back', onUndo: () => this.setState({ primary: before }) });
+    };
+    const connected = () => {
+      if (this.state && this.state.discord) return;
+      this.setState({ discord: true, freshA: 'discord' });
+      toast({ text: 'Discord connected. You can chat with M8 there too.', kind: 'success' });
+    };
+    const appSub = (handle, isPrim) => handle + (isPrim ? ' · check-ins, briefs and alerts' : ' · chat only');
+    const apps = [
+      {
+        name: 'Telegram', isTelegram: true, isDiscord: false, tile: '#2AABEE', anim: 'none',
+        isPrimary: primary === 'telegram', sub: appSub('@trenchwalker', primary === 'telegram'),
+        canConnect: false, canPrimary: primary !== 'telegram', canDisconnect: false,
+        connect: () => {}, makePrimary: () => setPrimary('telegram', 'Telegram'), disconnect: () => {}
+      },
+      {
+        name: 'Discord', isTelegram: false, isDiscord: true, tile: '#5865F2', anim: anim(st.freshA === 'discord'),
+        isPrimary: primary === 'discord', sub: discord ? appSub('trenchwalker', primary === 'discord') : 'Not connected',
+        canConnect: !discord, canPrimary: discord && primary !== 'discord', canDisconnect: discord && primary !== 'discord',
+        connect: () => modal({ kind: 'connect', service: 'discord', onDone: connected, onConnected: connected }),
+        makePrimary: () => setPrimary('discord', 'Discord'),
+        disconnect: () => modal({
+          kind: 'confirm', danger: true, confirmLabel: 'Disconnect', title: 'Disconnect Discord?',
+          body: "M8 stops messaging you there. Your chats stay in your history, and you can reconnect any time.",
+          onConfirm: () => {
+            this.setState({ discord: false, freshA: null });
+            toast({ text: 'Discord disconnected', kind: 'info', undo: 'Discord reconnected', onUndo: () => this.setState({ discord: true }) });
+          }
+        })
+      }
+    ];
+    const tzOpts = ['New York (ET)', 'Chicago (CT)', 'Denver (MT)', 'Los Angeles (PT)', 'London (GMT)', 'Berlin (CET)', 'Dubai (GST)', 'Singapore (SGT)', 'Tokyo (JST)'];
+    const tzCur = st.tz || 'New York (ET)';
+    const tz = {
+      label: tzCur, isOpen: st.pop === 'tz', expanded: String(st.pop === 'tz'),
+      toggle: () => this.setState({ pop: st.pop === 'tz' ? null : 'tz' }),
+      options: tzOpts.map((o) => ({
+        label: o, sel: String(o === tzCur), mark: o === tzCur, weight: o === tzCur ? 800 : 600,
+        pick: () => { this.setState({ tz: o, pop: null }); if (o !== tzCur) this.saved('tz'); }
+      }))
+    };
+    const closePop = () => this.setState({ pop: null });
+    const exportData = () => modal({ kind: 'export' });
+    const logoutAll = () => modal({
+      kind: 'confirm', danger: false, confirmLabel: 'Log out other sessions', title: 'Log out everywhere else?',
+      body: 'You stay signed in here. Other browsers and devices get signed out. M8 keeps working in Telegram.',
+      onConfirm: () => toast({ text: 'Logged out of 3 other sessions', kind: 'success' })
+    });
+    const deleteAccount = () => modal({ kind: 'deleteAccount', onConfirm: () => { if (this.props.onNav) this.props.onNav('deleted'); } });
+
+    // ---- Top bar + layout
+    const desktop = layout === 'desktop';
+    const scrolled = !!st.scrolled;
+    const glass = theme === 'light'
+      ? { bg: 'rgba(255,255,255,0.72)', line: 'rgba(18,19,26,0.08)', nav: 'rgba(238,239,243,0.8)', shadow: '0 12px 32px rgba(18,19,26,0.10)' }
+      : { bg: 'rgba(23,25,34,0.66)', line: 'rgba(255,255,255,0.08)', nav: 'rgba(33,36,47,0.8)', shadow: '0 12px 32px rgba(0,0,0,0.35)' };
+    const hdr = scrolled
+      ? { outerPad: '10px 16px 0 16px', maxW: '1400px', innerPad: '8px 8px 8px 14px', radius: '22px', bg: glass.bg, border: glass.line, shadow: glass.shadow, blur: 'blur(18px) saturate(140%)', navBg: glass.nav }
+      : { outerPad: '0', maxW: '1440px', innerPad: '18px 24px 10px 24px', radius: '0', bg: 'transparent', border: 'transparent', shadow: 'none', blur: 'none', navBg: c.surface };
+    const usage = { pct: '34%', color: tkn.ink };
+    const setRoot = (el) => { this._root = el; };
+    const go = (to) => (e) => { if (e && e.preventDefault) e.preventDefault(); if (this.props.onNav) this.props.onNav(to); };
+    const nav = { journal: go('journal'), stats: go('stats'), m8: go('m8'), settings: go('settings'), ask: go('ask'), askFresh: go('askFresh'), share: go('share'), back: go('back'), history: go('history'), expand: go('expand'), collapse: go('collapse'), close: go('close'), openActive: go('openActive'), newTopic: go('newTopic') };
+    return { tkn,
+      hdr, usage, setRoot, nav, mobileNav: layout !== 'desktop' && !this.props.hideNav,
+      c, accent, theme,
+      plan, planOpts, pay, payLabel: 'Pay ' + planDefs[planSel].price + ' in USDC', payments,
+      wallets, walletCount: list.length, walletCountColor: full ? c.text : c.text3, noWallets: list.length === 0,
+      addr, addWallet, addrInput, addrKey, setAddrEl,
+      addBusy, addBusyStr: String(addBusy), addLabel: addBusy ? 'Checking…' : 'Add',
+      addBg: draftKind ? accent : c.surface2, addFg: draftKind ? '#15140E' : c.text,
+      voices, delays, toggles, closePop,
+      sv: { voice: sv('voice'), delay: sv('delay'), apps: sv('apps'), tz: sv('tz') },
+      rules, addRule, noRules: ruleList.length === 0, showSuggest, acceptSuggest, dismissSuggest,
+      memory, noMemory: memory.length === 0, setMemEl, memInput, memKey, tell, memHasDraft: !!(st.memDraft || '').trim(),
+      swatches, themeOpts, accentName: current ? current.name : 'Custom',
+      apps, tz, exportData, logoutAll, deleteAccount,
+      gainSoft: 'rgba(' + c.gainRgb + ',0.16)',
+      desktop, mobile: !desktop, pad: desktop ? '24px' : '16px'
+    };
+  }
+}
+</script>
+</body>
+</html>

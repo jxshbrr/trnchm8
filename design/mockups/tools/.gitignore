@@ -1,0 +1,6 @@
+# preview output
+*.png
+*.html
+# generator input, not output
+!landing-helmet.html
+__pycache__/

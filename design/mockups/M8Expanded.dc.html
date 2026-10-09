@@ -1,0 +1,35 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>TrenchM8 - M8 expanded (desktop)</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="anonymous">
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0}
+</style>
+</helmet>
+<div style="width: 1440px; height: 1080px; display: flex; background: #0D0E13; overflow: hidden">
+  <div style="width: 320px; flex-shrink: 0; display: flex">
+    <dc-import name="M8History" layout="column" hint-size="320px,1080px"></dc-import>
+  </div>
+  <div style="flex-grow: 1; min-width: 0; display: flex">
+    <dc-import name="M8Chat" layout="expanded" accent="{{accent}}" hint-size="1120px,1080px"></dc-import>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"accent":{"editor":"color","default":"#7CD4FF","options":["#7CD4FF","#FFD23F","#6495ED","#B4A5FF","#FF85C8","#FF9152","#FFB547"],"section":"Look"},"$preview":{"width":1440,"height":1080}}'>
+class Component extends DCLogic {
+  renderVals() {
+    return { accent: this.props.accent ?? '#7CD4FF' };
+  }
+}
+</script>
+</body>
+</html>

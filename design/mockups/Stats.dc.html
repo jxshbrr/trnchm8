@@ -1,0 +1,1193 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>TrenchM8 - Stats</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="anonymous">
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0}
+/* TrenchM8 motion: 120-150ms press/hover, 250-350ms UI, 600-900ms load-in. Ease-out. Fades only when reduced motion is on. */
+@keyframes tm-in{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+@keyframes tm-fade{from{opacity:0}to{opacity:1}}
+@keyframes tm-draw{to{stroke-dashoffset:0}}
+@keyframes tm-shimmer{0%{background-position:-400px 0}100%{background-position:400px 0}}
+@keyframes tm-dot{0%,80%,100%{opacity:.3;transform:translateY(0)}40%{opacity:1;transform:translateY(-3px)}}
+@keyframes tm-toast{from{opacity:0;transform:translateY(12px) scale(.98)}to{opacity:1;transform:none}}
+@keyframes tm-pop{0%{opacity:0;transform:scale(.6)}60%{opacity:1;transform:scale(1.08)}100%{transform:scale(1)}}
+@keyframes tm-spin{to{transform:rotate(360deg)}}
+@keyframes tm-pulse{0%{box-shadow:0 0 0 0 var(--tm-pulse,rgba(63,217,142,.45))}100%{box-shadow:0 0 0 10px rgba(0,0,0,0)}}
+@keyframes tm-fill{from{width:0}to{width:100%}}
+@keyframes tm-out{from{opacity:1}to{opacity:0}}
+@keyframes tm-flash{0%{background-color:var(--tm-flash,rgba(124,212,255,.22))}100%{background-color:transparent}}
+.tm-press{transition:transform .12s ease,filter .15s ease,background-color .15s ease,opacity .15s ease}
+.tm-press:hover{filter:brightness(1.12)}
+.tm-press:active{transform:scale(.97)}
+.tm-press:focus-visible,.tm-hover:focus-visible{outline:2px solid var(--tm-focus,#7CD4FF);outline-offset:2px}
+.tm-hover{transition:filter .15s ease,transform .15s ease}
+.tm-hover:hover{filter:brightness(1.18)}
+.tm-in{animation:tm-in .35s cubic-bezier(.2,.8,.2,1) both}
+.tm-fade{animation:tm-fade .6s ease both;animation-delay:var(--tm-d,0s)}
+.tm-draw{stroke-dasharray:1;stroke-dashoffset:1;animation:tm-draw .9s cubic-bezier(.2,.8,.2,1) calc(var(--tm-d,0s) + .15s) forwards}
+.tm-skel{background:linear-gradient(90deg,var(--sk1) 0%,var(--sk2) 50%,var(--sk1) 100%);background-size:800px 100%;animation:tm-shimmer 1.2s linear infinite}
+.tm-dot{display:inline-block;width:6px;height:6px;border-radius:3px;background:currentColor;animation:tm-dot 1.2s ease-in-out infinite}
+.tm-toast{animation:tm-toast .25s cubic-bezier(.2,.8,.2,1) both}
+.tm-pop{animation:tm-pop .45s cubic-bezier(.2,.8,.2,1) both}
+.tm-spin{animation:tm-spin .8s linear infinite}
+.tm-pulse{animation:tm-pulse 1.6s ease-out infinite}
+.tm-flash{animation:tm-flash 1.6s ease-out both}
+.tm-out{animation:tm-out .22s ease both;pointer-events:none}
+@media (prefers-reduced-motion:reduce){.tm-in,.tm-toast,.tm-pop{animation:tm-fade .2s ease both}.tm-draw{animation:none;stroke-dasharray:none;stroke-dashoffset:0}.tm-skel,.tm-dot,.tm-pulse,.tm-spin{animation:none}.tm-press:active{transform:none}}
+/* Tooltips: data-tip="text" (+ data-tip-pos="bottom|left|right", data-tip-wrap for long text). Desktop hover/keyboard only. */
+[data-tip]{position:relative}
+[data-tip]::after{content:attr(data-tip);position:absolute;left:50%;bottom:calc(100% + 8px);transform:translate(-50%,4px);padding:6px 10px;border-radius:10px;background:var(--tm-tip-bg,#F3F4F7);color:var(--tm-tip-fg,#12131A);font:600 12px/1.35 Manrope,system-ui,sans-serif;letter-spacing:0;text-transform:none;text-align:left;white-space:nowrap;pointer-events:none;opacity:0;visibility:hidden;transition:opacity .12s ease,transform .12s ease,visibility 0s linear .12s;z-index:80;box-shadow:0 8px 24px rgba(0,0,0,.28)}
+[data-tip]:hover::after,[data-tip]:focus-visible::after{opacity:1;visibility:visible;transform:translate(-50%,0);transition:opacity .12s ease .35s,transform .12s ease .35s,visibility 0s linear .35s}
+[data-tip-pos=bottom]::after{bottom:auto;top:calc(100% + 8px);transform:translate(-50%,-4px)}
+[data-tip-pos=left]::after{left:auto;right:calc(100% + 8px);bottom:50%;transform:translate(4px,50%)}
+[data-tip-pos=left]:hover::after,[data-tip-pos=left]:focus-visible::after{transform:translate(0,50%)}
+[data-tip-pos=right]::after{left:calc(100% + 8px);bottom:50%;transform:translate(-4px,50%)}
+[data-tip-pos=right]:hover::after,[data-tip-pos=right]:focus-visible::after{transform:translate(0,50%)}
+[data-tip-wrap]::after{white-space:normal;width:max-content;max-width:240px}
+@media (hover:none){[data-tip]::after{display:none}}
+[data-tip=""]::after{display:none}
+/* Clickable rows (no inline background on the row itself) and clickable cards */
+.tm-row{transition:background-color .15s ease;cursor:pointer}
+.tm-row:hover{background-color:var(--tm-row-hover,rgba(255,255,255,.045))}
+.tm-row:active{background-color:var(--tm-row-press,rgba(255,255,255,.08))}
+.tm-lift{transition:filter .15s ease,box-shadow .15s ease;cursor:pointer}
+.tm-lift:hover{filter:brightness(1.07)}
+.tm-press[aria-disabled=true],.tm-press:disabled{opacity:.45;cursor:not-allowed;filter:none}
+.tm-press[aria-disabled=true]:active,.tm-press:disabled:active{transform:none}
+@keyframes tm-shake{0%,100%{transform:none}20%,60%{transform:translateX(-4px)}40%,80%{transform:translateX(4px)}}
+.tm-shake{animation:tm-shake .3s ease}
+@keyframes tm-sheet{from{transform:translateY(24px);opacity:0}to{transform:none;opacity:1}}
+@keyframes tm-dialog{from{transform:translateY(8px) scale(.98);opacity:0}to{transform:none;opacity:1}}
+@keyframes tm-drawer{from{transform:translateX(32px);opacity:0}to{transform:none;opacity:1}}
+.tm-sheet{animation:tm-sheet .3s cubic-bezier(.2,.8,.2,1) both}
+.tm-dialog{animation:tm-dialog .22s cubic-bezier(.2,.8,.2,1) both}
+.tm-drawer{animation:tm-drawer .28s cubic-bezier(.2,.8,.2,1) both}
+@keyframes tm-wave{0%,100%{transform:scaleY(.35)}50%{transform:scaleY(1)}}
+.tm-wave{animation:tm-wave .9s ease-in-out infinite;transform-origin:center}
+@media (prefers-reduced-motion:reduce){.tm-sheet,.tm-dialog,.tm-drawer{animation:tm-fade .2s ease both}.tm-shake,.tm-wave{animation:none}}
+.st-kpi[data-tip]::after{max-width:180px}
+.st-kpi:focus-visible{outline:2px solid var(--tm-focus,#7CD4FF);outline-offset:2px}
+</style>
+</helmet>
+<div ref="{{setRoot}}" style="--tm-focus: {{tkn.ink}}; --tm-flash: {{tkn.flash}}; --tm-tip-bg: {{c.tipBg}}; --tm-tip-fg: {{c.tipFg}}; --tm-row-hover: {{c.rowHover}}; --tm-row-press: {{c.rowPress}}; width: 100%; min-height: 100%; box-sizing: border-box; background: {{c.bg}}; color: {{c.text}}; font-family: Manrope, system-ui, sans-serif; font-variant-numeric: tabular-nums; -webkit-font-smoothing: antialiased; display: flex; flex-direction: column; align-items: center">
+<sc-if value="{{desktop}}" hint-placeholder-val="{{ true }}">
+  <!-- Top bar: flat at the top of the page, a floating glass bar once you scroll -->
+  <header style="position: sticky; top: 0; z-index: 10; width: 100%; box-sizing: border-box; padding: {{hdr.outerPad}}; display: flex; justify-content: center; transition: padding .3s ease">
+    <div style="width: 100%; max-width: {{hdr.maxW}}; box-sizing: border-box; padding: {{hdr.innerPad}}; border-radius: {{hdr.radius}}; background: {{hdr.bg}}; border: 1px solid {{hdr.border}}; box-shadow: {{hdr.shadow}}; backdrop-filter: {{hdr.blur}}; -webkit-backdrop-filter: {{hdr.blur}}; display: flex; align-items: center; gap: 20px; flex-wrap: wrap; transition: max-width .3s ease, padding .3s ease, border-radius .3s ease, background-color .3s ease, border-color .3s ease, box-shadow .3s ease">
+      <a class="tm-press" href="#journal" onClick="{{nav.journal}}" style="display: flex; align-items: center; gap: 10px; color: inherit; text-decoration: none">
+        <svg width="32" height="32" viewBox="0 0 36 36" aria-hidden="true"><rect x="0" y="0" width="36" height="36" rx="12" fill="{{accent}}"></rect><rect x="11" y="12" width="4.5" height="9" rx="2.25" fill="#15140E"></rect><rect x="20.5" y="12" width="4.5" height="9" rx="2.25" fill="#15140E"></rect></svg>
+        <span style="font-size: 17px; font-weight: 800; letter-spacing: -0.01em">TrenchM8</span>
+      </a>
+      <nav aria-label="Main" style="display: flex; gap: 4px; padding: 4px; border-radius: 999px; background: {{hdr.navBg}}; transition: background-color .3s ease">
+        <a class="tm-press" href="#journal" onClick="{{nav.journal}}" style="height: 40px; padding: 0 16px; border-radius: 999px; color: {{c.text2}}; font-weight: 700; display: flex; align-items: center; gap: 8px; font-size: 14px; text-decoration: none; white-space: nowrap">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 4h11a3 3 0 0 1 3 3v13H8a3 3 0 0 1-3-3z"></path><path d="M5 17a3 3 0 0 1 3-3h11"></path></svg>
+          Journal
+        </a>
+        <a class="tm-press" href="#stats" onClick="{{nav.stats}}" aria-current="page" style="height: 40px; padding: 0 16px; border-radius: 999px; background: {{accent}}; color: #15140E; font-weight: 800; display: flex; align-items: center; gap: 8px; font-size: 14px; text-decoration: none; white-space: nowrap">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 20V10"></path><path d="M12 20V4"></path><path d="M19 20v-7"></path></svg>
+          Stats
+        </a>
+        <a class="tm-press" href="#settings" onClick="{{nav.settings}}" style="height: 40px; padding: 0 16px; border-radius: 999px; color: {{c.text2}}; font-weight: 700; display: flex; align-items: center; gap: 8px; font-size: 14px; text-decoration: none; white-space: nowrap">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 7h10"></path><path d="M18 7h2"></path><circle cx="16" cy="7" r="2"></circle><path d="M4 17h2"></path><path d="M10 17h10"></path><circle cx="8" cy="17" r="2"></circle></svg>
+          Settings
+        </a>
+      </nav>
+      <div style="margin-left: auto; display: flex; align-items: center; gap: 8px">
+        <a class="tm-press" href="#settings" onClick="{{nav.settings}}" aria-label="M8 chat used today: {{usage.pct}}. Resets at midnight. Check-ins and journaling don't count." data-tip="34% of today's M8 chat used. Resets at midnight." data-tip-pos="bottom" style="height: 40px; padding: 0 14px; border-radius: 999px; border: 1px solid {{c.line}}; color: {{c.text2}}; display: flex; align-items: center; gap: 10px; text-decoration: none; white-space: nowrap">
+          <span style="font-size: 12px; font-weight: 700">M8 today</span>
+          <span aria-hidden="true" style="width: 64px; height: 6px; border-radius: 3px; background: {{c.surface2}}; overflow: hidden"><span style="display: block; width: {{usage.pct}}; height: 6px; border-radius: 3px; background: {{usage.color}}"></span></span>
+          <span style="font-size: 12px; font-weight: 800; color: {{c.text}}">{{usage.pct}}</span>
+        </a>
+        <a class="tm-press" href="#m8" onClick="{{nav.m8}}" data-tip="Open M8 (M)" data-tip-pos="bottom" style="height: 44px; padding: 0 18px 0 8px; border-radius: 999px; background: {{hdr.navBg}}; color: {{c.text}}; display: flex; align-items: center; gap: 8px; font-size: 14px; font-weight: 800; text-decoration: none; white-space: nowrap; transition: background-color .3s ease">
+          <svg width="28" height="28" viewBox="0 0 36 36" aria-hidden="true"><rect x="0" y="0" width="36" height="36" rx="12" fill="{{accent}}"></rect><rect x="11" y="12" width="4.5" height="9" rx="2.25" fill="#15140E"></rect><rect x="20.5" y="12" width="4.5" height="9" rx="2.25" fill="#15140E"></rect></svg>
+          Talk to M8
+        </a>
+      </div>
+    </div>
+  </header>
+</sc-if>
+<div style="width: 100%; max-width: 1440px; box-sizing: border-box; padding: {{pad}}; display: flex; flex-wrap: wrap; align-items: flex-start; gap: 24px">
+
+  <main style="flex: 999 1 560px; min-width: 0; display: flex; flex-direction: column; gap: 16px">
+
+    <!-- Header + controls -->
+    <div style="display: flex; align-items: flex-end; justify-content: space-between; gap: 12px; flex-wrap: wrap; padding: 4px 4px 0 4px">
+      <div style="display: flex; flex-direction: column; gap: 2px">
+        <div style="display: flex; align-items: center; justify-content: space-between; gap: 12px"><h1 style="margin: 0; font-size: 28px; font-weight: 800; letter-spacing: -0.02em">Stats</h1></div>
+        <span style="font-size: 14px; font-weight: 600; color: {{c.text3}}">{{head.sub}}</span>
+      </div>
+      <div style="display: flex; gap: 8px; flex-wrap: wrap">
+        <div role="radiogroup" aria-label="Period" style="display: flex; gap: 2px; padding: 4px; border-radius: 999px; background: {{c.surface}}">
+          <sc-for list="{{rangeBtns}}" as="rb" hint-placeholder-count="4">
+            <button class="tm-press" role="radio" aria-checked="{{rb.on}}" onClick="{{rb.pick}}" data-tip="{{rb.tip}}" data-tip-pos="bottom" style="height: 36px; padding: 0 14px; border: none; border-radius: 999px; background: {{rb.bg}}; color: {{rb.fg}}; font-family: inherit; font-size: 13px; font-weight: {{rb.weight}}; cursor: pointer">{{rb.label}}</button>
+          </sc-for>
+        </div>
+        <div ref="{{setPop}}" style="position: relative">
+          <button class="tm-press" onClick="{{menu.toggle}}" aria-haspopup="menu" aria-expanded="{{menu.expanded}}" style="height: 44px; padding: 0 16px; border: none; border-radius: 999px; background: {{menu.btnBg}}; color: {{c.text}}; display: flex; align-items: center; gap: 6px; font-family: inherit; font-size: 13px; font-weight: 700; cursor: pointer; white-space: nowrap">
+            {{menu.label}}
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="transform: rotate({{menu.chev}}); transition: transform .2s ease"><path d="M6 9l6 6 6-6"></path></svg>
+          </button>
+          <sc-if value="{{menu.open}}" hint-placeholder-val="{{ false }}">
+            <div role="menu" aria-label="Chains" class="tm-dialog" style="position: absolute; top: calc(100% + 8px); right: 0; z-index: 30; width: 272px; box-sizing: border-box; padding: 6px; border-radius: 20px; background: {{c.pop}}; border: 1px solid {{c.line}}; box-shadow: {{c.popShadow}}; display: flex; flex-direction: column; gap: 2px">
+              <div style="display: flex; align-items: center; gap: 4px">
+                <button class="tm-row" role="menuitemradio" aria-checked="{{menu.allOn}}" onClick="{{menu.pickAll}}" style="flex-grow: 1; min-width: 0; height: 44px; padding: 0 10px; border: none; border-radius: 14px; background: none; color: {{c.text}}; display: flex; align-items: center; gap: 10px; font-family: inherit; font-size: 14px; font-weight: 800; text-align: left">
+                  <span aria-hidden="true" style="display: grid; grid-template-columns: 6px 6px; gap: 2px; width: 14px; margin: 0 0 0 0"><span style="width: 6px; height: 6px; border-radius: 3px; background: #9B6BFF"></span><span style="width: 6px; height: 6px; border-radius: 3px; background: #B8E62E"></span><span style="width: 6px; height: 6px; border-radius: 3px; background: #3D7BFF"></span><span style="width: 6px; height: 6px; border-radius: 3px; background: #F0B90B"></span></span>
+                  All chains
+                </button>
+                <span aria-hidden="true" style="width: 44px; height: 44px; flex-shrink: 0; display: flex; align-items: center; justify-content: center">
+                  <span style="width: 22px; height: 22px; box-sizing: border-box; border-radius: 7px; border: 2px solid {{menu.allBorder}}; background: {{menu.allBg}}; color: #15140E; display: flex; align-items: center; justify-content: center">
+                    <sc-if value="{{menu.allCheck}}" hint-placeholder-val="{{ true }}"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.4" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.5 4.5L19 7.5"></path></svg></sc-if>
+                  </span>
+                </span>
+              </div>
+              <span aria-hidden="true" style="height: 1px; margin: 4px 10px; background: {{c.line}}"></span>
+              <sc-for list="{{menu.rows}}" as="m" hint-placeholder-count="4">
+                <div style="display: flex; align-items: center; gap: 4px">
+                  <button class="tm-row" role="menuitem" onClick="{{m.only}}" aria-label="Show only {{m.name}}" style="flex-grow: 1; min-width: 0; height: 48px; padding: 0 10px; border: none; border-radius: 14px; background: none; color: {{c.text}}; display: flex; align-items: center; gap: 10px; font-family: inherit; text-align: left">
+                    <span aria-hidden="true" style="width: 10px; height: 10px; flex-shrink: 0; margin: 0 2px; border-radius: 5px; background: {{m.dot}}"></span>
+                    <span style="display: flex; flex-direction: column; gap: 1px; min-width: 0">
+                      <span style="font-size: 14px; font-weight: 700">{{m.name}}</span>
+                      <span style="font-size: 11px; font-weight: 600; color: {{c.text3}}">{{m.count}}</span>
+                    </span>
+                  </button>
+                  <button class="tm-press" role="menuitemcheckbox" aria-checked="{{m.on}}" aria-disabled="{{m.boxOff}}" aria-label="{{m.boxLabel}}" onClick="{{m.toggle}}" data-tip="{{m.boxTip}}" data-tip-pos="left" style="width: 44px; height: 44px; flex-shrink: 0; border: none; border-radius: 14px; background: transparent; display: flex; align-items: center; justify-content: center; cursor: pointer">
+                    <span aria-hidden="true" style="width: 22px; height: 22px; box-sizing: border-box; border-radius: 7px; border: 2px solid {{m.boxBorder}}; background: {{m.boxBg}}; color: #15140E; display: flex; align-items: center; justify-content: center">
+                      <sc-if value="{{m.check}}" hint-placeholder-val="{{ true }}"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.4" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.5 4.5L19 7.5"></path></svg></sc-if>
+                    </span>
+                  </button>
+                </div>
+              </sc-for>
+              <span style="padding: 6px 10px; font-size: 11px; line-height: 1.4; font-weight: 600; color: {{c.text3}}">Tap a chain to see only it. Tick boxes to combine.</span>
+            </div>
+          </sc-if>
+        </div>
+      </div>
+    </div>
+
+    <!-- Nothing to show for this filter -->
+    <sc-if value="{{noData}}" hint-placeholder-val="{{ false }}">
+      <div class="tm-in" style="padding: 48px 24px; border-radius: 28px; background: {{c.surface}}; display: flex; flex-direction: column; align-items: center; gap: 10px; text-align: center">
+        <span aria-hidden="true" style="width: 44px; height: 44px; border-radius: 22px; background: {{c.surface2}}; color: {{c.text3}}; display: flex; align-items: center; justify-content: center; font-size: 18px; font-weight: 800">0</span>
+        <span style="font-size: 17px; font-weight: 800">{{empty.title}}</span>
+        <span style="font-size: 14px; font-weight: 600; color: {{c.text2}}">{{empty.body}}</span>
+        <button class="tm-press" onClick="{{resetChains}}" style="margin-top: 6px; height: 40px; padding: 0 16px; border: none; border-radius: 999px; background: {{accent}}; color: #15140E; font-family: inherit; font-size: 14px; font-weight: 800; cursor: pointer">Show all chains</button>
+      </div>
+    </sc-if>
+    <sc-if value="{{hasData}}" hint-placeholder-val="{{ true }}">
+    <div style="display: flex; flex-direction: column; gap: 16px">
+
+    <!-- KPIs: net PnL is the hero, the other four sit under it -->
+    <div style="display: grid; grid-template-columns: {{kpiCols}}; gap: 8px">
+      <div class="st-kpi" tabindex="0" data-tip="{{k.tips.net}}" data-tip-wrap data-tip-pos="bottom" style="grid-column: 1 / -1; border-radius: 28px; background: {{c.surface}}; padding: {{heroPad}}; display: flex; flex-direction: column; gap: 6px; cursor: help">
+        <span style="font-size: 12px; font-weight: 600; color: {{c.text3}}; display: flex; align-items: center; gap: 6px">Net PnL<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" aria-hidden="true" style="opacity: .7"><circle cx="12" cy="12" r="9"></circle><path d="M12 11v5"></path><path d="M12 7.5h.01"></path></svg></span>
+        <span style="font-size: {{heroSize}}; line-height: 1; font-weight: 800; letter-spacing: -0.03em; color: {{k.netColor}}">{{k.net}}</span>
+        <span style="font-size: 13px; font-weight: 600; color: {{c.text3}}">{{heroSub}} · best day {{k.best}}</span>
+      </div>
+      <div class="st-kpi" tabindex="0" data-tip="{{k.tips.win}}" data-tip-wrap data-tip-pos="bottom" style="border-radius: 22px; background: {{c.surface}}; padding: 16px; display: flex; flex-direction: column; gap: 4px; cursor: help">
+        <span style="font-size: 12px; font-weight: 600; color: {{c.text3}}; display: flex; align-items: center; gap: 6px">Win rate<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" aria-hidden="true" style="opacity: .7"><circle cx="12" cy="12" r="9"></circle><path d="M12 11v5"></path><path d="M12 7.5h.01"></path></svg></span>
+        <span style="font-size: 26px; line-height: 1.15; font-weight: 800; letter-spacing: -0.02em">{{k.winRate}}</span>
+        <span style="font-size: 12px; font-weight: 600; color: {{c.text3}}">{{k.wins}} won · {{k.losses}} lost</span>
+      </div>
+      <div class="st-kpi" tabindex="0" data-tip="{{k.tips.avg}}" data-tip-wrap data-tip-pos="bottom" style="border-radius: 22px; background: {{c.surface}}; padding: 16px; display: flex; flex-direction: column; gap: 4px; cursor: help">
+        <span style="font-size: 12px; font-weight: 600; color: {{c.text3}}; display: flex; align-items: center; gap: 6px">Avg win / loss<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" aria-hidden="true" style="opacity: .7"><circle cx="12" cy="12" r="9"></circle><path d="M12 11v5"></path><path d="M12 7.5h.01"></path></svg></span>
+        <span style="font-size: 26px; line-height: 1.15; font-weight: 800; letter-spacing: -0.02em">{{k.avgWin}} / {{k.avgLoss}}</span>
+        <span style="font-size: 12px; font-weight: 600; color: {{c.text3}}">wins {{k.payoff}} losses</span>
+      </div>
+      <div class="st-kpi" tabindex="0" data-tip="{{k.tips.dd}}" data-tip-wrap data-tip-pos="bottom" style="border-radius: 22px; background: {{c.surface}}; padding: 16px; display: flex; flex-direction: column; gap: 4px; cursor: help">
+        <span style="font-size: 12px; font-weight: 600; color: {{c.text3}}; display: flex; align-items: center; gap: 6px">Max drawdown<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" aria-hidden="true" style="opacity: .7"><circle cx="12" cy="12" r="9"></circle><path d="M12 11v5"></path><path d="M12 7.5h.01"></path></svg></span>
+        <span style="font-size: 26px; line-height: 1.15; font-weight: 800; letter-spacing: -0.02em; color: {{c.loss}}">{{dd.value}}</span>
+        <span style="font-size: 12px; font-weight: 600; color: {{c.text3}}">{{dd.range}}</span>
+      </div>
+      <div class="st-kpi" tabindex="0" data-tip="{{k.tips.pf}}" data-tip-wrap data-tip-pos="bottom" style="border-radius: 22px; background: {{c.surface}}; padding: 16px; display: flex; flex-direction: column; gap: 4px; cursor: help">
+        <span style="font-size: 12px; font-weight: 600; color: {{c.text3}}; display: flex; align-items: center; gap: 6px">Profit factor<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" aria-hidden="true" style="opacity: .7"><circle cx="12" cy="12" r="9"></circle><path d="M12 11v5"></path><path d="M12 7.5h.01"></path></svg></span>
+        <span style="font-size: 26px; line-height: 1.15; font-weight: 800; letter-spacing: -0.02em">{{k.pf}}</span>
+        <span style="font-size: 12px; font-weight: 600; color: {{c.text3}}">{{k.grossWon}} won · {{k.grossLost}} lost</span>
+      </div>
+    </div>
+
+    <!-- Equity + calendar -->
+    <div style="display: flex; flex-wrap: wrap; gap: 16px">
+      <div style="flex: 1 1 480px; min-width: 0; padding: 20px; border-radius: 28px; background: {{c.surface}}; display: flex; flex-direction: column; gap: 12px">
+        <div style="display: flex; flex-direction: column; gap: 2px">
+          <span style="font-size: 16px; font-weight: 800">Equity</span>
+          <span style="font-size: 13px; font-weight: 600; color: {{c.text3}}">Peak {{eq.peak}} on {{eq.peakDate}} · deepest drawdown <span style="color: {{c.loss}}">{{dd.value}}</span></span>
+        </div>
+        <div style="position: relative; flex-grow: 1; min-height: 220px">
+          <svg width="100%" height="100%" viewBox="0 0 600 160" preserveAspectRatio="none" role="img" aria-label="{{eq.aria}}" style="position: absolute; inset: 0; display: block; width: 100%; height: 100%">
+            <line x1="0" y1="{{eq.zeroY}}" x2="600" y2="{{eq.zeroY}}" stroke="{{c.line}}" stroke-width="1" stroke-dasharray="3 4" vector-effect="non-scaling-stroke"></line>
+            <polygon class="tm-fade" points="{{eq.area}}" fill="{{c.gain}}" fill-opacity="0.10"></polygon>
+            <polyline class="tm-draw" pathLength="1" points="{{eq.line}}" fill="none" stroke="{{c.gain}}" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round" vector-effect="non-scaling-stroke"></polyline>
+            <polyline class="tm-draw" pathLength="1" style="animation-delay: calc(var(--tm-d, 0s) + .5s)" points="{{eq.ddLine}}" fill="none" stroke="{{c.loss}}" stroke-width="3" stroke-linejoin="round" stroke-linecap="round" vector-effect="non-scaling-stroke"></polyline>
+          </svg>
+          <sc-if value="{{dd.has}}" hint-placeholder-val="{{ true }}">
+            <span data-tip="{{eq.ddTip}}" style="position: absolute; top: 0; bottom: 0; left: {{eq.ddLeft}}; width: {{eq.ddWidth}}; border-radius: 8px; cursor: help"></span>
+          </sc-if>
+          <span role="img" aria-label="{{eq.peakTip}}" data-tip="{{eq.peakTip}}" data-tip-pos="{{eq.peakTipPos}}" style="position: absolute; left: calc({{eq.peakLeft}} - 10px); top: calc({{eq.peakTop}} - 10px); width: 20px; height: 20px; display: flex; align-items: center; justify-content: center; cursor: help"><span style="width: 12px; height: 12px; box-sizing: border-box; border-radius: 6px; background: {{c.text}}; border: 3px solid {{c.surface}}"></span></span>
+        </div>
+        <div style="display: flex; justify-content: space-between; font-size: 12px; font-weight: 600; color: {{c.text3}}">
+          <span>{{eq.axis.a}}</span><span>{{eq.axis.b}}</span><span>{{eq.axis.c}}</span><span>{{eq.axis.d}}</span>
+        </div>
+      </div>
+
+      <div style="flex: 1 1 480px; min-width: 0; padding: 20px; border-radius: 28px; background: {{c.surface}}; display: flex; flex-direction: column; gap: 12px">
+        <div style="display: flex; align-items: center; gap: 8px; min-height: 32px">
+          <span style="font-size: 16px; font-weight: 800">Daily PnL</span>
+          <sc-if value="{{cal.pager}}" hint-placeholder-val="{{ false }}">
+            <div style="margin-left: auto; display: flex; align-items: center; gap: 4px">
+              <button class="tm-press" onClick="{{cal.prev}}" aria-label="Earlier weeks" aria-disabled="{{cal.prevOff}}" data-tip="Earlier weeks" style="width: 32px; height: 32px; border: none; border-radius: 16px; background: {{c.surface2}}; color: {{c.text}}; display: flex; align-items: center; justify-content: center; cursor: pointer"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 18l-6-6 6-6"></path></svg></button>
+              <span style="min-width: 108px; text-align: center; font-size: 12px; font-weight: 700; color: {{c.text2}}; white-space: nowrap">{{cal.window}}</span>
+              <button class="tm-press" onClick="{{cal.next}}" aria-label="Later weeks" aria-disabled="{{cal.nextOff}}" data-tip="Later weeks" style="width: 32px; height: 32px; border: none; border-radius: 16px; background: {{c.surface2}}; color: {{c.text}}; display: flex; align-items: center; justify-content: center; cursor: pointer"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 18l6-6-6-6"></path></svg></button>
+            </div>
+          </sc-if>
+          <sc-if value="{{cal.single}}" hint-placeholder-val="{{ true }}">
+            <span style="margin-left: auto; font-size: 13px; font-weight: 600; color: {{c.text3}}">{{cal.hint}}</span>
+          </sc-if>
+        </div>
+
+        <div style="display: flex; flex-direction: column; gap: 6px">
+          <div aria-hidden="true" style="display: flex; gap: 3px; height: 6px">
+            <span style="flex: {{cal.greenSum}} 1 0; border-radius: 3px; background: {{c.gain}}"></span>
+            <span style="flex: {{cal.redSum}} 1 0; border-radius: 3px; background: {{c.loss}}"></span>
+          </div>
+          <div style="display: flex; justify-content: space-between; gap: 8px; font-size: 12px; font-weight: 700">
+            <span style="color: {{c.gain}}">{{cal.greenDays}} green days · {{cal.greenLabel}}</span>
+            <span style="color: {{c.loss}}">{{cal.redLabel}} · {{cal.redDays}} red days</span>
+          </div>
+        </div>
+        <div style="display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: {{calGap}}; font-size: 11px; font-weight: 700; color: {{c.text3}}; text-align: center">
+          <span>Mon</span><span>Tue</span><span>Wed</span><span>Thu</span><span>Fri</span><span>Sat</span><span>Sun</span>
+        </div>
+        <div style="display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: {{calGap}}">
+          <sc-for list="{{cal.cells}}" as="d" hint-placeholder-count="35">
+            <sc-if value="{{d.click}}" hint-placeholder-val="{{ true }}">
+              <a class="tm-hover" href="#day" onClick="{{d.open}}" aria-label="{{d.aria}}" data-tip="{{d.tip}}" data-tip-pos="{{d.tipPos}}" style="height: {{calH}}; min-width: 0; box-sizing: border-box; border-radius: {{calR}}; background: {{d.bg}}; border: {{d.border}}; padding: {{calPad}}; display: flex; flex-direction: column; gap: 1px; color: inherit; text-decoration: none; cursor: pointer">
+                <span style="font-size: 11px; font-weight: 700; color: {{d.numColor}}">{{d.num}}</span>
+                <span style="margin-top: auto; font-size: {{calAmtSize}}; line-height: 1.2; font-weight: 800; color: {{d.fg}}; white-space: nowrap; overflow: hidden">{{d.amt}}</span>
+                <span style="display: {{calSubDisplay}}; font-size: 11px; font-weight: 600; color: {{c.text3}}; white-space: nowrap; overflow: hidden">{{d.sub}}</span>
+              </a>
+            </sc-if>
+            <sc-if value="{{d.still}}" hint-placeholder-val="{{ false }}">
+              <div role="img" aria-label="{{d.aria}}" style="height: {{calH}}; min-width: 0; box-sizing: border-box; border-radius: {{calR}}; background: {{d.bg}}; border: {{d.border}}; padding: {{calPad}}; display: flex; flex-direction: column; gap: 1px; overflow: hidden">
+                <span style="font-size: 11px; font-weight: 700; color: {{d.numColor}}">{{d.num}}</span>
+                <span style="margin-top: auto; font-size: {{calAmtSize}}; line-height: 1.2; font-weight: 800; color: {{d.fg}}; white-space: nowrap">{{d.amt}}</span>
+                <span style="display: {{calSubDisplay}}; font-size: 11px; font-weight: 600; color: {{c.text3}}; white-space: nowrap">{{d.sub}}</span>
+              </div>
+            </sc-if>
+
+          </sc-for>
+        </div>
+      </div>
+    </div>
+
+    <!-- Where your edge is -->
+    <div style="display: flex; align-items: baseline; justify-content: space-between; gap: 12px; flex-wrap: wrap; padding: 16px 4px 0 4px">
+      <h2 style="margin: 0; font-size: 20px; font-weight: 800; letter-spacing: -0.01em">Where your edge is</h2>
+      <span style="font-size: 13px; font-weight: 600; color: {{c.text3}}">{{head.edge}}</span>
+    </div>
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(min(320px, 100%), 1fr)); gap: 16px">
+      <sc-for list="{{insights}}" as="ins" hint-placeholder-count="3">
+        <div style="padding: 20px; border-radius: 28px; background: {{c.surface}}; display: flex; flex-direction: column; gap: 14px">
+          <div style="display: flex; align-items: center; gap: 8px">
+            <span style="font-size: 16px; font-weight: 800">{{ins.title}}</span>
+            <button class="tm-press" onClick="{{nav.askFresh}}" style="margin-left: auto; height: 32px; padding: 0 12px; flex-shrink: 0; border: none; border-radius: 999px; background: {{c.surface2}}; color: {{c.text}}; font-family: inherit; font-size: 12px; font-weight: 800; cursor: pointer">Ask M8</button>
+          </div>
+          <div style="display: flex; gap: 10px; align-items: flex-start; padding: 10px 12px; border-radius: 16px; background: {{c.surface2}}">
+            <svg width="20" height="20" viewBox="0 0 36 36" aria-hidden="true" style="flex-shrink: 0; margin-top: 1px"><rect x="0" y="0" width="36" height="36" rx="12" fill="{{accent}}"></rect><rect x="11" y="12" width="4.5" height="9" rx="2.25" fill="#15140E"></rect><rect x="20.5" y="12" width="4.5" height="9" rx="2.25" fill="#15140E"></rect></svg>
+            <span style="font-size: 14px; line-height: 1.45; font-weight: 600">{{ins.m8}}</span>
+          </div>
+          <div style="display: flex; flex-direction: column; gap: 10px">
+            <sc-for list="{{ins.rows}}" as="r" hint-placeholder-count="4">
+              <div data-tip="{{r.tip}}" style="display: grid; grid-template-columns: 88px minmax(0, 1fr) 64px; gap: 10px; align-items: center; cursor: help">
+                <div style="display: flex; flex-direction: column; gap: 1px; min-width: 0">
+                  <span style="font-size: 13px; font-weight: 700">{{r.label}}</span>
+                  <span style="font-size: 11px; font-weight: 600; color: {{c.text3}}">{{r.sub}}</span>
+                </div>
+                <div style="position: relative; height: 22px; border-radius: 7px; background: {{c.surface2}}">
+                  <span style="position: absolute; left: 50%; top: 3px; bottom: 3px; width: 1px; background: {{c.line}}"></span>
+                  <span style="position: absolute; top: 3px; bottom: 3px; border-radius: 5px; left: {{r.left}}; width: {{r.width}}; background: {{r.color}}"></span>
+                </div>
+                <span style="text-align: right; font-size: 13px; font-weight: 800; color: {{r.color}}">{{r.value}}</span>
+              </div>
+            </sc-for>
+          </div>
+        </div>
+      </sc-for>
+    </div>
+
+    <!-- Hour map -->
+    <div style="padding: 20px; border-radius: 28px; background: {{c.surface}}; display: flex; flex-direction: column; gap: 14px">
+      <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap">
+        <span style="font-size: 16px; font-weight: 800">Hour map</span>
+        <span style="margin-left: auto; font-size: 12px; font-weight: 600; color: {{c.text3}}">{{hm.unit}}</span>
+        <button class="tm-press" onClick="{{nav.askFresh}}" style="height: 32px; padding: 0 12px; flex-shrink: 0; border: none; border-radius: 999px; background: {{c.surface2}}; color: {{c.text}}; font-family: inherit; font-size: 12px; font-weight: 800; cursor: pointer">Ask M8</button>
+      </div>
+      <div style="display: flex; gap: 10px; align-items: flex-start; padding: 10px 12px; border-radius: 16px; background: {{c.surface2}}">
+        <svg width="20" height="20" viewBox="0 0 36 36" aria-hidden="true" style="flex-shrink: 0; margin-top: 1px"><rect x="0" y="0" width="36" height="36" rx="12" fill="{{accent}}"></rect><rect x="11" y="12" width="4.5" height="9" rx="2.25" fill="#15140E"></rect><rect x="20.5" y="12" width="4.5" height="9" rx="2.25" fill="#15140E"></rect></svg>
+        <span style="font-size: 14px; line-height: 1.45; font-weight: 600">{{hm.headline}}</span>
+      </div>
+      <div role="img" aria-label="{{hm.aria}}" style="display: grid; grid-template-columns: 16px repeat(24, minmax(0, 1fr)); gap: {{hmGap}}">
+        <sc-for list="{{hm.cells}}" as="h" hint-placeholder-count="200">
+          <sc-if value="{{h.has}}" hint-placeholder-val="{{ true }}">
+            <span class="tm-lift" data-tip="{{h.tip}}" data-tip-pos="{{h.tipPos}}" style="height: {{h.h}}; min-width: 0; border-radius: {{hmR}}; background: {{h.bg}}; color: {{h.fg}}; display: flex; align-items: center; justify-content: {{h.justify}}; font-size: {{h.size}}; font-weight: {{h.weight}}; white-space: nowrap; overflow: visible; cursor: help">{{h.text}}</span>
+          </sc-if>
+          <sc-if value="{{h.label}}" hint-placeholder-val="{{ false }}">
+            <span style="height: {{h.h}}; min-width: 0; border-radius: {{hmR}}; background: {{h.bg}}; color: {{h.fg}}; display: flex; align-items: center; justify-content: {{h.justify}}; font-size: {{h.size}}; font-weight: {{h.weight}}; white-space: nowrap; overflow: visible">{{h.text}}</span>
+          </sc-if>
+        </sc-for>
+      </div>
+      <div style="display: flex; align-items: center; justify-content: flex-end; gap: 4px; font-size: 11px; font-weight: 700; color: {{c.text3}}">
+        <span style="margin-right: 4px">loses</span>
+        <span style="width: 14px; height: 14px; border-radius: 4px; background: {{legend.l3}}"></span>
+        <span style="width: 14px; height: 14px; border-radius: 4px; background: {{legend.l1}}"></span>
+        <span style="width: 14px; height: 14px; border-radius: 4px; background: {{c.surface2}}"></span>
+        <span style="width: 14px; height: 14px; border-radius: 4px; background: {{legend.g1}}"></span>
+        <span style="width: 14px; height: 14px; border-radius: 4px; background: {{legend.g3}}"></span>
+        <span style="margin-left: 4px">makes</span>
+      </div>
+    </div>
+
+    <!-- Hold time + entry size -->
+    <div style="padding: 20px; border-radius: 28px; background: {{c.surface}}; display: flex; flex-direction: column; gap: 14px">
+      <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap">
+        <span style="font-size: 16px; font-weight: 800">Hold time and entry size</span>
+        <span style="margin-left: auto; font-size: 12px; font-weight: 600; color: {{c.text3}}">median return per trade</span>
+        <button class="tm-press" onClick="{{nav.askFresh}}" style="height: 32px; padding: 0 12px; flex-shrink: 0; border: none; border-radius: 999px; background: {{c.surface2}}; color: {{c.text}}; font-family: inherit; font-size: 12px; font-weight: 800; cursor: pointer">Ask M8</button>
+      </div>
+      <div style="display: flex; gap: 10px; align-items: flex-start; padding: 10px 12px; border-radius: 16px; background: {{c.surface2}}">
+        <svg width="20" height="20" viewBox="0 0 36 36" aria-hidden="true" style="flex-shrink: 0; margin-top: 1px"><rect x="0" y="0" width="36" height="36" rx="12" fill="{{accent}}"></rect><rect x="11" y="12" width="4.5" height="9" rx="2.25" fill="#15140E"></rect><rect x="20.5" y="12" width="4.5" height="9" rx="2.25" fill="#15140E"></rect></svg>
+        <span style="font-size: 14px; line-height: 1.45; font-weight: 600">{{bandsM8}}</span>
+      </div>
+      <div style="display: flex; flex-wrap: wrap; gap: 16px 40px">
+        <sc-for list="{{bands}}" as="b" hint-placeholder-count="2">
+          <div style="flex: 1 1 300px; min-width: 0; display: flex; flex-direction: column; gap: 10px">
+            <div style="display: flex; justify-content: space-between; gap: 8px; font-size: 11px; font-weight: 800; letter-spacing: .06em; color: {{c.text3}}">
+              <span>{{b.title}}</span><span style="letter-spacing: 0; font-weight: 700">{{b.note}}</span>
+            </div>
+            <sc-for list="{{b.rows}}" as="r" hint-placeholder-count="5">
+              <div data-tip="{{r.tip}}" style="display: grid; grid-template-columns: 76px minmax(0, 1fr) 52px; gap: 10px; align-items: center; cursor: help">
+                <div style="display: flex; flex-direction: column; gap: 1px; min-width: 0">
+                  <span style="font-size: 13px; font-weight: 700">{{r.label}}</span>
+                  <span style="font-size: 11px; font-weight: 600; color: {{c.text3}}">{{r.sub}}</span>
+                </div>
+                <div style="position: relative; height: 22px; border-radius: 7px; background: {{c.surface2}}">
+                  <span style="position: absolute; left: 50%; top: 3px; bottom: 3px; width: 1px; background: {{c.line}}"></span>
+                  <span style="position: absolute; top: 3px; bottom: 3px; border-radius: 5px; left: {{r.left}}; width: {{r.width}}; background: {{r.color}}"></span>
+                </div>
+                <span style="text-align: right; font-size: 13px; font-weight: 800; color: {{r.color}}">{{r.value}}</span>
+              </div>
+            </sc-for>
+          </div>
+        </sc-for>
+      </div>
+    </div>
+
+    <!-- Discipline -->
+    <div style="display: flex; align-items: baseline; justify-content: space-between; gap: 12px; flex-wrap: wrap; padding: 16px 4px 0 4px">
+      <h2 style="margin: 0; font-size: 20px; font-weight: 800; letter-spacing: -0.01em">Discipline</h2>
+      <span style="font-size: 13px; font-weight: 600; color: {{c.text3}}">Where you leak, with receipts</span>
+    </div>
+
+    <!-- Tilt and revenge -->
+    <div style="padding: 20px; border-radius: 28px; background: {{c.surface}}; display: flex; flex-wrap: wrap; gap: 20px 32px">
+      <div style="flex: 1 1 300px; min-width: 0; display: flex; flex-direction: column; gap: 14px">
+        <div style="display: flex; align-items: center; gap: 8px">
+          <span style="font-size: 16px; font-weight: 800">Tilt and revenge</span>
+          <button class="tm-press" onClick="{{nav.askFresh}}" style="margin-left: auto; height: 32px; padding: 0 12px; flex-shrink: 0; border: none; border-radius: 999px; background: {{c.surface2}}; color: {{c.text}}; font-family: inherit; font-size: 12px; font-weight: 800; cursor: pointer">Ask M8</button>
+        </div>
+        <div style="display: flex; gap: 10px; align-items: flex-start; padding: 10px 12px; border-radius: 16px; background: {{c.surface2}}">
+          <svg width="20" height="20" viewBox="0 0 36 36" aria-hidden="true" style="flex-shrink: 0; margin-top: 1px"><rect x="0" y="0" width="36" height="36" rx="12" fill="{{accent}}"></rect><rect x="11" y="12" width="4.5" height="9" rx="2.25" fill="#15140E"></rect><rect x="20.5" y="12" width="4.5" height="9" rx="2.25" fill="#15140E"></rect></svg>
+          <span style="font-size: 14px; line-height: 1.45; font-weight: 600">{{tilt.m8}}</span>
+        </div>
+        <div style="display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px">
+          <div style="padding: 12px; border-radius: 16px; background: {{c.surface2}}; display: flex; flex-direction: column; gap: 2px">
+            <span style="font-size: 22px; font-weight: 800">{{tilt.count}}</span>
+            <span style="font-size: 12px; font-weight: 600; color: {{c.text3}}">re-entries</span>
+          </div>
+          <div style="padding: 12px; border-radius: 16px; background: {{c.surface2}}; display: flex; flex-direction: column; gap: 2px">
+            <span style="font-size: 22px; font-weight: 800">{{tilt.winRate}}</span>
+            <span style="font-size: 12px; font-weight: 600; color: {{c.text3}}">won</span>
+          </div>
+          <div style="padding: 12px; border-radius: 16px; background: {{c.surface2}}; display: flex; flex-direction: column; gap: 2px">
+            <span style="font-size: 22px; font-weight: 800; color: {{tilt.netColor}}">{{tilt.net}}</span>
+            <span style="font-size: 12px; font-weight: 600; color: {{c.text3}}">net</span>
+          </div>
+        </div>
+        <sc-if value="{{tilt.has}}" hint-placeholder-val="{{ true }}">
+        <div data-tip="{{tilt.sizeTip}}" data-tip-wrap style="display: flex; flex-direction: column; gap: 8px; padding: 12px 14px; border-radius: 16px; border: 1px solid {{c.line}}; cursor: help">
+          <div style="display: flex; align-items: baseline; gap: 6px; font-size: 13px; font-weight: 600; color: {{c.text2}}">After a red trade you size <b style="font-size: 18px; font-weight: 800; color: {{c.loss}}">{{tilt.size}}</b> your normal</div>
+          <div aria-hidden="true" style="position: relative; height: 6px; border-radius: 3px; background: {{c.surface2}}">
+            <span style="position: absolute; left: 0; top: 0; bottom: 0; width: {{tilt.sizeW}}; border-radius: 3px; background: {{tint.lossStrong}}"></span>
+            <span style="position: absolute; left: calc(33.3% - 1px); top: -3px; bottom: -3px; width: 2px; border-radius: 1px; background: {{c.text3}}"></span>
+          </div>
+          <div style="position: relative; height: 14px; font-size: 11px; font-weight: 700; color: {{c.text3}}"><span style="position: absolute; left: 0">0x</span><span style="position: absolute; left: 33.3%; transform: translateX(-50%); white-space: nowrap">1x normal</span><span style="position: absolute; right: 0">3x</span></div>
+        </div>
+        </sc-if>
+      </div>
+
+      <div style="flex: 1 1 300px; min-width: 0; display: flex; flex-direction: column">
+        <div style="display: grid; grid-template-columns: minmax(0, 1fr) 56px 48px 64px; gap: 8px; padding: 0 0 8px 0; font-size: 11px; font-weight: 800; letter-spacing: .06em; color: {{c.text3}}">
+          <span>COIN</span><span style="text-align: right">AFTER</span><span style="text-align: right">SIZE</span><span style="text-align: right">NET</span>
+        </div>
+        <sc-for list="{{tilt.rows}}" as="t" hint-placeholder-count="6">
+          <a class="tm-row" href="#trade" onClick="{{t.open}}" aria-label="{{t.aria}}" style="position: relative; display: grid; grid-template-columns: minmax(0, 1fr) 56px 48px 64px; gap: 8px; align-items: center; min-height: 48px; margin: 0 -10px; padding: 0 10px; border-radius: 12px; color: inherit; text-decoration: none">
+            <span aria-hidden="true" style="position: absolute; left: 10px; right: 10px; top: 0; height: 1px; background: {{c.line}}"></span>
+            <div style="display: flex; flex-direction: column; gap: 1px; min-width: 0">
+              <span style="font-size: 14px; font-weight: 800; overflow: hidden; text-overflow: ellipsis; white-space: nowrap">{{t.coin}}</span>
+              <span style="font-size: 11px; font-weight: 600; color: {{c.text3}}">{{t.date}}</span>
+            </div>
+            <span style="text-align: right; font-size: 13px; font-weight: 700; color: {{c.text2}}">{{t.after}}</span>
+            <span style="text-align: right; font-size: 13px; font-weight: 800; color: {{t.sizeColor}}">{{t.size}}</span>
+            <span style="text-align: right; font-size: 13px; font-weight: 800; color: {{t.color}}">{{t.net}}</span>
+          </a>
+        </sc-for>
+        <sc-if value="{{tilt.none}}" hint-placeholder-val="{{ false }}">
+          <div style="min-height: 96px; display: flex; align-items: center; justify-content: center; border-top: 1px solid {{c.line}}; font-size: 13px; font-weight: 600; color: {{c.text3}}">No re-entries in this range.</div>
+        </sc-if>
+        <sc-if value="{{tilt.has}}" hint-placeholder-val="{{ true }}">
+          <a class="tm-row" href="#receipts" onClick="{{tilt.openAll}}" style="position: relative; min-height: 44px; margin: 0 -10px; padding: 0 10px; border-radius: 12px; display: flex; align-items: center; justify-content: space-between; font-size: 13px; font-weight: 700; color: {{c.text2}}; text-decoration: none">
+            <span aria-hidden="true" style="position: absolute; left: 10px; right: 10px; top: 0; height: 1px; background: {{c.line}}"></span>
+            {{tilt.seeAll}}
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 18l6-6-6-6"></path></svg>
+          </a>
+        </sc-if>
+
+      </div>
+    </div>
+
+    <!-- Rules -->
+    <div style="padding: 20px; border-radius: 28px; background: {{c.surface}}; display: flex; flex-direction: column; gap: 4px">
+      <div style="display: flex; align-items: center; justify-content: space-between">
+        <span style="font-size: 16px; font-weight: 800">Your rules</span>
+        <a class="tm-press" href="#settings" onClick="{{nav.settings}}" style="font-size: 13px; font-weight: 700; color: {{c.text2}}; text-decoration: none; min-height: 44px; display: flex; align-items: center">Edit rules</a>
+      </div>
+      <div style="display: flex; align-items: baseline; gap: 8px; padding-bottom: 12px">
+        <span data-tip="{{adherence.tip}}" data-tip-wrap data-tip-pos="right" style="font-size: 32px; line-height: 1; font-weight: 800; letter-spacing: -0.02em; cursor: help">{{adherence.pct}}</span>
+        <span style="font-size: 13px; font-weight: 600; color: {{c.text3}}">{{adherence.line}}</span>
+      </div>
+      <sc-for list="{{rules}}" as="rl" hint-placeholder-count="3">
+        <div style="display: flex; align-items: center; gap: 12px; padding: 12px 0; border-top: 1px solid {{c.line}}">
+          <div style="display: flex; flex-direction: column; gap: 2px; flex-grow: 1; min-width: 0">
+            <span style="font-size: 14px; font-weight: 800">{{rl.name}}</span>
+            <span style="font-size: 12px; font-weight: 600; color: {{c.text3}}">{{rl.detail}}</span>
+          </div>
+          <span data-tip="{{rl.tip}}" data-tip-wrap data-tip-pos="left" style="font-size: 12px; font-weight: 800; padding: 5px 10px; border-radius: 999px; background: {{rl.badgeBg}}; color: {{rl.badgeFg}}; white-space: nowrap; cursor: help">{{rl.badge}}</span>
+        </div>
+      </sc-for>
+    </div>
+
+    </div>
+    </sc-if>
+
+    <!-- Mobile tab bar -->
+    <sc-if value="{{mobileNav}}" hint-placeholder-val="{{ false }}">
+      <nav aria-label="Main" style="margin: 12px 0 8px 0; padding: 6px; border-radius: 999px; background: {{c.surface}}; display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 4px">
+        <a class="tm-press" href="#journal" onClick="{{nav.journal}}" style="height: 56px; border-radius: 999px; color: {{c.text2}}; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px; font-size: 12px; font-weight: 700; text-decoration: none">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 4h11a3 3 0 0 1 3 3v13H8a3 3 0 0 1-3-3z"></path><path d="M5 17a3 3 0 0 1 3-3h11"></path></svg>
+          Journal
+        </a>
+        <a class="tm-press" href="#stats" onClick="{{nav.stats}}" aria-current="page" style="height: 56px; border-radius: 999px; background: {{accent}}; color: #15140E; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px; font-size: 12px; font-weight: 800; text-decoration: none">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 20V10"></path><path d="M12 20V4"></path><path d="M19 20v-7"></path></svg>
+          Stats
+        </a>
+        <a class="tm-press" href="#m8" onClick="{{nav.m8}}" style="height: 56px; border-radius: 999px; color: {{c.text2}}; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px; font-size: 12px; font-weight: 700; text-decoration: none">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3.5" y="3.5" width="17" height="17" rx="6"></rect><path d="M9.5 9.5v4"></path><path d="M14.5 9.5v4"></path></svg>
+          M8
+        </a>
+        <a class="tm-press" href="#settings" onClick="{{nav.settings}}" style="height: 56px; border-radius: 999px; color: {{c.text2}}; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px; font-size: 12px; font-weight: 700; text-decoration: none">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 7h10"></path><path d="M18 7h2"></path><circle cx="16" cy="7" r="2"></circle><path d="M4 17h2"></path><path d="M10 17h10"></path><circle cx="8" cy="17" r="2"></circle></svg>
+          Settings
+        </a>
+      </nav>
+    </sc-if>
+  </main>
+</div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"onNav":{"editor":null},"onToast":{"editor":null},"onModal":{"editor":null},"hideNav":{"editor":null},"theme":{"editor":"enum","options":["dark","light"],"default":"dark","section":"Look"},"accent":{"editor":"color","default":"#7CD4FF","options":["#7CD4FF","#FFD23F","#6495ED","#B4A5FF","#FF85C8","#FF9152","#FFB547"],"section":"Look"},"layout":{"editor":"enum","options":["desktop","mobile"],"default":"desktop","section":"Look"},"$preview":{"width":1440,"height":3100}}'>
+class Component extends DCLogic {
+  componentDidMount() {
+    // Morph the top bar once the page scrolls. The page may scroll inside a container (prototype) or the window.
+    const boxes = [];
+    for (let el = this._root ? this._root.parentElement : null; el; el = el.parentElement) {
+      const o = getComputedStyle(el).overflowY;
+      if (o === 'auto' || o === 'scroll') boxes.push(el);
+    }
+    const read = () => {
+      const y = Math.max(window.scrollY || 0, ...boxes.map((b) => b.scrollTop));
+      const s = y > 12;
+      if (s !== !!(this.state && this.state.scrolled)) this.setState({ scrolled: s });
+    };
+    boxes.forEach((b) => b.addEventListener('scroll', read, { passive: true }));
+    window.addEventListener('scroll', read, { passive: true });
+    // Chain menu: close on a click outside it or on Esc.
+    const down = (e) => {
+      if (!(this.state && this.state.chainOpen)) return;
+      if (this._pop && this._pop.contains(e.target)) return;
+      this.setState({ chainOpen: false });
+    };
+    const key = (e) => { if (e.key === 'Escape' && this.state && this.state.chainOpen) this.setState({ chainOpen: false }); };
+    document.addEventListener('mousedown', down);
+    document.addEventListener('keydown', key);
+    this._unscroll = () => {
+      boxes.forEach((b) => b.removeEventListener('scroll', read)); window.removeEventListener('scroll', read);
+      document.removeEventListener('mousedown', down); document.removeEventListener('keydown', key);
+    };
+    read();
+  }
+  componentWillUnmount() { if (this._unscroll) this._unscroll(); }
+
+  // Deterministic data for the whole account (Jun 2 .. Oct 7 2026), split by chain. Built once.
+  data() {
+    if (this._data) return this._data;
+    const mulberry = (s) => () => { s |= 0; s = (s + 0x6D2B79F5) | 0; let t = Math.imul(s ^ (s >>> 15), 1 | s); t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t; return ((t ^ (t >>> 14)) >>> 0) / 4294967296; };
+    // 30 days, Sep 8 (Tue) .. Oct 7 (Wed). PnL sums to +1,284, trades sum to 142.
+    const DAILY = [210, -145, 88, -310, 65, 0, 0, 402, -96, 140, -540, 45, 0, 37, 305, -120, 180, -75, 612, 0, -38, 60, -150, 120, -64, 0, 0, 412, -88, 234];
+    const TRADES = [6, 5, 4, 14, 3, 0, 0, 7, 5, 6, 19, 4, 0, 3, 6, 4, 5, 4, 8, 0, 3, 4, 6, 5, 4, 0, 0, 6, 3, 8];
+    const HIST = 98; // Jun 2 .. Sep 7. Index 98 = Sep 8, 127 = Oct 7.
+    const N = HIST + 30;
+    const dateOf = (i) => new Date(2026, 5, 2 + i);
+    const iso = (d) => d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
+
+    // Older history: rougher start (Jun 2 - Jul 9 sums to -$410), steadier summer (Jul 10 - Sep 7 sums to +$640).
+    const r = mulberry(4242);
+    const hp = [], ht = [];
+    for (let i = 0; i < HIST; i++) {
+      const dow = dateOf(i).getDay();
+      const rest = r() < (dow === 0 || dow === 6 ? 0.45 : 0.12);
+      if (rest) { hp.push(0); ht.push(0); continue; }
+      const v = Math.round((r() * 2 - 1) * 240);
+      ht.push(2 + Math.floor(r() * 8));
+      hp.push(v);
+    }
+    // The 30 days before Sep 8 (Aug 9 - Sep 7) had 7 rule breaks: 4 days over 10 trades, 3 loss-limit days where you kept going.
+    const forced = {};
+    const over = [70, 77, 84, 93], kept = [74, 81, 90];
+    const active = (i) => ht[i] > 0;
+    const nextActive = (i) => { while (i < HIST && !active(i)) i++; return Math.min(i, HIST - 1); };
+    over.map(nextActive).forEach((i, j) => { ht[i] = [12, 14, 11, 13][j]; forced[i] = 1; });
+    const keptIdx = kept.map((i) => { let k = nextActive(i); while (forced[k]) k = nextActive(k + 1); return k; });
+    keptIdx.forEach((i, j) => { hp[i] = [-280, -330, -240][j]; forced[i] = 1; });
+    for (let i = 68; i < HIST; i++) if (!forced[i] && ht[i] > 10) ht[i] = 10;
+    for (let i = 0; i < HIST; i++) if (!forced[i] && ht[i] > 10) ht[i] = 10;
+    const normalize = (from, to, target) => {
+      const idx = []; let s = 0;
+      for (let i = from; i < to; i++) { if (ht[i] > 0) { s += hp[i]; if (!forced[i]) idx.push(i); } }
+      const shift = (target - s) / idx.length;
+      idx.forEach((i) => { hp[i] = Math.round(hp[i] + shift); if (hp[i] === 0) hp[i] = 5; });
+      let s2 = 0; for (let i = from; i < to; i++) s2 += hp[i];
+      hp[idx[idx.length - 1]] += target - s2;
+    };
+    normalize(0, 38, -410);
+    normalize(38, HIST, 640);
+    const pnl = hp.concat(DAILY), trades = ht.concat(TRADES);
+    // Days where you hit the -$150 loss limit and kept trading (and how much more you lost).
+    const keptGoing = {};
+    keptIdx.forEach((i, j) => { keptGoing[i] = [-160, -230, -120][j]; });
+    keptGoing[HIST + 10] = -210; // Sep 18
+    for (let i = 0; i < 68; i++) if (pnl[i] <= -150 && r() < 0.4) keptGoing[i] = -Math.round(60 + r() * 180);
+
+    // Chains. Robinhood Chain starts Sep 24 (index 114).
+    const chains = [
+      { key: 'sol', name: 'Solana', short: 'Solana', dot: '#9B6BFF', w: 0.7 },
+      { key: 'rh', name: 'Robinhood Chain', short: 'Robinhood', dot: '#B8E62E', w: 0.22 },
+      { key: 'base', name: 'Base', short: 'Base', dot: '#3D7BFF', w: 0.1 },
+      { key: 'bnb', name: 'BNB Chain', short: 'BNB', dot: '#F0B90B', w: 0.06 }
+    ];
+    const C = chains.length;
+    const rc = mulberry(99);
+    const weights = pnl.map((_, i) => chains.map((ch) => (ch.key === 'rh' && i < 114 ? 0 : ch.w * (0.6 + rc() * 0.8))));
+    // Integer split of each day's trades across chains. The last 30 days hit exact chain totals (98 / 21 / 15 / 8).
+    const n = pnl.map(() => chains.map(() => 0));
+    const split = (rows, colTarget) => {
+      const f = rows.map((i) => { const ws = weights[i].reduce((a, b) => a + b, 0); return weights[i].map((w) => (trades[i] * w) / ws); });
+      if (colTarget) {
+        for (let it = 0; it < 60; it++) {
+          for (let c = 0; c < C; c++) { const s = f.reduce((a, row) => a + row[c], 0); if (s > 0) f.forEach((row) => { row[c] *= colTarget[c] / s; }); }
+          f.forEach((row, k) => { const s = row.reduce((a, b) => a + b, 0); if (s > 0) for (let c = 0; c < C; c++) row[c] *= trades[rows[k]] / s; });
+        }
+      }
+      const fl = f.map((row) => row.map(Math.floor));
+      const rowDef = fl.map((row, k) => trades[rows[k]] - row.reduce((a, b) => a + b, 0));
+      const colDef = colTarget ? colTarget.map((t, c) => t - fl.reduce((a, row) => a + row[c], 0)) : null;
+      const cand = [];
+      f.forEach((row, k) => row.forEach((v, c) => { if (v - fl[k][c] > 1e-9) cand.push([v - fl[k][c], k, c]); }));
+      cand.sort((a, b) => b[0] - a[0]);
+      cand.forEach(([, k, c]) => { if (rowDef[k] > 0 && (!colDef || colDef[c] > 0)) { fl[k][c]++; rowDef[k]--; if (colDef) colDef[c]--; } });
+      fl.forEach((row, k) => {
+        while (rowDef[k] > 0) {
+          let c = colDef ? colDef.findIndex((d, cc) => d > 0 && weights[rows[k]][cc] > 0) : 0;
+          if (c < 0) c = 0;
+          row[c]++; rowDef[k]--; if (colDef) colDef[c]--;
+        }
+        n[rows[k]] = row;
+      });
+    };
+    split(Array.from({ length: HIST }, (_, i) => i), null);
+    split(Array.from({ length: 30 }, (_, i) => HIST + i), [98, 21, 15, 8]);
+    // PnL per chain-day, proportional to trades with jitter. The last 30 days hit exact chain totals (+1,020 / +412 / -84 / -64).
+    const p = pnl.map((v, i) => {
+      const t = trades[i];
+      if (!t) return chains.map(() => 0);
+      const jit = chains.map(() => (rc() * 2 - 1) * 35);
+      const row = chains.map((_, c) => (n[i][c] ? (v * n[i][c]) / t + jit[c] : 0));
+      return row;
+    });
+    const target30 = [1020, 412, -84, -64];
+    // Each day's rounding remainder goes to Solana when it traded that day, else to the busiest chain.
+    const rem = n.map((row) => (row[0] ? 0 : row.indexOf(Math.max.apply(null, row))));
+    const fix = (i) => { p[i][rem[i]] = 0; p[i][rem[i]] = pnl[i] - p[i].reduce((a, b) => a + b, 0); };
+    for (let c = 1; c < C; c++) {
+      const days = []; let s = 0;
+      for (let i = HIST; i < N; i++) { s += p[i][c]; if (n[i][c] && rem[i] !== c) days.push(i); }
+      const d = (target30[c] - s) / days.length;
+      days.forEach((i) => { p[i][c] += d; });
+    }
+    for (let i = 0; i < N; i++) {
+      for (let c = 0; c < C; c++) if (c !== rem[i]) p[i][c] = Math.round(p[i][c]);
+      fix(i);
+    }
+    for (let c = 1; c < C; c++) {
+      let s = 0, last = -1;
+      for (let i = HIST; i < N; i++) { s += p[i][c]; if (n[i][c] && rem[i] !== c) last = i; }
+      p[last][c] += target30[c] - s; fix(last);
+    }
+    // Wins per chain-day; the last 30 days total 68 wins.
+    const w = pnl.map((_, i) => chains.map((_, c) => {
+      const k = n[i][c];
+      if (!k) return 0;
+      const rate = p[i][c] > 0 ? 0.62 : p[i][c] < 0 ? 0.32 : 0.5;
+      let v = Math.round(k * rate + (rc() - 0.5));
+      if (p[i][c] > 0) v = Math.max(1, v); if (p[i][c] < 0) v = Math.min(k - 1, v);
+      return Math.max(0, Math.min(k, v));
+    }));
+    let wins30 = 0; for (let i = HIST; i < N; i++) wins30 += w[i].reduce((a, b) => a + b, 0);
+    const cells = []; for (let i = HIST; i < N; i++) for (let c = 0; c < C; c++) if (n[i][c]) cells.push([i, c]);
+    for (let g = 0; wins30 !== 68 && g < 5000; g++) {
+      const [i, c] = cells[g % cells.length];
+      const k = n[i][c], lo = p[i][c] > 0 ? 1 : 0, hi = p[i][c] < 0 ? k - 1 : k;
+      if (wins30 < 68 && w[i][c] < hi) { w[i][c]++; wins30++; } else if (wins30 > 68 && w[i][c] > lo) { w[i][c]--; wins30--; }
+    }
+    // Gross won/lost per chain-day: won - lost = PnL. Churn is scaled so the last 30 days show $5,132 won.
+    const churn = pnl.map((_, i) => chains.map((_, c) => {
+      const k = n[i][c], v = w[i][c];
+      return k && v > 0 && v < k ? Math.min(v, k - v) * (0.7 + rc() * 0.6) : 0;
+    }));
+    let base30 = 0, churn30 = 0;
+    for (let i = HIST; i < N; i++) for (let c = 0; c < C; c++) { base30 += Math.max(p[i][c], 0); churn30 += churn[i][c]; }
+    const kc = (5132 - base30) / churn30;
+    const gw = pnl.map((_, i) => chains.map((_, c) => (n[i][c] ? Math.max(p[i][c], 0) + kc * churn[i][c] : 0)));
+
+    // Re-entries within 10 minutes of a red trade. The last 30 days: 14 of them, 4 won, -$612, avg 1.7x size.
+    const rec = [
+      ['$WIFHAT', 127, '3 min', 2.0, -221, 'sol', '12:48 PM', 'chased wifhat right after frogo. dumb'],
+      ['$PEPU', 108, '2 min', 2.5, -188, 'sol', '2:06 PM', 'wanted the loss back. 2.5x size, no plan'],
+      ['$GIGACAT', 108, '6 min', 1.5, -94, 'sol', '3:21 PM', ''],
+      ['$BONKR', 101, '4 min', 2.0, -71, 'bnb', '11:52 AM', ''],
+      ['$FROGZ', 114, '8 min', 1.0, 46, 'sol', '10:14 AM', 'small re-entry, got lucky'],
+      ['$MOODY', 105, '5 min', 1.5, -38, 'base', '1:37 PM', ''],
+      ['$CHAD', 99, '7 min', 1.5, 38, 'sol', '9:58 AM', ''],
+      ['$WOJAK', 102, '4 min', 2.0, -41, 'sol', '2:44 PM', ''],
+      ['$NUBCAT', 111, '9 min', 1.8, 52, 'sol', '11:05 AM', ''],
+      ['$SKIBI', 112, '3 min', 1.5, -36, 'base', '4:12 PM', ''],
+      ['$MEWS', 116, '6 min', 1.5, -29, 'rh', '1:15 PM', ''],
+      ['$TRUMPY', 118, '5 min', 2.0, -33, 'sol', '3:02 PM', ''],
+      ['$HAWK', 120, '8 min', 1.5, 27, 'rh', '10:40 AM', ''],
+      ['$DOGGO', 122, '4 min', 1.5, -24, 'sol', '2:31 PM', '']
+    ].map((x, rank) => ({ coin: x[0], i: x[1], after: x[2], size: x[3], net: x[4], chain: x[5], time: x[6], note: x[7], rank }));
+    // A receipt must sit on a chain that traded that day.
+    rec.forEach((x) => { const c = chains.findIndex((ch) => ch.key === x.chain); if (!n[x.i][c]) x.chain = chains[n[x.i].indexOf(Math.max.apply(null, n[x.i]))].key; });
+    const names = ['$MOGGY', '$BRETTO', '$PONKE2', '$SHIBX', '$TOAD', '$GOAT2', '$BOME2', '$LUCE', '$CATWIF', '$HIPPO', '$FWOG2', '$MICHI2', '$RETARDIO', '$SIGMA', '$NEIRO2', '$PNUT2'];
+    const rr = mulberry(1312);
+    const histRec = [];
+    for (let i = 0; i < HIST; i++) {
+      if (!trades[i] || pnl[i] >= 0 || rr() > 0.42) continue;
+      const cands = chains.map((_, c) => c).filter((c) => n[i][c] > 0);
+      const c = cands[Math.floor(rr() * cands.length)];
+      const size = Math.round((1 + rr() * 1.6) * 10) / 10;
+      const win = rr() < 0.28;
+      histRec.push({
+        coin: names[Math.floor(rr() * names.length)], i, after: (2 + Math.floor(rr() * 8)) + ' min', size,
+        net: win ? Math.round(15 + rr() * 60) : -Math.round(20 + rr() * 160 * (size / 1.5)),
+        chain: chains[c].key, time: (11 + Math.floor(rr() * 5)) % 12 + 1 + ':' + String(Math.floor(rr() * 60)).padStart(2, '0') + ' PM', note: '', rank: 100
+      });
+    }
+    this._data = { DAILY, TRADES, HIST, N, dateOf, iso, pnl, trades, chains, n, p, w, gw, keptGoing, receipts: rec.concat(histRec), mulberry };
+    return this._data;
+  }
+
+  renderVals() {
+    const theme = this.props.theme ?? 'dark';
+    const accent = this.props.accent ?? '#7CD4FF';
+    const layout = this.props.layout ?? 'desktop';
+    const desktop = layout === 'desktop';
+    const st = this.state || {};
+    const D = this.data();
+
+    const themes = {
+      dark: {
+        bg: '#0D0E13', surface: '#171922', surface2: '#21242F', line: '#2C303D',
+        text: '#F3F4F7', text2: '#A9AEBE', text3: '#858B9E',
+        gain: '#3FD98E', loss: '#FF6B6B', gainRgb: '63,217,142', lossRgb: '255,107,107',
+        tipBg: '#F3F4F7', tipFg: '#12131A', rowHover: 'rgba(255,255,255,0.045)', rowPress: 'rgba(255,255,255,0.08)', pop: '#1D2029', popShadow: '0 20px 48px rgba(0,0,0,0.45)'
+      },
+      light: {
+        bg: '#F4F4F7', surface: '#FFFFFF', surface2: '#EEEFF3', line: '#E3E5EB',
+        text: '#12131A', text2: '#4F5566', text3: '#666C7E',
+        gain: '#0B8A51', loss: '#D23434', gainRgb: '11,138,81', lossRgb: '210,52,52',
+        tipBg: '#12131A', tipFg: '#F3F4F7', rowHover: 'rgba(18,19,26,0.045)', rowPress: 'rgba(18,19,26,0.08)', pop: '#FFFFFF', popShadow: '0 20px 48px rgba(18,19,26,0.16)'
+      }
+    };
+    const c = themes[theme] || themes.dark;
+    // Theme-aware helpers from design/tokens.json: accent ink for foreground use on light, warn and danger.
+    const tkLight = (theme) === 'light';
+    const tkn = {
+      ink: tkLight ? ({ '#7CD4FF': '#0072AA', '#FFD23F': '#866700', '#6495ED': '#1B63E5', '#B4A5FF': '#6849FF', '#FF85C8': '#D10073', '#FF9152': '#BD4500', '#FFB547': '#9E5E00' }[String(accent).toUpperCase()] || accent) : accent,
+      flash: accent + '38',
+      warn: tkLight ? '#A86400' : '#FFE07A', warnSoft: tkLight ? 'rgba(168,100,0,0.10)' : 'rgba(255,224,122,0.14)',
+      danger: tkLight ? '#D23434' : '#FF6B6B'
+    };
+    const tint = {
+      gain: 'rgba(' + c.gainRgb + ',0.16)', loss: 'rgba(' + c.lossRgb + ',0.16)',
+      lossStrong: 'rgba(' + c.lossRgb + ',0.75)'
+    };
+
+    const fmt = (v) => { v = Math.round(v); return (v > 0 ? '+' : v < 0 ? '-' : '') + '$' + Math.abs(v).toLocaleString('en-US'); };
+    const money = (v) => '$' + Math.round(Math.abs(v)).toLocaleString('en-US');
+    const moneyK = (v) => (Math.abs(v) >= 10000 ? '$' + (Math.abs(v) / 1000).toFixed(1) + 'k' : money(v));
+    const compact = (v) => {
+      const a = Math.abs(v);
+      const s = a >= 1000 ? (a / 1000).toFixed(1) + 'k' : String(a);
+      return (v > 0 ? '+' : v < 0 ? '-' : '') + s;
+    };
+    const pct = (v) => (v > 0 ? '+' : v < 0 ? '-' : '') + Math.abs(v) + '%';
+    const short = (d) => d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+    const plural = (k, one, many) => k + ' ' + (k === 1 ? one : many);
+    const sum = (a) => a.reduce((s, v) => s + v, 0);
+
+    // ---- View: range x chains
+    const ranges = { '7D': 7, '30D': 30, '90D': 90, All: D.N };
+    const range = st.range || '30D';
+    const L = ranges[range];
+    const i0 = D.N - L;
+    const allKeys = D.chains.map((ch) => ch.key);
+    const sel = st.chains && st.chains.length ? st.chains : allKeys;
+    const allChains = sel.length === D.chains.length;
+    const cIdx = D.chains.map((ch, k) => (sel.indexOf(ch.key) >= 0 ? k : -1)).filter((k) => k >= 0);
+    const base = range === '30D' && allChains;
+    const viewKey = range + '|' + sel.join(',');
+    let hseed = 17; for (let k = 0; k < viewKey.length; k++) hseed = (hseed * 31 + viewKey.charCodeAt(k)) | 0;
+
+    const days = [];
+    for (let i = i0; i < D.N; i++) {
+      const pick = (m) => sum(cIdx.map((k) => m[i][k]));
+      days.push({ i, date: D.dateOf(i), pnl: pick(D.p), n: pick(D.n), w: pick(D.w), gw: pick(D.gw) });
+    }
+    const daily = days.map((d) => d.pnl);
+    const net = sum(daily);
+    const T = sum(days.map((d) => d.n));
+    const hasData = T > 0;
+    const wins = sum(days.map((d) => d.w)), losses = T - wins;
+    const grossWon = sum(days.map((d) => d.gw)), grossLost = grossWon - net;
+    const avgW = wins ? Math.round(grossWon / wins) : 0, avgL = losses ? Math.round(grossLost / losses) : 0;
+    const k = {
+      net: fmt(net), netColor: net >= 0 ? c.gain : c.loss, trades: T, best: fmt(Math.max.apply(null, daily)),
+      winRate: T ? Math.round((wins / T) * 100) + '%' : '-', wins, losses,
+      avgWin: '$' + avgW, avgLoss: '$' + avgL,
+      payoff: avgL ? (avgW / avgL).toFixed(1) + 'x' : '-',
+      pf: grossLost > 0 ? (grossWon / grossLost).toFixed(2) + 'x' : '-',
+      grossWon: moneyK(grossWon), grossLost: moneyK(grossLost)
+    };
+    const rangeStart = D.dateOf(i0), rangeEnd = D.dateOf(D.N - 1);
+    const rangeLabel = short(rangeStart) + ' - ' + short(rangeEnd);
+    const chainLabel = allChains ? '4 chains' : cIdx.length === 1 ? D.chains[cIdx[0]].name : cIdx.length + ' chains';
+    const phrase = { '7D': 'the last 7 days', '30D': 'your last 30 days', '90D': 'the last 90 days', All: 'everything since Jun 2' }[range];
+    const head = {
+      sub: rangeLabel + ' · ' + plural(T, 'trade', 'trades') + ' · ' + chainLabel,
+      edge: 'Patterns M8 found in ' + phrase + (allChains ? '' : ' · ' + chainLabel + ' only')
+    };
+    k.tips = {
+      net: 'Net PnL: everything you made minus everything you lost on closed trades in ' + rangeLabel + ', after fees. Best day ' + k.best + '.',
+      win: 'Win rate: share of closed trades that made money. ' + wins + ' of ' + T + ' trades.',
+      avg: 'Average win and average loss in dollars. Your wins are ' + k.payoff + ' the size of your losses.',
+      dd: 'Max drawdown: the biggest drop from a high point in your running PnL to the low that followed.',
+      pf: 'Profit factor: dollars won divided by dollars lost. Above 1x means you are net up. ' + k.grossWon + ' / ' + k.grossLost + '.'
+    };
+
+    // ---- Equity with peak and deepest drawdown
+    let cum = 0;
+    const pts = [[0, 0]].concat(daily.map((d, i) => { cum += d; return [i + 1, cum]; }));
+    const cums = pts.map((q) => q[1]);
+    let minV, maxV;
+    if (base) { minV = -250; maxV = 1350; } else {
+      const lo = Math.min(0, ...cums), hi = Math.max(0, ...cums), span = hi - lo || 100;
+      minV = lo - span * 0.08; maxV = hi + span * 0.05;
+    }
+    const X = (i) => (i / L) * 600;
+    const Y = (v) => 150 - ((v - minV) / (maxV - minV)) * 140;
+    const toPts = (list) => list.map((q) => X(q[0]).toFixed(1) + ',' + Y(q[1]).toFixed(1)).join(' ');
+    let peak = pts[0], worst = { dd: 0, from: pts[0], to: pts[0] }, top = pts[0];
+    pts.forEach((q) => {
+      if (q[1] > peak[1]) peak = q;
+      if (q[1] >= top[1]) top = q;
+      if (q[1] - peak[1] < worst.dd) worst = { dd: q[1] - peak[1], from: peak, to: q };
+    });
+    const dayAt = (q) => short(D.dateOf(i0 + Math.max(0, q - 1)));
+    const line = toPts(pts);
+    const peakLeft = (top[0] / L) * 100;
+    const ddFrom = dayAt(worst.from[0]), ddTo = dayAt(worst.to[0]);
+    const ddRange = worst.dd === 0 ? 'No drawdown' : ddFrom + ' - ' + (ddFrom.split(' ')[0] === ddTo.split(' ')[0] ? ddTo.split(' ')[1] : ddTo);
+    const dd = { value: fmt(worst.dd), range: ddRange, has: worst.dd < 0 };
+    const eq = {
+      line, area: line + ' 600,160 0,160', zeroY: Y(0).toFixed(1),
+      ddLine: dd.has ? toPts(pts.slice(worst.from[0], worst.to[0] + 1)) : '',
+      peak: fmt(top[1]), peakDate: dayAt(top[0]),
+      peakLeft: peakLeft.toFixed(2) + '%',
+      peakTop: ((Y(top[1]) / 160) * 100).toFixed(2) + '%',
+      peakTipPos: peakLeft > 75 ? 'left' : peakLeft < 25 ? 'right' : 'top',
+      peakTip: 'Peak ' + fmt(top[1]) + ' on ' + dayAt(top[0]),
+      ddLeft: ((worst.from[0] / L) * 100).toFixed(2) + '%',
+      ddWidth: (Math.max(1.5, ((worst.to[0] - worst.from[0]) / L) * 100)).toFixed(2) + '%',
+      ddTip: 'Max drawdown ' + fmt(worst.dd) + ' · ' + ddRange,
+      aria: 'Cumulative PnL over ' + L + ' days, ending at ' + fmt(net) + '. Deepest drawdown ' + fmt(worst.dd) + ', ' + ddRange + '.',
+      axis: (() => { const a = [0, 1, 2, 3].map((j) => short(D.dateOf(i0 + (j === 3 ? L - 1 : Math.ceil((j * (L - 1)) / 3))))); return { a: a[0], b: a[1], c: a[2], d: a[3] }; })()
+    };
+
+    // ---- Daily calendar: 5 weeks (2 for 7D), paging back for 90D / All
+    const lastSunday = new Date(2026, 9, 11);
+    const weeks = range === '7D' ? 2 : 5;
+    const maxPage = range === '90D' || range === 'All' ? Math.ceil(((new Date(2026, 8, 7) - rangeStart) / 864e5) / 35) : 0;
+    const page = Math.min(st.calPage || 0, maxPage);
+    const gridStart = new Date(lastSunday.getFullYear(), lastSunday.getMonth(), lastSunday.getDate() - weeks * 7 + 1 - page * 35);
+    const cells = [];
+    for (let j = 0; j < weeks * 7; j++) {
+      const date = new Date(gridStart.getFullYear(), gridStart.getMonth(), gridStart.getDate() + j);
+      const idx = Math.round((date - D.dateOf(0)) / 864e5);
+      const num = String(date.getDate());
+      const label = short(date);
+      const blank = { num, amt: '', sub: '', bg: 'transparent', border: '1px dashed ' + c.line, numColor: c.text3, fg: c.text3, click: false, open: null, tip: '' };
+      if (idx < i0 || idx >= D.N) { cells.push(Object.assign(blank, { still: true, aria: label + ', outside this range' })); continue; }
+      const dd2 = days[idx - i0];
+      if (dd2.n === 0) {
+        cells.push(Object.assign(blank, { still: true, amt: '-', sub: 'rest day', bg: c.surface2, border: 'none', aria: label + ', no trades' + (allChains ? '' : ' on ' + chainLabel) }));
+        continue;
+      }
+      const v = dd2.pnl, t = dd2.n;
+      const rgb = v >= 0 ? c.gainRgb : c.lossRgb;
+      const a = 0.12 + 0.22 * Math.min(1, Math.abs(v) / 600);
+      const isoDay = D.iso(date);
+      cells.push({
+        num, amt: desktop ? fmt(v) : compact(Math.round(v)), sub: plural(t, 'trade', 'trades'),
+        bg: 'rgba(' + rgb + ',' + a.toFixed(2) + ')', border: 'none',
+        numColor: v >= 0 ? c.gain : c.loss, fg: v >= 0 ? c.gain : c.loss,
+        aria: label + ', ' + fmt(v) + ' on ' + plural(t, 'trade', 'trades') + '. Open journal',
+        tip: label + ' · ' + fmt(v) + ' · ' + plural(t, 'trade', 'trades') + ' · Open journal',
+        click: true, still: false,
+        open: (e) => { if (e && e.preventDefault) e.preventDefault(); if (this.props.onNav) this.props.onNav('day:' + isoDay); }
+      });
+    }
+    // The last row's tooltips open upward; nothing to clip. Cells near the right edge on mobile open to the left.
+    cells.forEach((cl, j) => { cl.tipPos = !desktop && j % 7 === 6 ? 'left' : !desktop && j % 7 === 0 ? 'right' : 'top'; });
+    const greens = daily.filter((v) => v > 0), reds = daily.filter((v) => v < 0);
+    const gridEnd = new Date(gridStart.getFullYear(), gridStart.getMonth(), gridStart.getDate() + weeks * 7 - 1);
+    const cal = {
+      cells, greenDays: greens.length, redDays: reds.length,
+      greenSum: Math.max(1, sum(greens)), redSum: Math.max(1, -sum(reds)),
+      greenLabel: fmt(sum(greens)), redLabel: fmt(sum(reds)),
+      pager: maxPage > 0, single: maxPage === 0, window: short(gridStart) + ' - ' + short(gridEnd),
+      prevOff: String(page >= maxPage), nextOff: String(page <= 0),
+      prevBg: page >= maxPage ? 'transparent' : c.surface2, nextBg: page <= 0 ? 'transparent' : c.surface2,
+      prevFg: page >= maxPage ? c.text3 : c.text, nextFg: page <= 0 ? c.text3 : c.text,
+      prev: () => { if (page < maxPage) this.setState({ calPage: page + 1 }); },
+      next: () => { if (page > 0) this.setState({ calPage: page - 1 }); },
+      hint: desktop ? 'click a day to open it' : 'tap a day to open it'
+    };
+
+    // ---- Seeded helpers for derived cards (the default view uses the original numbers untouched)
+    const jr = D.mulberry(hseed);
+    const scaleCounts = (counts, total) => {
+      const s = sum(counts);
+      const f = counts.map((v) => (s ? (v * total) / s : 0));
+      const out = f.map(Math.floor);
+      let left = total - sum(out);
+      f.map((v, j) => [v - out[j], j]).sort((a, b) => b[0] - a[0]).forEach(([, j]) => { if (left > 0) { out[j]++; left--; } });
+      return out;
+    };
+    // Rows that sum to the view's net: scale by trade count, jitter, then put the rounding remainder on the largest row.
+    const scaleRows = (rows) => {
+      if (base) return rows;
+      const counts = scaleCounts(rows.map((r) => r[2]), T);
+      const vals = rows.map((r, j) => (counts[j] ? r[1] * (counts[j] / r[2]) * (0.8 + jr() * 0.4) : 0));
+      const big = vals.reduce((m, v, j) => (Math.abs(v) > Math.abs(vals[m]) ? j : m), 0);
+      vals[big] += net - sum(vals);
+      return rows.map((r, j) => [r[0], counts[j] ? Math.round(vals[j]) : null, counts[j], r[3]]);
+    };
+
+    // Diverging bars shared by insight and band cards. Row: [label, value|null, count, tip noun]
+    const bars = (rows, f, tipOf) => {
+      const max = Math.max(1, ...rows.map((r) => Math.abs(r[1] || 0)));
+      return rows.map((r) => {
+        const wv = r[1] === null ? 0 : (Math.abs(r[1]) / max) * 50;
+        return {
+          label: r[0], sub: plural(r[2], 'trade', 'trades'), value: r[1] === null ? '-' : f(r[1]),
+          color: r[1] === null ? c.text3 : r[1] >= 0 ? c.gain : c.loss,
+          width: wv.toFixed(1) + '%',
+          left: (r[1] !== null && r[1] >= 0 ? 50 : 50 - wv).toFixed(1) + '%',
+          tip: tipOf(r)
+        };
+      });
+    };
+    const ageRows = scaleRows([['< 1 hour', 2910, 61, 'under 1 hour old'], ['1-24 hours', -540, 38, '1 to 24 hours old'], ['1-7 days', -720, 29, '1 to 7 days old'], ['7+ days', -366, 14, 'over a week old']]);
+    const tagRows = scaleRows([['Plan', 2460, 64, 'Plan'], ['Cut fast', -310, 22, 'Cut fast'], ['FOMO', -520, 14, 'FOMO'], ['Revenge', -346, 9, 'Revenge']]);
+    const ageM8 = (() => {
+      if (base) return 'Your whole edge is coins under 1 hour old. Everything older has cost you $1,626.';
+      const fresh = ageRows[0][1] || 0, older = sum(ageRows.slice(1).map((r) => r[1] || 0));
+      if (fresh > 0 && older < 0) return 'Your edge is coins under 1 hour old (' + fmt(fresh) + '). Everything older has cost you ' + money(older) + '.';
+      if (fresh > 0) return 'Fresh launches carry you: ' + fmt(fresh) + ' on coins under 1 hour old.';
+      return 'Nothing is working by coin age here. Even fresh launches are ' + fmt(fresh) + '.';
+    })();
+    const tagM8 = (() => {
+      if (base) return 'Planned trades made $2,460. FOMO and revenge trades cost $866 between them.';
+      const plan = tagRows[0][1] || 0, bad = (tagRows[2][1] || 0) + (tagRows[3][1] || 0);
+      return 'Planned trades ' + (plan >= 0 ? 'made ' : 'lost ') + money(plan) + '. FOMO and revenge trades ' + (bad <= 0 ? 'cost ' : 'made ') + money(bad) + ' between them.';
+    })();
+    const chainRows = D.chains.map((ch, kk) => {
+      const inSel = cIdx.indexOf(kk) >= 0;
+      let v = 0, t = 0;
+      if (inSel) for (let i = i0; i < D.N; i++) { v += D.p[i][kk]; t += D.n[i][kk]; }
+      return { ch, v, t, inSel };
+    }).filter((x) => x.inSel).sort((a, b) => b.t - a.t || b.v - a.v);
+    const chainM8 = (() => {
+      if (base) return 'Solana is home. Robinhood Chain is a small sample with a strong start.';
+      const live = chainRows.filter((x) => x.t > 0);
+      if (!live.length) return 'No trades on these chains in ' + phrase + '.';
+      if (live.length === 1) return 'Only ' + live[0].ch.name + ' here: ' + fmt(live[0].v) + ' on ' + plural(live[0].t, 'trade', 'trades') + '.';
+      const byV = live.slice().sort((a, b) => b.v - a.v); const best = byV[0], worstC = byV[byV.length - 1];
+      return best.ch.name + ' carries you at ' + fmt(best.v) + '. ' + worstC.ch.name + ' is ' + fmt(worstC.v) + ' on ' + plural(worstC.t, 'trade', 'trades') + '.';
+    })();
+    const insights = [
+      { title: 'Coin age', m8: ageM8, rows: bars(ageRows, fmt, (r) => r[2] + ' trades on coins ' + r[3] + ' at entry · ' + (r[1] === null ? 'no trades' : fmt(r[1]) + ' net')) },
+      { title: 'Journal tags', m8: tagM8, rows: bars(tagRows, fmt, (r) => r[2] + ' trades tagged ' + r[3] + ' · ' + (r[1] === null ? 'no trades' : fmt(r[1]) + ' net')) },
+      { title: 'By chain', m8: chainM8, rows: bars(chainRows.map((x) => [x.ch.short, x.t ? x.v : null, x.t, x.ch.name]), fmt, (r) => r[3] + ' · ' + plural(r[2], 'trade', 'trades') + ' · ' + (r[1] === null ? 'no trades' : fmt(r[1]) + ' net')) }
+    ];
+
+    // ---- Hour map: average PnL per trade by weekday x local hour (seeded, deterministic)
+    let seed = base ? 7 : hseed;
+    const rnd = () => { seed |= 0; seed = (seed + 0x6D2B79F5) | 0; let t = Math.imul(seed ^ (seed >>> 15), 1 | seed); t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t; return ((t ^ (t >>> 14)) >>> 0) / 4294967296; };
+    const profile = (h) => h < 7 ? [0.10, 4, 30] : h < 9 ? [0.35, 8, 14] : h < 11 ? [0.9, 36, 22] : h < 13 ? [0.6, 2, 14] : h < 19 ? [0.75, -22, 16] : [0.3, -5, 18];
+    const presenceScale = base ? 1 : Math.pow(Math.max(0.12, Math.min(1.6, T / 142)), 0.7);
+    const dayNames = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
+    const dayShort = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+    const hourName = (h) => h === 0 ? '12 AM' : h < 12 ? h + ' AM' : h === 12 ? '12 PM' : (h - 12) + ' PM';
+    const hourShort = (h) => h === 0 ? '12a' : h < 12 ? h + 'a' : h === 12 ? '12p' : (h - 12) + 'p';
+    const grid = dayNames.map((_, d) => Array.from({ length: 24 }, (_, h) => {
+      const pr = profile(h);
+      const presence = Math.min(0.97, (d >= 5 ? pr[0] * 0.55 : pr[0]) * presenceScale);
+      const r1 = rnd(), r2 = rnd();
+      return r1 < presence ? Math.round(pr[1] + (r2 * 2 - 1) * pr[2]) : null;
+    }));
+    const filled = sum(grid.map((row) => row.filter((v) => v !== null).length)) || 1;
+    const cr = D.mulberry(hseed ^ 0x5bd1);
+    const perCell = Math.max(1, T / filled);
+    let best = { v: -1e9 }, worstCell = { v: 1e9 }, pmSum = 0, pmN = 0;
+    grid.forEach((row, d) => row.forEach((v, h) => {
+      if (v === null) return;
+      if (v > best.v) best = { v, d, h };
+      if (v < worstCell.v) worstCell = { v, d, h };
+      if (d < 5 && h >= 13 && h < 19) { pmSum += v; pmN++; }
+    }));
+    const cellH = desktop ? '30px' : '16px';
+    const hmCells = [];
+    grid.forEach((row, d) => {
+      hmCells.push({ text: 'MTWTFSS'[d], h: cellH, bg: 'transparent', fg: c.text3, justify: 'flex-start', size: '11px', weight: 800, tip: '', tipPos: 'top', has: false, label: true });
+      row.forEach((v, h) => {
+        const tipPos = h < 3 ? 'right' : h > 20 ? 'left' : 'top';
+        if (v === null) { hmCells.push({ text: '', h: cellH, bg: c.surface2, fg: c.text3, justify: 'center', size: '11px', weight: 700, tip: dayShort[d] + ' ' + hourName(h) + ' · no trades', tipPos, has: true, label: false }); return; }
+        const rgb = v >= 0 ? c.gainRgb : c.lossRgb;
+        const a = 0.16 + 0.6 * Math.min(1, Math.abs(v) / 50);
+        const cnt = Math.max(1, Math.round(perCell * (0.4 + cr() * 1.2)));
+        hmCells.push({ text: desktop ? fmt(v) : '', h: cellH, bg: 'rgba(' + rgb + ',' + a.toFixed(2) + ')', fg: c.text, justify: 'center', size: '11px', weight: 700, tip: dayShort[d] + ' ' + hourName(h) + ' · ' + fmt(v) + ' avg · ' + plural(cnt, 'trade', 'trades'), tipPos, has: true, label: false });
+      });
+    });
+    hmCells.push({ text: '', h: '16px', bg: 'transparent', fg: c.text3, justify: 'flex-start', size: '11px', weight: 700, tip: '', tipPos: 'top', has: false, label: true });
+    for (let h = 0; h < 24; h++) {
+      const step = desktop ? 3 : 6;
+      hmCells.push({ text: h % step === 0 ? hourShort(h) : '', h: '16px', bg: 'transparent', fg: c.text3, justify: 'flex-start', size: '11px', weight: 700, tip: '', tipPos: 'top', has: false, label: true });
+    }
+    const pmAvg = pmN ? Math.round(pmSum / pmN) : 0;
+    const hm = {
+      cells: hmCells,
+      unit: desktop ? 'average per trade · your time (ET)' : 'avg per trade · ET',
+      headline: best.v > -1e9
+        ? dayNames[best.d] + ' ' + hourName(best.h) + ' is your hour, ' + fmt(best.v) + ' a trade.' + (pmN ? (pmAvg < 0 ? ' Weekday afternoons are the leak: ' + fmt(pmAvg) + ' a trade from 1 to 7 PM.' : ' Weekday afternoons hold up at ' + fmt(pmAvg) + ' a trade from 1 to 7 PM.') : '')
+        : 'Not enough trades here to map your hours yet.',
+      aria: best.v > -1e9 ? 'Average PnL per trade by weekday and hour. Best ' + dayNames[best.d] + ' ' + hourName(best.h) + ' ' + fmt(best.v) + '. Worst ' + dayNames[worstCell.d] + ' ' + hourName(worstCell.h) + ' ' + fmt(worstCell.v) + '.' : 'No trades to map.'
+    };
+    const legend = {
+      l3: 'rgba(' + c.lossRgb + ',0.76)', l1: 'rgba(' + c.lossRgb + ',0.28)',
+      g1: 'rgba(' + c.gainRgb + ',0.28)', g3: 'rgba(' + c.gainRgb + ',0.76)'
+    };
+
+    // ---- Hold time + entry size bands (median return per trade)
+    const band = (rows) => {
+      const counts = base ? rows.map((r) => r[2]) : scaleCounts(rows.map((r) => r[2]), T);
+      return rows.map((r, j) => {
+        let v = r[1];
+        if (!base) { v = v + Math.round((jr() * 2 - 1) * 3); if (Math.sign(v) !== Math.sign(r[1])) v = Math.sign(r[1]); }
+        return [r[0], counts[j] ? v : null, counts[j], r[3]];
+      });
+    };
+    const holdRows = band([['< 1 min', -18, 22, 'held under 1 minute'], ['1-10 min', 6, 41, 'held 1 to 10 minutes'], ['10-60 min', 14, 46, 'held 10 to 60 minutes'], ['1-24 h', -9, 29, 'held 1 to 24 hours'], ['1 day +', -3, 4, 'held over a day']]);
+    const sizeRows = band([['< 0.5x', 4, 18, 'under half your normal size'], ['0.5-1x', 9, 52, 'half to 1x your normal size'], ['1-1.5x', 2, 38, '1 to 1.5x your normal size'], ['1.5-2x', -11, 20, '1.5 to 2x your normal size'], ['2x +', -24, 14, 'over 2x your normal size']]);
+    const bandTip = (r) => plural(r[2], 'trade', 'trades') + ' ' + r[3] + (r[1] === null ? '' : ' · median ' + pct(r[1]));
+    const bands = [
+      { title: 'HOLD TIME', note: '', rows: bars(holdRows, pct, bandTip) },
+      { title: 'ENTRY SIZE', note: 'normal = $180', rows: bars(sizeRows, pct, bandTip) }
+    ];
+    const bandsM8 = (() => {
+      if (base) return 'Your best trades are held 10-60 min at your normal size. At 2x your normal size, the median trade loses 24%.';
+      const bh = holdRows.filter((r) => r[1] !== null).sort((a, b) => b[1] - a[1])[0];
+      const big = sizeRows[4];
+      if (!bh) return 'Not enough trades here to read hold time or size.';
+      return 'Your best trades are held ' + bh[0] + '.' + (big[1] === null ? ' No trades at 2x your normal size here.' : big[1] < 0 ? ' At 2x your normal size, the median trade loses ' + Math.abs(big[1]) + '%.' : ' At 2x your normal size, the median trade makes ' + big[1] + '%.');
+    })();
+
+    // ---- Tilt and revenge receipts (filtered by range and chain)
+    const chainName = (key) => D.chains.find((ch) => ch.key === key).name;
+    const recs = D.receipts.filter((x) => x.i >= i0 && sel.indexOf(x.chain) >= 0);
+    const tiltNet = sum(recs.map((x) => x.net));
+    const tiltWins = recs.filter((x) => x.net > 0).length;
+    const sizeAvg = recs.length ? sum(recs.map((x) => x.size)) / recs.length : 0;
+    const shown = recs.slice().sort((a, b) => a.rank - b.rank || b.i - a.i).slice(0, 6);
+    const openTrade = (x) => (e) => {
+      if (e && e.preventDefault) e.preventDefault();
+      if (this.props.onModal) this.props.onModal({ kind: 'trade', trade: {
+        coin: x.coin, pnl: x.net, date: short(D.dateOf(x.i)), time: x.time, chain: chainName(x.chain),
+        note: x.note || undefined, tags: ['Revenge'], sizeX: x.size
+      } });
+    };
+    const tilt = {
+      has: recs.length > 0, none: recs.length === 0,
+      count: recs.length, winRate: recs.length ? Math.round((tiltWins / recs.length) * 100) + '%' : '-',
+      net: fmt(tiltNet), netColor: tiltNet < 0 ? c.loss : c.gain,
+      size: sizeAvg.toFixed(1) + 'x', sizeW: (Math.min(1, sizeAvg / 3) * 100).toFixed(1) + '%',
+      sizeTip: 'After a red trade your next entry averages ' + sizeAvg.toFixed(1) + 'x your normal $180, about $' + Math.round(sizeAvg * 180) + '.',
+      m8: !recs.length ? 'No re-entries within 10 minutes of a red trade in ' + phrase + '. That is the goal.'
+        : (tiltNet < 0 ? 'You jump back in within 10 minutes of a red trade' + (sizeAvg > 1.15 ? ', and you size up to do it' : '') + '. Those re-entries lost ' + fmt(tiltNet) + '.'
+          : 'You re-entered ' + plural(recs.length, 'time', 'times') + ' within 10 minutes of a red trade. They netted ' + fmt(tiltNet) + ', but only ' + Math.round((tiltWins / recs.length) * 100) + '% won.'),
+      seeAll: 'See all ' + plural(recs.length, 're-entry', 're-entries'),
+      openAll: (e) => { if (e && e.preventDefault) e.preventDefault(); if (this.props.onModal) this.props.onModal({ kind: 'receipts', pattern: 'reentry' }); },
+      rows: shown.map((x) => ({
+        coin: x.coin, date: short(D.dateOf(x.i)), after: x.after, size: x.size.toFixed(1) + 'x',
+        sizeColor: x.size >= 1.5 ? c.loss : c.text2, net: fmt(x.net), color: x.net >= 0 ? c.gain : c.loss,
+        open: openTrade(x), aria: x.coin + ', ' + short(D.dateOf(x.i)) + ', ' + x.after + ' after a loss, ' + x.size.toFixed(1) + 'x size, ' + fmt(x.net) + '. Open trade'
+      }))
+    };
+
+    // ---- Rules (account-wide, all chains)
+    const words = (k2) => (k2 === 1 ? 'once' : k2 === 2 ? 'twice' : k2 + ' times');
+    const ruleStats = (from, to) => {
+      const hits = [], over = [];
+      for (let i = from; i < to; i++) { if (D.pnl[i] <= -150) hits.push(i); if (D.trades[i] > 10) over.push(i); }
+      const goneOn = hits.filter((i) => D.keptGoing[i]);
+      return { hits, over, goneOn, days: to - from, breaks: goneOn.length + over.length, kept: hits.length - goneOn.length + (to - from - over.length), checks: hits.length + (to - from) };
+    };
+    const rs = ruleStats(i0, D.N);
+    const prev = i0 - L >= 0 ? ruleStats(i0 - L, i0) : null;
+    const okBadge = { badgeBg: tint.gain, badgeFg: c.text };
+    const badBadge = { badgeBg: tint.loss, badgeFg: c.text };
+    const newBadge = { badgeBg: c.surface2, badgeFg: c.text2 };
+    const dl = (list) => list.map((i) => short(D.dateOf(i)));
+    const andList = (a) => (a.length <= 1 ? a.join('') : a.slice(0, -1).join(', ') + ' and ' + a[a.length - 1]);
+    const stopped = rs.hits.length - rs.goneOn.length;
+    const lossDetail = !rs.hits.length ? 'Never hit in this range.'
+      : 'Hit ' + plural(rs.hits.length, 'time', 'times') + '. ' + (rs.goneOn.length === 0 ? 'Stopped every time.'
+        : stopped === 0 ? 'Kept going every time (' + fmt(sum(rs.goneOn.map((i) => D.keptGoing[i]))) + ' more).'
+          : 'Stopped ' + words(stopped) + ', kept going ' + words(rs.goneOn.length) + ' (' + fmt(sum(rs.goneOn.map((i) => D.keptGoing[i]))) + ' more).');
+    const overDetail = !rs.over.length ? 'Never went over in this range.'
+      : rs.over.length <= 3 ? 'Went over on ' + andList(dl(rs.over)) + '.' : 'Went over on ' + rs.over.length + ' days, most recently ' + dl(rs.over).pop() + '.';
+    const rules = [
+      Object.assign({ name: 'Daily loss limit · $150', detail: lossDetail, badge: rs.hits.length ? 'Kept ' + stopped + ' of ' + rs.hits.length : 'Not hit',
+        tip: rs.hits.length ? 'Days you hit -$150: ' + andList(dl(rs.hits)) + (rs.goneOn.length ? '. Kept trading on ' + andList(dl(rs.goneOn)) + '.' : '.') : 'You never lost $150 in a day in this range.' }, rs.goneOn.length ? badBadge : okBadge),
+      Object.assign({ name: 'Max 10 trades a day', detail: overDetail, badge: 'Kept ' + (rs.days - rs.over.length) + ' of ' + rs.days + ' days',
+        tip: 'Counted on every calendar day, rest days included.' }, rs.over.length > 2 ? badBadge : okBadge),
+      Object.assign({ name: 'Cooldown · 20 min after a red trade', detail: 'Set today from your chat with M8.', badge: 'New', tip: 'Starts counting from today. Nothing to score yet.' }, newBadge)
+    ];
+    const adherence = {
+      pct: Math.round((rs.kept / rs.checks) * 100) + '%',
+      line: 'of checks kept · ' + plural(rs.breaks, 'break', 'breaks') + (prev ? (prev.breaks > rs.breaks ? ', down from ' + prev.breaks : prev.breaks < rs.breaks ? ', up from ' + prev.breaks : ', same as the ' + (L === 7 ? 'week' : 'period') + ' before') : ''),
+      tip: rs.kept + ' of ' + rs.checks + ' rule checks kept. A check is one day for the trade limit, and one hit for the loss limit.',
+      scope: allChains ? '' : 'Rules count every chain'
+    };
+
+    // ---- Controls: range and chain menu
+    const rangeTips = { '7D': 'Last 7 days', '30D': 'Last 30 days', '90D': 'Last 90 days', All: 'Since you started, Jun 2' };
+    const rangeBtns = ['7D', '30D', '90D', 'All'].map((key) => ({
+      label: key, on: String(key === range), tip: rangeTips[key],
+      bg: key === range ? accent : 'transparent', fg: key === range ? '#15140E' : c.text2, weight: key === range ? 800 : 700,
+      pick: () => this.setState({ range: key, calPage: 0 })
+    }));
+    const setChains = (list) => this.setState({ chains: list.length === allKeys.length ? null : list, calPage: st.calPage || 0 });
+    const chainOpen = !!st.chainOpen;
+    const menu = {
+      open: chainOpen, expanded: String(chainOpen),
+      btnBg: chainOpen ? c.surface2 : c.surface, chev: chainOpen ? '180deg' : '0deg',
+      label: allChains ? 'All chains' : cIdx.length === 1 ? D.chains[cIdx[0]].name : cIdx.length + ' chains',
+      toggle: () => this.setState({ chainOpen: !chainOpen }),
+      allOn: String(allChains), allCheck: allChains, allBg: allChains ? accent : 'transparent', allBorder: allChains ? accent : c.line,
+      pickAll: () => this.setState({ chains: null, chainOpen: false }),
+      rows: D.chains.map((ch) => {
+        const on = sel.indexOf(ch.key) >= 0;
+        const last = on && sel.length === 1;
+        let t = 0; for (let i = i0; i < D.N; i++) t += D.n[i][D.chains.indexOf(ch)];
+        return {
+          name: ch.name, dot: ch.dot, on: String(on), check: on, count: plural(t, 'trade', 'trades'),
+          boxBg: on ? accent : 'transparent', boxBorder: on ? accent : c.line,
+          only: () => this.setState({ chains: [ch.key], chainOpen: false }),
+          toggle: () => {
+            if (last) return;
+            setChains(on ? sel.filter((x) => x !== ch.key) : allKeys.filter((x) => x === ch.key || sel.indexOf(x) >= 0));
+          },
+          boxOff: String(last), boxTip: last ? 'Keep at least one chain' : on ? 'Remove from filter' : 'Add to filter',
+          boxLabel: (on ? 'Remove ' : 'Add ') + ch.name + (on ? ' from' : ' to') + ' the filter'
+        };
+      })
+    };
+    const resetChains = () => this.setState({ chains: null });
+
+    const scrolled = !!st.scrolled;
+    const glass = theme === 'light'
+      ? { bg: 'rgba(255,255,255,0.72)', line: 'rgba(18,19,26,0.08)', nav: 'rgba(238,239,243,0.8)', shadow: '0 12px 32px rgba(18,19,26,0.10)' }
+      : { bg: 'rgba(23,25,34,0.66)', line: 'rgba(255,255,255,0.08)', nav: 'rgba(33,36,47,0.8)', shadow: '0 12px 32px rgba(0,0,0,0.35)' };
+    const hdr = scrolled
+      ? { outerPad: '10px 16px 0 16px', maxW: '1400px', innerPad: '8px 8px 8px 14px', radius: '22px', bg: glass.bg, border: glass.line, shadow: glass.shadow, blur: 'blur(18px) saturate(140%)', navBg: glass.nav }
+      : { outerPad: '0', maxW: '1440px', innerPad: '18px 24px 10px 24px', radius: '0', bg: 'transparent', border: 'transparent', shadow: 'none', blur: 'none', navBg: c.surface };
+    const usage = { pct: '34%', color: tkn.ink };
+    const setRoot = (el) => { this._root = el; };
+    const setPop = (el) => { this._pop = el; };
+    const go = (to) => (e) => { if (e && e.preventDefault) e.preventDefault(); if (this.props.onNav) this.props.onNav(to); };
+    const nav = { journal: go('journal'), stats: go('stats'), m8: go('m8'), settings: go('settings'), ask: go('ask'), askFresh: go('askFresh'), share: go('share'), back: go('back'), history: go('history'), expand: go('expand'), collapse: go('collapse'), close: go('close'), openActive: go('openActive'), newTopic: go('newTopic') };
+    return { tkn, hdr, usage, setRoot, setPop, nav, mobileNav: layout !== 'desktop' && !this.props.hideNav,
+      c, accent, tint, k, eq, dd, cal, insights, hm, legend, bands, bandsM8, tilt, rules, adherence,
+      head, rangeBtns, menu, resetChains, hasData, noData: !hasData,
+      empty: { title: 'No ' + chainLabel + ' trades in ' + phrase, body: 'Pick another chain or a longer range.' },
+      desktop, mobile: !desktop, pad: desktop ? '24px' : '16px',
+      kpiCols: desktop ? 'repeat(4, minmax(0, 1fr))' : 'repeat(2, minmax(0, 1fr))', heroSize: desktop ? '56px' : '52px', heroPad: desktop ? '24px' : '20px', heroSub: rangeLabel,
+      calH: desktop ? '72px' : '46px', calGap: desktop ? '6px' : '4px', calR: desktop ? '12px' : '9px',
+      calPad: desktop ? '7px 8px' : '4px 5px', calAmtSize: desktop ? '14px' : '11px', calSubDisplay: desktop ? 'block' : 'none',
+      hmGap: desktop ? '3px' : '2px', hmR: desktop ? '6px' : '3px'
+    };
+  }
+}
+</script>
+</body>
+</html>

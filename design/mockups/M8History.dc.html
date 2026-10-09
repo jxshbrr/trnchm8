@@ -1,0 +1,197 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>TrenchM8 - M8 conversations</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="anonymous">
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0}
+/* TrenchM8 motion: 120-150ms press/hover, 250-350ms UI, 600-900ms load-in. Ease-out. Fades only when reduced motion is on. */
+@keyframes tm-in{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+@keyframes tm-fade{from{opacity:0}to{opacity:1}}
+@keyframes tm-draw{to{stroke-dashoffset:0}}
+@keyframes tm-shimmer{0%{background-position:-400px 0}100%{background-position:400px 0}}
+@keyframes tm-dot{0%,80%,100%{opacity:.3;transform:translateY(0)}40%{opacity:1;transform:translateY(-3px)}}
+@keyframes tm-toast{from{opacity:0;transform:translateY(12px) scale(.98)}to{opacity:1;transform:none}}
+@keyframes tm-pop{0%{opacity:0;transform:scale(.6)}60%{opacity:1;transform:scale(1.08)}100%{transform:scale(1)}}
+@keyframes tm-spin{to{transform:rotate(360deg)}}
+@keyframes tm-pulse{0%{box-shadow:0 0 0 0 var(--tm-pulse,rgba(63,217,142,.45))}100%{box-shadow:0 0 0 10px rgba(0,0,0,0)}}
+@keyframes tm-fill{from{width:0}to{width:100%}}
+@keyframes tm-out{from{opacity:1}to{opacity:0}}
+@keyframes tm-flash{0%{background-color:var(--tm-flash,rgba(124,212,255,.22))}100%{background-color:transparent}}
+.tm-press{transition:transform .12s ease,filter .15s ease,background-color .15s ease,opacity .15s ease}
+.tm-press:hover{filter:brightness(1.12)}
+.tm-press:active{transform:scale(.97)}
+.tm-press:focus-visible,.tm-hover:focus-visible{outline:2px solid var(--tm-focus,#7CD4FF);outline-offset:2px}
+.tm-hover{transition:filter .15s ease,transform .15s ease}
+.tm-hover:hover{filter:brightness(1.18)}
+.tm-in{animation:tm-in .35s cubic-bezier(.2,.8,.2,1) both}
+.tm-fade{animation:tm-fade .6s ease both;animation-delay:var(--tm-d,0s)}
+.tm-draw{stroke-dasharray:1;stroke-dashoffset:1;animation:tm-draw .9s cubic-bezier(.2,.8,.2,1) calc(var(--tm-d,0s) + .15s) forwards}
+.tm-skel{background:linear-gradient(90deg,var(--sk1) 0%,var(--sk2) 50%,var(--sk1) 100%);background-size:800px 100%;animation:tm-shimmer 1.2s linear infinite}
+.tm-dot{display:inline-block;width:6px;height:6px;border-radius:3px;background:currentColor;animation:tm-dot 1.2s ease-in-out infinite}
+.tm-toast{animation:tm-toast .25s cubic-bezier(.2,.8,.2,1) both}
+.tm-pop{animation:tm-pop .45s cubic-bezier(.2,.8,.2,1) both}
+.tm-spin{animation:tm-spin .8s linear infinite}
+.tm-pulse{animation:tm-pulse 1.6s ease-out infinite}
+.tm-flash{animation:tm-flash 1.6s ease-out both}
+.tm-out{animation:tm-out .22s ease both;pointer-events:none}
+@media (prefers-reduced-motion:reduce){.tm-in,.tm-toast,.tm-pop{animation:tm-fade .2s ease both}.tm-draw{animation:none;stroke-dasharray:none;stroke-dashoffset:0}.tm-skel,.tm-dot,.tm-pulse,.tm-spin{animation:none}.tm-press:active{transform:none}}
+/* Tooltips: data-tip="text" (+ data-tip-pos="bottom|left|right", data-tip-wrap for long text). Desktop hover/keyboard only. */
+[data-tip]{position:relative}
+[data-tip]::after{content:attr(data-tip);position:absolute;left:50%;bottom:calc(100% + 8px);transform:translate(-50%,4px);padding:6px 10px;border-radius:10px;background:var(--tm-tip-bg,#F3F4F7);color:var(--tm-tip-fg,#12131A);font:600 12px/1.35 Manrope,system-ui,sans-serif;letter-spacing:0;text-transform:none;text-align:left;white-space:nowrap;pointer-events:none;opacity:0;visibility:hidden;transition:opacity .12s ease,transform .12s ease,visibility 0s linear .12s;z-index:80;box-shadow:0 8px 24px rgba(0,0,0,.28)}
+[data-tip]:hover::after,[data-tip]:focus-visible::after{opacity:1;visibility:visible;transform:translate(-50%,0);transition:opacity .12s ease .35s,transform .12s ease .35s,visibility 0s linear .35s}
+[data-tip-pos=bottom]::after{bottom:auto;top:calc(100% + 8px);transform:translate(-50%,-4px)}
+[data-tip-pos=left]::after{left:auto;right:calc(100% + 8px);bottom:50%;transform:translate(4px,50%)}
+[data-tip-pos=left]:hover::after,[data-tip-pos=left]:focus-visible::after{transform:translate(0,50%)}
+[data-tip-pos=right]::after{left:calc(100% + 8px);bottom:50%;transform:translate(-4px,50%)}
+[data-tip-pos=right]:hover::after,[data-tip-pos=right]:focus-visible::after{transform:translate(0,50%)}
+[data-tip-wrap]::after{white-space:normal;width:max-content;max-width:240px}
+@media (hover:none){[data-tip]::after{display:none}}
+[data-tip=""]::after{display:none}
+/* Clickable rows (no inline background on the row itself) and clickable cards */
+.tm-row{transition:background-color .15s ease;cursor:pointer}
+.tm-row:hover{background-color:var(--tm-row-hover,rgba(255,255,255,.045))}
+.tm-row:active{background-color:var(--tm-row-press,rgba(255,255,255,.08))}
+.tm-lift{transition:filter .15s ease,box-shadow .15s ease;cursor:pointer}
+.tm-lift:hover{filter:brightness(1.07)}
+.tm-press[aria-disabled=true],.tm-press:disabled{opacity:.45;cursor:not-allowed;filter:none}
+.tm-press[aria-disabled=true]:active,.tm-press:disabled:active{transform:none}
+@keyframes tm-shake{0%,100%{transform:none}20%,60%{transform:translateX(-4px)}40%,80%{transform:translateX(4px)}}
+.tm-shake{animation:tm-shake .3s ease}
+@keyframes tm-sheet{from{transform:translateY(24px);opacity:0}to{transform:none;opacity:1}}
+@keyframes tm-dialog{from{transform:translateY(8px) scale(.98);opacity:0}to{transform:none;opacity:1}}
+@keyframes tm-drawer{from{transform:translateX(32px);opacity:0}to{transform:none;opacity:1}}
+.tm-sheet{animation:tm-sheet .3s cubic-bezier(.2,.8,.2,1) both}
+.tm-dialog{animation:tm-dialog .22s cubic-bezier(.2,.8,.2,1) both}
+.tm-drawer{animation:tm-drawer .28s cubic-bezier(.2,.8,.2,1) both}
+@keyframes tm-wave{0%,100%{transform:scaleY(.35)}50%{transform:scaleY(1)}}
+.tm-wave{animation:tm-wave .9s ease-in-out infinite;transform-origin:center}
+@media (prefers-reduced-motion:reduce){.tm-sheet,.tm-dialog,.tm-drawer{animation:tm-fade .2s ease both}.tm-shake,.tm-wave{animation:none}}
+</style>
+</helmet>
+<div style="--tm-focus: {{tkn.ink}}; --tm-flash: {{tkn.flash}}; --tm-tip-bg: {{tip.bg}}; --tm-tip-fg: {{tip.fg}}; --tm-row-hover: {{tip.row}}; --tm-row-press: {{tip.press}}; width: 100%; height: {{rootH}}; min-height: {{minH}}; overflow-y: auto; box-sizing: border-box; display: flex; flex-direction: column; background: {{bg}}; color: {{c.text}}; font-family: Manrope, system-ui, sans-serif; font-variant-numeric: tabular-nums; -webkit-font-smoothing: antialiased; border-right: {{edge}}">
+
+  <!-- Header -->
+  <div style="display: flex; align-items: center; gap: 4px; padding: {{headPad}}">
+    <sc-if value="{{screen}}" hint-placeholder-val="{{ true }}">
+      <button class="tm-press" aria-label="Back to M8" data-tip="Back to M8" data-tip-pos="right" onClick="{{nav.back}}" style="width: 44px; height: 44px; border: none; border-radius: 22px; background: transparent; color: {{c.text}}; display: flex; align-items: center; justify-content: center; cursor: pointer">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"></path></svg>
+      </button>
+    </sc-if>
+    <span style="flex-grow: 1; font-size: 17px; font-weight: 800">Conversations</span>
+    <button class="tm-press" data-tip="Start fresh. M8 still remembers everything." data-tip-pos="bottom" onClick="{{nav.newTopic}}" style="height: 36px; padding: 0 14px; border: none; border-radius: 999px; background: {{c.surface2}}; color: {{c.text}}; display: flex; align-items: center; gap: 6px; font-family: inherit; font-size: 13px; font-weight: 800; cursor: pointer">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" aria-hidden="true"><path d="M12 5v14"></path><path d="M5 12h14"></path></svg>
+      New topic
+    </button>
+  </div>
+
+  <!-- Search -->
+  <div style="padding: 4px 16px 8px 16px">
+    <label style="display: flex; align-items: center; gap: 10px; height: 44px; box-sizing: border-box; padding: 0 14px; border-radius: 999px; background: {{c.surface}}; border: 1px solid {{c.line}}; color: {{c.text3}}">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="7"></circle><path d="M20 20l-3.5-3.5"></path></svg>
+      <span style="position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0)">Search everything you and M8 said</span>
+      <input placeholder="Search everything you and M8 said" onInput="{{onSearch}}" style="flex-grow: 1; min-width: 0; height: 40px; border: none; background: transparent; color: {{c.text}}; font-family: inherit; font-size: 14px; font-weight: 500; outline: none">
+    </label>
+  </div>
+
+  <!-- Conversation list -->
+  <nav aria-label="Past conversations" style="display: flex; flex-direction: column; padding: 4px 8px 16px 8px">
+    <sc-for list="{{groups}}" as="g" hint-placeholder-count="4">
+      <div style="display: flex; flex-direction: column">
+        <span style="padding: 14px 12px 6px 12px; font-size: 12px; font-weight: 800; color: {{c.text3}}">{{g.label}}</span>
+        <sc-for list="{{g.items}}" as="it" hint-placeholder-count="2">
+          <a class="tm-row" href="#conversation" aria-current="{{it.current}}" onClick="{{nav.openActive}}" style="display: flex; flex-direction: column; gap: 3px; padding: 10px 12px; border-radius: 16px; background-image: {{it.bgImg}}; color: inherit; text-decoration: none">
+            <div style="display: flex; align-items: baseline; gap: 8px">
+              <span style="flex-grow: 1; min-width: 0; font-size: 14px; font-weight: 800; overflow: hidden; text-overflow: ellipsis; white-space: nowrap">{{it.title}}</span>
+              <span style="flex-shrink: 0; font-size: 12px; font-weight: 600; color: {{c.text3}}">{{it.when}}</span>
+            </div>
+            <span style="font-size: 13px; font-weight: 500; color: {{c.text2}}; overflow: hidden; text-overflow: ellipsis; white-space: nowrap">{{it.preview}}</span>
+            <span style="font-size: 11px; font-weight: 700; color: {{c.text3}}">{{it.meta}}</span>
+          </a>
+        </sc-for>
+      </div>
+    </sc-for>
+    <sc-if value="{{noResults}}" hint-placeholder-val="{{ false }}">
+      <div class="tm-in" style="display: flex; flex-direction: column; align-items: center; gap: 6px; padding: 40px 24px; text-align: center">
+        <span style="font-size: 15px; font-weight: 800">Nothing matches "{{q}}"</span>
+        <span style="font-size: 13px; line-height: 1.5; font-weight: 600; color: {{c.text3}}">Try a coin, like $WIFHAT, or a day, like Sep 18.</span>
+      </div>
+    </sc-if>
+  </nav>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"onNav":{"editor":null},"height":{"editor":null},"theme":{"editor":null},"layout":{"editor":"enum","options":["screen","column"],"default":"screen","section":"Look"},"$preview":{"width":390,"height":1080}}'>
+class Component extends DCLogic {
+  renderVals() {
+    const layout = this.props.layout ?? 'screen';
+    const screen = layout === 'screen';
+    const theme = this.props.theme ?? 'dark';
+    const themes = {
+      dark: {
+      bg: '#0D0E13', surface: '#171922', surface2: '#21242F', line: '#2C303D',
+      text: '#F3F4F7', text2: '#A9AEBE', text3: '#858B9E', column: '#0D0E13'
+      },
+      light: {
+      bg: '#F4F4F7', surface: '#FFFFFF', surface2: '#EEEFF3', line: '#E3E5EB',
+      text: '#12131A', text2: '#4F5566', text3: '#666C7E', column: '#F4F4F7'
+      }
+    };
+    const c = themes[theme] || themes.dark;
+    const accent = this.props.accent ?? '#7CD4FF';
+    // Theme-aware helpers from design/tokens.json: accent ink for foreground use on light, warn and danger.
+    const tkLight = (theme) === 'light';
+    const tkn = {
+      ink: tkLight ? ({ '#7CD4FF': '#0072AA', '#FFD23F': '#866700', '#6495ED': '#1B63E5', '#B4A5FF': '#6849FF', '#FF85C8': '#D10073', '#FF9152': '#BD4500', '#FFB547': '#9E5E00' }[String(accent).toUpperCase()] || accent) : accent,
+      flash: accent + '38',
+      warn: tkLight ? '#A86400' : '#FFE07A', warnSoft: tkLight ? 'rgba(168,100,0,0.10)' : 'rgba(255,224,122,0.14)',
+      danger: tkLight ? '#D23434' : '#FF6B6B'
+    };
+    // Conversations are cut automatically after a quiet gap and named by M8. They are views into one thread.
+    const item = (title, when, preview, meta, current) => ({
+      title, when, preview, meta,
+      current: current ? 'true' : 'false',
+      // The current row keeps an inline fill; the others get the row hover from CSS.
+      bgImg: current ? 'linear-gradient(' + c.surface + ', ' + c.surface + ')' : 'none'
+    });
+    const groups = [
+      { label: 'Today', items: [item('After-lunch losses', '1:52 PM', 'Respect for the honesty. $FROGO is now tagged Lucky.', 'Telegram + web · 1 journal edit', true)] },
+      { label: 'This week', items: [
+        item('Quiet Tuesday', 'Tue', 'only 3 trades, all planned', 'Telegram'),
+        item('Fresh launch run', 'Mon', 'That $FROGZ entry was textbook: under 10 minutes old, normal size.', 'Telegram · 2 journal edits'),
+        item('Week 40 recap', 'Sun', 'Up $816 on 31 trades. One change: no entries after 1 PM.', 'Telegram · recap card'),
+        item('Dev supply question', 'Sat', 'if a coin has 20% dev supply should i still buy it', 'Web')
+      ] },
+      { label: 'September', items: [
+        item('Setting a cooldown', 'Sep 30', 'Cooldown set: 20 min after any red trade.', 'Telegram · rule created'),
+        item('Robinhood Chain first trades', 'Sep 24', 'Small sample, strong start. Keep sizes normal there.', 'Web'),
+        item('Why Sep 18 hurt', 'Sep 19', '19 trades, -$540. 7 of them came within 10 minutes of a loss.', 'Telegram')
+      ] }
+    ];
+    const q = ((this.state || {}).q || '').trim();
+    const ql = q.toLowerCase();
+    const shown = ql ? groups.map((g) => Object.assign({}, g, { items: g.items.filter((it) => (it.title + ' ' + it.preview + ' ' + it.meta).toLowerCase().indexOf(ql) >= 0) })).filter((g) => g.items.length) : groups;
+    const onSearch = (e) => this.setState({ q: e.target.value });
+    const go = (to) => (e) => { if (e && e.preventDefault) e.preventDefault(); if (this.props.onNav) this.props.onNav(to); };
+    const nav = { back: go('back'), history: go('history'), expand: go('expand'), collapse: go('collapse'), close: go('close'), openActive: go('openActive'), newTopic: go('newTopic') };
+    return { tkn,
+      nav, c, groups: shown, screen, q, onSearch, noResults: !!ql && shown.length === 0,
+      tip: (this.props.theme ?? 'dark') === 'light' ? { bg: '#12131A', fg: '#F3F4F7', row: 'rgba(18,19,26,0.045)', press: 'rgba(18,19,26,0.08)' } : { bg: '#F3F4F7', fg: '#12131A', row: 'rgba(255,255,255,0.045)', press: 'rgba(255,255,255,0.08)' },
+      bg: screen ? c.bg : c.column,
+      edge: screen ? 'none' : '1px solid ' + c.line,
+      headPad: screen ? '12px 16px 8px 8px' : '16px 16px 8px 20px',
+      rootH: this.props.height || '100%',
+      minH: this.props.height ? '0' : (screen ? '1080px' : '100%')
+    };
+  }
+}
+</script>
+</body>
+</html>

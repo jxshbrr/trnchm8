@@ -1,0 +1,679 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>TrenchM8 - landing v2, B2: chat-first, refined</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="anonymous">
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0}
+a{color:inherit}a:hover{opacity:.85}
+button{font-family:inherit;cursor:pointer}
+/* TrenchM8 motion: 120-150ms press/hover, 250-350ms UI, 600-900ms load-in. Ease-out. Fades only when reduced motion is on. */
+@keyframes tm-in{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+@keyframes tm-fade{from{opacity:0}to{opacity:1}}
+@keyframes tm-draw{to{stroke-dashoffset:0}}
+@keyframes tm-shimmer{0%{background-position:-400px 0}100%{background-position:400px 0}}
+@keyframes tm-dot{0%,80%,100%{opacity:.3;transform:translateY(0)}40%{opacity:1;transform:translateY(-3px)}}
+@keyframes tm-toast{from{opacity:0;transform:translateY(12px) scale(.98)}to{opacity:1;transform:none}}
+@keyframes tm-pop{0%{opacity:0;transform:scale(.6)}60%{opacity:1;transform:scale(1.08)}100%{transform:scale(1)}}
+@keyframes tm-spin{to{transform:rotate(360deg)}}
+@keyframes tm-pulse{0%{box-shadow:0 0 0 0 var(--tm-pulse,rgba(63,217,142,.45))}100%{box-shadow:0 0 0 10px rgba(0,0,0,0)}}
+@keyframes tm-fill{from{width:0}to{width:100%}}
+@keyframes tm-out{from{opacity:1}to{opacity:0}}
+@keyframes tm-flash{0%{background-color:var(--tm-flash,rgba(124,212,255,.22))}100%{background-color:transparent}}
+.tm-press{transition:transform .12s ease,filter .15s ease,background-color .15s ease,opacity .15s ease}
+.tm-press:hover{filter:brightness(1.12)}
+.tm-press:active{transform:scale(.97)}
+.tm-press:focus-visible,.tm-hover:focus-visible{outline:2px solid var(--tm-focus,#7CD4FF);outline-offset:2px}
+.tm-hover{transition:filter .15s ease,transform .15s ease}
+.tm-hover:hover{filter:brightness(1.18)}
+.tm-in{animation:tm-in .35s cubic-bezier(.2,.8,.2,1) both}
+.tm-fade{animation:tm-fade .6s ease both;animation-delay:var(--tm-d,0s)}
+.tm-draw{stroke-dasharray:1;stroke-dashoffset:1;animation:tm-draw .9s cubic-bezier(.2,.8,.2,1) calc(var(--tm-d,0s) + .15s) forwards}
+.tm-skel{background:linear-gradient(90deg,var(--sk1) 0%,var(--sk2) 50%,var(--sk1) 100%);background-size:800px 100%;animation:tm-shimmer 1.2s linear infinite}
+.tm-dot{display:inline-block;width:6px;height:6px;border-radius:3px;background:currentColor;animation:tm-dot 1.2s ease-in-out infinite}
+.tm-toast{animation:tm-toast .25s cubic-bezier(.2,.8,.2,1) both}
+.tm-pop{animation:tm-pop .45s cubic-bezier(.2,.8,.2,1) both}
+.tm-spin{animation:tm-spin .8s linear infinite}
+.tm-pulse{animation:tm-pulse 1.6s ease-out infinite}
+.tm-flash{animation:tm-flash 1.6s ease-out both}
+.tm-out{animation:tm-out .22s ease both;pointer-events:none}
+@media (prefers-reduced-motion:reduce){.tm-in,.tm-toast,.tm-pop{animation:tm-fade .2s ease both}.tm-draw{animation:none;stroke-dasharray:none;stroke-dashoffset:0}.tm-skel,.tm-dot,.tm-pulse,.tm-spin{animation:none}.tm-press:active{transform:none}}
+/* Tooltips: data-tip="text" (+ data-tip-pos="bottom|left|right", data-tip-wrap for long text). Desktop hover/keyboard only. */
+[data-tip]{position:relative}
+[data-tip]::after{content:attr(data-tip);position:absolute;left:50%;bottom:calc(100% + 8px);transform:translate(-50%,4px);padding:6px 10px;border-radius:10px;background:var(--tm-tip-bg,#F3F4F7);color:var(--tm-tip-fg,#12131A);font:600 12px/1.35 Manrope,system-ui,sans-serif;letter-spacing:0;text-transform:none;text-align:left;white-space:nowrap;pointer-events:none;opacity:0;visibility:hidden;transition:opacity .12s ease,transform .12s ease,visibility 0s linear .12s;z-index:80;box-shadow:0 8px 24px rgba(0,0,0,.28)}
+[data-tip]:hover::after,[data-tip]:focus-visible::after{opacity:1;visibility:visible;transform:translate(-50%,0);transition:opacity .12s ease .35s,transform .12s ease .35s,visibility 0s linear .35s}
+[data-tip-pos=bottom]::after{bottom:auto;top:calc(100% + 8px);transform:translate(-50%,-4px)}
+[data-tip-pos=left]::after{left:auto;right:calc(100% + 8px);bottom:50%;transform:translate(4px,50%)}
+[data-tip-pos=left]:hover::after,[data-tip-pos=left]:focus-visible::after{transform:translate(0,50%)}
+[data-tip-pos=right]::after{left:calc(100% + 8px);bottom:50%;transform:translate(-4px,50%)}
+[data-tip-pos=right]:hover::after,[data-tip-pos=right]:focus-visible::after{transform:translate(0,50%)}
+[data-tip-wrap]::after{white-space:normal;width:max-content;max-width:240px}
+@media (hover:none){[data-tip]::after{display:none}}
+[data-tip=""]::after{display:none}
+/* Clickable rows (no inline background on the row itself) and clickable cards */
+.tm-row{transition:background-color .15s ease;cursor:pointer}
+.tm-row:hover{background-color:var(--tm-row-hover,rgba(255,255,255,.045))}
+.tm-row:active{background-color:var(--tm-row-press,rgba(255,255,255,.08))}
+.tm-lift{transition:filter .15s ease,box-shadow .15s ease;cursor:pointer}
+.tm-lift:hover{filter:brightness(1.07)}
+.tm-press[aria-disabled=true],.tm-press:disabled{opacity:.45;cursor:not-allowed;filter:none}
+.tm-press[aria-disabled=true]:active,.tm-press:disabled:active{transform:none}
+@keyframes tm-shake{0%,100%{transform:none}20%,60%{transform:translateX(-4px)}40%,80%{transform:translateX(4px)}}
+.tm-shake{animation:tm-shake .3s ease}
+@keyframes tm-sheet{from{transform:translateY(24px);opacity:0}to{transform:none;opacity:1}}
+@keyframes tm-dialog{from{transform:translateY(8px) scale(.98);opacity:0}to{transform:none;opacity:1}}
+@keyframes tm-drawer{from{transform:translateX(32px);opacity:0}to{transform:none;opacity:1}}
+.tm-sheet{animation:tm-sheet .3s cubic-bezier(.2,.8,.2,1) both}
+.tm-dialog{animation:tm-dialog .22s cubic-bezier(.2,.8,.2,1) both}
+.tm-drawer{animation:tm-drawer .28s cubic-bezier(.2,.8,.2,1) both}
+@keyframes tm-wave{0%,100%{transform:scaleY(.35)}50%{transform:scaleY(1)}}
+.tm-wave{animation:tm-wave .9s ease-in-out infinite;transform-origin:center}
+@media (prefers-reduced-motion:reduce){.tm-sheet,.tm-dialog,.tm-drawer{animation:tm-fade .2s ease both}.tm-shake,.tm-wave{animation:none}}
+/* Landing B2 */
+.lp-clip [style*="position: sticky"]{position:relative!important;top:auto!important}
+.lp-shot{box-shadow:0 30px 80px var(--lp-shadow, rgba(0,0,0,.45)), 0 0 0 1px var(--lp-edge, rgba(255,255,255,.06))}
+@keyframes lp-word{from{opacity:0;filter:blur(14px);transform:translateY(10px)}to{opacity:1;filter:none;transform:none}}
+.lp-word{display:inline-block;animation:lp-word .8s cubic-bezier(.2,.8,.2,1) both;animation-delay:var(--tm-d,0s)}
+@keyframes lp-bub{from{opacity:0;transform:translateY(6px) scale(.7)}to{opacity:1;transform:none}}
+.lp-bub{animation:lp-bub .42s cubic-bezier(.2,.9,.3,1.15) both;transform-origin:bottom left}
+.lp-bub-r{animation:lp-bub .42s cubic-bezier(.2,.9,.3,1.15) both;transform-origin:bottom right}
+@keyframes lp-chip{from{opacity:0;transform:translateY(8px) scale(.9)}to{opacity:1;transform:none}}
+.lp-chip{animation:lp-chip .35s cubic-bezier(.2,.9,.3,1.15) both;animation-delay:var(--tm-d,0s);transition:transform .12s ease,filter .15s ease;cursor:pointer}
+.lp-chip:hover{filter:brightness(1.18)}
+.lp-chip:active{transform:scale(.96)}
+.lp-chip:focus-visible{outline:2px solid var(--tm-focus,#7CD4FF);outline-offset:2px}
+@keyframes lp-dot{0%,80%,100%{opacity:.35;transform:translateY(0)}40%{opacity:1;transform:translateY(-2px)}}
+.lp-dot{display:inline-block;width:7px;height:7px;border-radius:50%;background:currentColor;animation:lp-dot 1.1s ease-in-out infinite}
+.lp-scroll{scrollbar-width:none}
+.lp-scroll::-webkit-scrollbar{display:none}
+@keyframes lp-rec{0%,100%{opacity:1}50%{opacity:.25}}
+.lp-rec{animation:lp-rec 1s ease-in-out infinite}
+@media (prefers-reduced-motion:reduce){.lp-word,.lp-bub,.lp-bub-r,.lp-chip{animation:none}.lp-dot,.lp-rec{animation:none}}
+</style>
+</helmet>
+
+<div style="--tm-tip-bg: {{c.tipBg}}; --tm-tip-fg: {{c.tipFg}}; --tm-focus: {{accent}}; --lp-shadow: {{c.shadow}}; --lp-edge: {{c.edge}}; width: 100%; box-sizing: border-box; background: {{c.bg}}; color: {{c.text}}; font-family: Manrope, system-ui, sans-serif; font-variant-numeric: tabular-nums; -webkit-font-smoothing: antialiased; display: flex; flex-direction: column; align-items: center; overflow: clip">
+<div style="position: sticky; top: 0; z-index: 60; width: 100%; box-sizing: border-box; display: flex; justify-content: center; padding: {{nav.pad}}">
+    <div ref="{{setSentinel}}" aria-hidden="true" style="position: absolute; top: 0; left: 0; width: 1px; height: 1px"></div>
+    <header style="width: {{nav.w}}; max-width: 100%; height: {{nav.h}}; box-sizing: border-box; padding: 0 {{nav.inPad}}; display: flex; align-items: center; justify-content: space-between; border-radius: {{nav.r}}; background: {{nav.bg}}; box-shadow: {{nav.shadow}}; backdrop-filter: {{nav.blur}}; -webkit-backdrop-filter: {{nav.blur}}; transition: background-color .25s ease, box-shadow .25s ease">
+      <a class="tm-hover" href="#top" style="display: flex; align-items: center; gap: 10px; color: {{c.text}}; text-decoration: none"><svg width="32" height="32" viewBox="0 0 36 36" aria-hidden="true" style="flex-shrink: 0; display: block"><rect x="0" y="0" width="36" height="36" rx="12" fill="{{accent}}"></rect><rect x="11" y="12" width="4.5" height="9" rx="2.25" fill="#15140E"></rect><rect x="20.5" y="12" width="4.5" height="9" rx="2.25" fill="#15140E"></rect></svg><span style="font-size: 18px; font-weight: 800; letter-spacing: -0.01em">TrenchM8</span></a>
+      <nav aria-label="Main" style="display: flex; align-items: center; gap: 2px">
+        <sc-if value="{{desktop}}" hint-placeholder-val="{{ true }}">
+          <a class="tm-hover" href="#how" style="min-height: 44px; padding: 0 14px; display: flex; align-items: center; font-size: 14px; font-weight: 700; color: {{c.text2}}; text-decoration: none">How it works</a>
+          <a class="tm-hover" href="#pricing" style="min-height: 44px; padding: 0 14px; display: flex; align-items: center; font-size: 14px; font-weight: 700; color: {{c.text2}}; text-decoration: none">Pricing</a>
+          <a class="tm-hover" href="#login" style="min-height: 44px; padding: 0 14px; display: flex; align-items: center; font-size: 14px; font-weight: 700; color: {{c.text2}}; text-decoration: none">Log in</a>
+        </sc-if>
+        <a class="tm-press" href="#top" onClick="{{startTop}}" style="margin-left: 8px; height: 40px; padding: 0 18px; border-radius: 999px; display: flex; align-items: center; font-size: 14px; font-weight: 800; color: #15140E; background: {{accent}}; text-decoration: none">Start free</a>
+      </nav>
+    </header>
+  </div>
+  <section id="top" style="position: relative; width: 100%; display: flex; justify-content: center; padding: {{hero.pad}}; box-sizing: border-box">
+    <div aria-hidden="true" style="position: absolute; inset: 0; overflow: hidden; pointer-events: none">
+      <div style="position: absolute; left: {{atm.hazeX}}; top: {{atm.hazeY}}; width: {{atm.hazeW}}; height: {{atm.hazeW}}; border-radius: 50%; background: radial-gradient(closest-side, {{atm.haze}}, {{atm.hazeEdge}}); filter: blur(30px)"></div>
+      <svg width="1440" height="900" viewBox="0 0 1440 900" style="position: absolute; left: {{atm.lineX}}; top: 0; opacity: {{atm.lineOp}}; -webkit-mask-image: {{atm.mask}}; mask-image: {{atm.mask}}">
+        <path d="M-20 640 C 120 610, 200 560, 300 520 S 470 430, 560 440 S 700 360, 800 300 S 980 250, 1060 300 S 1200 420, 1300 470 S 1420 520, 1480 540" fill="none" stroke="{{accent}}" stroke-width="18" stroke-linecap="round" style="filter: blur(22px)"></path>
+        <path d="M-20 640 C 120 610, 200 560, 300 520 S 470 430, 560 440 S 700 360, 800 300 S 980 250, 1060 300 S 1200 420, 1300 470 S 1420 520, 1480 540" fill="none" stroke="{{accent}}" stroke-width="1.5" stroke-linecap="round" stroke-opacity="0.55"></path>
+      </svg>
+      <svg width="100%" height="100%" style="position: absolute; inset: 0; opacity: {{atm.grain}}; mix-blend-mode: {{atm.blend}}"><filter id="lp-grain"><feTurbulence type="fractalNoise" baseFrequency="0.9" numOctaves="2" stitchTiles="stitch"></feTurbulence><feColorMatrix type="saturate" values="0"></feColorMatrix></filter><rect width="100%" height="100%" filter="url(#lp-grain)"></rect></svg>
+      <div style="position: absolute; inset: 0; background: radial-gradient(120% 90% at 62% 38%, {{atm.clear}} 45%, {{c.bg}} 100%)"></div>
+      <div style="position: absolute; left: 0; right: 0; bottom: 0; height: 160px; background: linear-gradient({{atm.clear}}, {{c.bg}})"></div>
+    </div>
+    <div style="position: relative; width: 1200px; max-width: 100%; display: flex; flex-direction: {{hero.dir}}; align-items: center; justify-content: space-between; gap: {{hero.gap}}">
+      <div style="display: flex; flex-direction: column; gap: 26px; max-width: 600px; width: {{hero.textW}}">
+        <span class="tm-in" style="align-self: flex-start; padding: 7px 12px; border-radius: 16px; background: {{c.surface}}; box-shadow: inset 0 0 0 1px {{c.line}}; font-size: 13px; font-weight: 700; color: {{c.text2}}">{{eyebrow}}</span>
+        <h1 style="margin: 0; font-size: {{hero.h1}}; line-height: 0.98; font-weight: 800; letter-spacing: -0.045em"><span class="lp-word" style="--tm-d: 0.08s">M8</span> <span class="lp-word" style="--tm-d: 0.19s">texts</span> <span class="lp-word" style="--tm-d: 0.30s">you.</span><br><span class="lp-word" style="--tm-d: 0.41s">You</span> <span class="lp-word" style="--tm-d: 0.52s">reply.</span><br><span class="lp-word" style="--tm-d: 0.63s">Journal</span> <span class="lp-word" style="--tm-d: 0.74s">done.</span></h1>
+        <p class="tm-fade" style="--tm-d: .7s; margin: 0; max-width: 540px; font-size: {{hero.sub}}; line-height: 1.5; font-weight: 500; color: {{c.text2}}">M8 watches your wallets. About 2 hours after your last trade, it texts you on Telegram or Discord. Reply by text or voice, and your trading journal writes itself.</p>
+        <div class="tm-fade" style="--tm-d: .85s"><div style="display: flex; flex-direction: column; align-items: {{cta.align}}; gap: 14px; width: {{cta.wrapW}}">
+        <div style="display: flex; flex-direction: {{cta.dir}}; gap: 10px; width: {{cta.wrapW}}">
+          <a class="tm-press" href="https://t.me/" onClick="{{startTg}}" data-tip="Opens M8 in Telegram" data-tip-pos="bottom" style="height: 56px; padding: 0 24px 0 16px; box-sizing: border-box; border-radius: 999px; display: flex; align-items: center; justify-content: center; gap: 10px; font-size: 16px; font-weight: 800; text-decoration: none; white-space: nowrap; width: {{cta.w}}; background: {{accent}}; color: #15140E"><svg width="24" height="24" viewBox="0 0 24 24" aria-hidden="true" style="flex-shrink: 0"><circle cx="12" cy="12" r="12" fill="#2AABEE"></circle><path d="M5.6 11.7l10.9-4.2c.5-.2 1 .1.8.9l-1.9 8.8c-.1.6-.5.8-1 .5l-2.8-2.1-1.4 1.3c-.2.2-.3.3-.6.3l.2-2.9 5.3-4.8c.2-.2 0-.3-.3-.1l-6.6 4.1-2.8-.9c-.6-.2-.6-.6.2-.9z" fill="#FFFFFF"></path></svg>Start on Telegram</a>
+          <a class="tm-press" href="https://discord.com/" onClick="{{startDc}}" data-tip="Adds the M8 app on Discord" data-tip-pos="bottom" style="height: 56px; padding: 0 24px 0 16px; box-sizing: border-box; border-radius: 999px; display: flex; align-items: center; justify-content: center; gap: 10px; font-size: 16px; font-weight: 800; text-decoration: none; white-space: nowrap; width: {{cta.w}}; background: {{c.surface}}; color: {{c.text}}; box-shadow: inset 0 0 0 1px {{c.line}}"><svg width="24" height="24" viewBox="0 0 24 24" aria-hidden="true" style="flex-shrink: 0"><circle cx="12" cy="12" r="12" fill="#5865F2"></circle><path d="M16.9 8.1a9.6 9.6 0 0 0-2.4-.8l-.3.6a8.9 8.9 0 0 0-2.4-.1 8.9 8.9 0 0 0-1.4.1l-.3-.6a9.6 9.6 0 0 0-2.4.8C6.2 10.4 5.8 12.6 6 14.8a9.7 9.7 0 0 0 2.9 1.5l.6-1c-.3-.1-.7-.3-1-.5l.2-.2a6.9 6.9 0 0 0 6.6 0l.2.2c-.3.2-.7.4-1 .5l.6 1a9.6 9.6 0 0 0 2.9-1.5c.2-2.5-.4-4.7-2.1-6.7zM10 13.6c-.6 0-1-.5-1-1.1s.4-1.1 1-1.1 1 .5 1 1.1-.4 1.1-1 1.1zm4 0c-.6 0-1-.5-1-1.1s.4-1.1 1-1.1 1 .5 1 1.1-.4 1.1-1 1.1z" fill="#FFFFFF"></path></svg>Start on Discord</a>
+        </div>
+        <span style="font-size: 14px; font-weight: 600; color: {{c.text3}}">Free for 7 days. Then $20 / 30 days in USDC.</span>
+      </div></div>
+      </div>
+      <div style="display: flex; flex-direction: column; align-items: center; gap: 30px; flex-shrink: 0; padding: 14px">
+        <div role="tablist" aria-label="Where M8 texts you" style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 2px; padding: 4px; border-radius: 999px; background: {{c.surface}}; box-shadow: inset 0 0 0 1px {{c.line}}">
+        <button class="tm-press" role="tab" aria-selected="{{chan.tgOn}}" onClick="{{chan.tg}}" style="height: 38px; padding: 0 16px; border: none; border-radius: 999px; background: {{chan.tgBg}}; color: {{chan.tgFg}}; display: flex; align-items: center; justify-content: center; gap: 8px; font-family: inherit; font-size: 14px; font-weight: 800; cursor: pointer"><svg width="18" height="18" viewBox="0 0 24 24" aria-hidden="true" style="flex-shrink: 0"><circle cx="12" cy="12" r="12" fill="#2AABEE"></circle><path d="M5.6 11.7l10.9-4.2c.5-.2 1 .1.8.9l-1.9 8.8c-.1.6-.5.8-1 .5l-2.8-2.1-1.4 1.3c-.2.2-.3.3-.6.3l.2-2.9 5.3-4.8c.2-.2 0-.3-.3-.1l-6.6 4.1-2.8-.9c-.6-.2-.6-.6.2-.9z" fill="#FFFFFF"></path></svg>Telegram</button>
+        <button class="tm-press" role="tab" aria-selected="{{chan.dcOn}}" onClick="{{chan.dc}}" style="height: 38px; padding: 0 16px; border: none; border-radius: 999px; background: {{chan.dcBg}}; color: {{chan.dcFg}}; display: flex; align-items: center; justify-content: center; gap: 8px; font-family: inherit; font-size: 14px; font-weight: 800; cursor: pointer"><svg width="18" height="18" viewBox="0 0 24 24" aria-hidden="true" style="flex-shrink: 0"><circle cx="12" cy="12" r="12" fill="#5865F2"></circle><path d="M16.9 8.1a9.6 9.6 0 0 0-2.4-.8l-.3.6a8.9 8.9 0 0 0-2.4-.1 8.9 8.9 0 0 0-1.4.1l-.3-.6a9.6 9.6 0 0 0-2.4.8C6.2 10.4 5.8 12.6 6 14.8a9.7 9.7 0 0 0 2.9 1.5l.6-1c-.3-.1-.7-.3-1-.5l.2-.2a6.9 6.9 0 0 0 6.6 0l.2.2c-.3.2-.7.4-1 .5l.6 1a9.6 9.6 0 0 0 2.9-1.5c.2-2.5-.4-4.7-2.1-6.7zM10 13.6c-.6 0-1-.5-1-1.1s.4-1.1 1-1.1 1 .5 1 1.1-.4 1.1-1 1.1zm4 0c-.6 0-1-.5-1-1.1s.4-1.1 1-1.1 1 .5 1 1.1-.4 1.1-1 1.1z" fill="#FFFFFF"></path></svg>Discord</button>
+      </div>
+        <div style="zoom: {{ph.zoom}}; position: relative; width: 360px; height: 800px; flex-shrink: 0; border-radius: 52px; overflow: hidden; background: #000000; box-shadow: 0 0 0 11px #0D0D10, 0 0 0 13px #4A4A52, 0 0 0 13.5px rgba(255,255,255,0.08), 0 24px 48px {{ph.s1}}, 0 64px 128px {{ph.s2}}" role="img" aria-label="M8 texting you on {{chanName}}">
+      <sc-if value="{{isTg}}" hint-placeholder-val="{{ true }}"><div style="height: 100%; display: flex; flex-direction: column; background: #10161F; color: #E9EEF3; font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Text', Roboto, 'Helvetica Neue', sans-serif; font-size: 15px; line-height: 1.38">
+        <div style="position: relative; height: 50px; flex-shrink: 0; display: flex; align-items: center; justify-content: space-between; padding: 6px 26px 0 34px; box-sizing: border-box; background: #17202B; color: #FFFFFF">
+          <span style="font-family: -apple-system, 'SF Pro Text', system-ui, sans-serif; font-size: 16px; font-weight: 600; letter-spacing: -0.01em">9:41</span>
+          <span aria-hidden="true" style="position: absolute; left: 50%; top: 11px; width: 112px; height: 32px; margin-left: -56px; border-radius: 20px; background: #000000"></span>
+          <span style="display: flex; align-items: center; gap: 6px"><svg width="18" height="12" viewBox="0 0 18 12" aria-hidden="true"><rect x="0" y="8" width="3" height="4" rx="1" fill="currentColor"></rect><rect x="5" y="5.5" width="3" height="6.5" rx="1" fill="currentColor"></rect><rect x="10" y="3" width="3" height="9" rx="1" fill="currentColor"></rect><rect x="15" y="0" width="3" height="12" rx="1" fill="currentColor"></rect></svg><svg width="16" height="12" viewBox="0 0 16 12" aria-hidden="true"><path d="M8 2.2c2.3 0 4.4.9 6 2.4l1.2-1.3A10.4 10.4 0 0 0 8 .4C5.2.4 2.7 1.5.8 3.3L2 4.6a8.6 8.6 0 0 1 6-2.4zm0 3.6c1.3 0 2.5.5 3.4 1.3l1.2-1.3A6.7 6.7 0 0 0 8 4c-1.8 0-3.4.7-4.6 1.8l1.2 1.3c.9-.8 2.1-1.3 3.4-1.3zm0 3.5c-.5 0-1 .2-1.3.5L8 11.2l1.3-1.4A1.9 1.9 0 0 0 8 9.3z" fill="currentColor"></path></svg><svg width="27" height="13" viewBox="0 0 27 13" aria-hidden="true"><rect x="0.5" y="0.5" width="23" height="12" rx="3.8" fill="none" stroke="currentColor" stroke-opacity="0.4"></rect><rect x="2" y="2" width="18" height="9" rx="2.5" fill="currentColor"></rect><path d="M25 4.5v4c.8-.3 1.3-1.1 1.3-2s-.5-1.7-1.3-2z" fill="currentColor" fill-opacity="0.4"></path></svg></span>
+        </div>
+        <div style="display: flex; align-items: center; gap: 10px; height: 54px; padding: 0 12px 0 4px; box-sizing: border-box; flex-shrink: 0; background: #17202B">
+          <span style="width: 40px; height: 40px; display: flex; align-items: center; justify-content: center; color: #7FC1FF"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 18l-6-6 6-6"></path></svg></span>
+          <div style="display: flex; flex-direction: column; flex-grow: 1; min-width: 0; line-height: 1.25">
+            <span style="font-size: 16px; font-weight: 600">M8</span>
+            <span style="font-size: 13px; color: {{tgSub.c}}">{{tgSub.t}}</span>
+          </div>
+          <svg width="38" height="38" viewBox="0 0 36 36" aria-hidden="true" style="flex-shrink: 0; display: block"><rect x="0" y="0" width="36" height="36" rx="19" fill="{{accent}}"></rect><rect x="11" y="12" width="4.5" height="9" rx="2.25" fill="#15140E"></rect><rect x="20.5" y="12" width="4.5" height="9" rx="2.25" fill="#15140E"></rect></svg>
+        </div>
+        <div ref="{{setScroll}}" class="lp-scroll" style="flex-grow: 1; min-height: 0; overflow-y: auto; -webkit-mask-image: linear-gradient(180deg, transparent 0, #000 36px); mask-image: linear-gradient(180deg, transparent 0, #000 36px); display: flex; flex-direction: column-reverse">
+          <div style="display: flex; flex-direction: column; padding: 10px 8px 12px 8px">
+            <span style="align-self: center; font-size: 12px; font-weight: 600; padding: 3px 10px; border-radius: 999px; background: rgba(255,255,255,0.08); color: #C9D3DD">Wednesday, October 7</span>
+            <span style="align-self: center; margin-top: 6px; font-size: 12px; color: #8A98A8; text-align: center; padding: 0 20px">Last trade closed 2:20 PM. No activity for 2h, so M8 checks in.</span>
+            <sc-if value="{{s1}}" hint-placeholder-val="{{ true }}"><div class="lp-bub" style="align-self: flex-start; max-width: 270px; margin-top: 8px; padding: 7px 11px 5px 11px; background: #1C2733; border-radius: 16px 16px 16px 4px">8 trades today, up $234. Your morning was great, but you lost $375 on two coins after lunch. What happened there?<div style="font-size: 11px; color: #8A98A8; text-align: right; margin-top: 2px">4:22 PM</div></div></sc-if>
+            <sc-if value="{{s3}}" hint-placeholder-val="{{ true }}"><div class="lp-bub-r" style="align-self: flex-end; width: 236px; margin-top: 6px; padding: 7px 11px 5px 9px; background: #2A4A6B; border-radius: 16px 16px 4px 16px; display: flex; flex-direction: column; gap: 2px">
+              <div style="display: flex; align-items: center; gap: 9px">
+                <span style="width: 38px; height: 38px; flex-shrink: 0; border-radius: 19px; background: #E9EEF3; color: #2A4A6B; display: flex; align-items: center; justify-content: center"><svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M8 5v14l11-7z"></path></svg></span>
+                <div aria-hidden="true" style="display: flex; align-items: center; gap: 2px; height: 26px; flex-grow: 1; min-width: 0; overflow: hidden"><sc-for list="{{wave}}" as="b" hint-placeholder-count="30"><span style="width: 3px; flex-shrink: 0; border-radius: 2px; height: {{b.h}}; background: {{b.tg}}"></span></sc-for></div>
+              </div>
+              <div style="display: flex; justify-content: space-between; font-size: 11px; color: #A9C3DD"><span>0:07</span><span style="display: flex; align-items: center; gap: 3px">4:28 PM<span style="display: flex; color: #7FC1FF"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 12.5l4 4 8-9"></path><path d="M9.5 16.5l1 0 8-9"></path></svg></span></span></div>
+            </div></sc-if>
+            <sc-if value="{{s5}}" hint-placeholder-val="{{ true }}"><div class="lp-bub" style="align-self: flex-start; width: 282px; margin-top: 6px; display: flex; flex-direction: column"><div style="padding: 7px 11px 5px 11px; background: #1C2733; border-radius: 16px 16px 16px 4px"><span>Logged it. Here&#39;s your Wednesday:</span>
+                <div style="display: flex; flex-direction: column; gap: 5px; margin-top: 6px; padding-left: 9px; border-left: 2px solid {{accent}}">
+                  <span><b>Morning +$609.</b> 6 trades, sized small, took profit into strength.</span>
+                  <span><b>$WIFHAT -$221.</b> FOMO: bought after a +180% candle.</span>
+                  <span><b>$PEPU2 -$154.</b> Revenge: 4 min after closing $WIFHAT red, at 2x your normal size.</span>
+                  <span style="color: #C9D3DD; font-style: italic">Your words: "they were pumping and I didn&#39;t want to miss out."</span>
+                </div><div style="font-size: 11px; color: #8A98A8; text-align: right; margin-top: 2px">4:28 PM</div></div><div style="display: grid; grid-template-columns: repeat(1, minmax(0, 1fr)); gap: 4px; margin-top: 4px"><button class="tm-press" style="height: 38px; padding: 0 8px; border: none; border-radius: 10px; background: rgba(255,255,255,0.09); color: #E9EEF3; font-family: inherit; font-size: 14px; font-weight: 600; display: flex; align-items: center; justify-content: center; gap: 6px; cursor: pointer; white-space: nowrap">Open today&#39;s journal <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 17L17 7"></path><path d="M8 7h9v9"></path></svg></button></div></div></sc-if>
+            <sc-for list="{{answers}}" as="a" hint-placeholder-count="0">
+              <sc-if value="{{a.you}}" hint-placeholder-val="{{ false }}"><div class="lp-bub-r" style="align-self: flex-end; max-width: 250px; margin-top: 8px; padding: 7px 11px 5px 11px; background: #2A4A6B; border-radius: 16px 16px 4px 16px">{{a.label}}<div style="display: flex; justify-content: flex-end; align-items: center; gap: 3px; font-size: 11px; color: #A9C3DD; margin-top: 2px">4:31 PM<span style="display: flex; color: #7FC1FF"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 12.5l4 4 8-9"></path><path d="M9.5 16.5l1 0 8-9"></path></svg></span></div></div></sc-if>
+              <sc-if value="{{a.week}}" hint-placeholder-val="{{ false }}"><div class="lp-bub" style="align-self: flex-start; width: 270px; margin-top: 6px; display: flex; flex-direction: column"><div style="padding: 7px 11px 5px 11px; background: #1C2733; border-radius: 16px 16px 16px 4px"><div style="margin: -7px -11px 6px -11px; border-radius: 16px 16px 0 0; overflow: hidden"><div style="width: 270px; overflow: hidden"><div style="width: 330px; zoom: 0.8182"><div role="img" aria-label="Recap card, week 41, Oct 5 to 11: up $816 on 31 trades, 52% win rate. Biggest mistake: chasing after red trades, 3 times, minus $512. One change: no entries after 1 PM." style="background: #0D0E13; padding: 20px 18px 16px 18px; display: flex; flex-direction: column; gap: 14px; font-family: Manrope, system-ui, sans-serif; font-variant-numeric: tabular-nums; color: #F3F4F7">
+          <div style="display: flex; align-items: center; gap: 8px">
+            <svg width="26" height="26" viewBox="0 0 36 36" aria-hidden="true"><rect x="0" y="0" width="36" height="36" rx="12" fill="{{accent}}"></rect><rect x="11" y="12" width="4.5" height="9" rx="2.25" fill="#15140E"></rect><rect x="20.5" y="12" width="4.5" height="9" rx="2.25" fill="#15140E"></rect></svg>
+            <span style="font-size: 13px; font-weight: 800; flex-grow: 1">Week 41 recap</span>
+            <span style="font-size: 12px; font-weight: 700; color: #858B9E">Oct 5 - 11</span>
+          </div>
+          <div style="display: flex; flex-direction: column; gap: 2px">
+            <span style="font-size: 44px; line-height: 1; font-weight: 800; letter-spacing: -0.03em; color: #3FD98E">+$816</span>
+            <span style="font-size: 13px; font-weight: 700; color: #A9AEBE">31 trades · 52% win · best week this month</span>
+          </div>
+          <svg width="294" height="44" viewBox="0 0 288 44" aria-hidden="true" style="display: block; width: 100%; height: 44px">
+            <line x1="0" y1="34" x2="288" y2="34" stroke="#2C303D" stroke-width="1"></line>
+            <rect x="9.5" y="4" width="22" height="30" rx="4" fill="#3FD98E"></rect>
+            <rect x="50.6" y="34" width="22" height="6.4" rx="3" fill="#FF6B6B"></rect>
+            <rect x="91.7" y="17" width="22" height="17" rx="4" fill="#3FD98E"></rect>
+            <rect x="132.8" y="10.8" width="22" height="23.2" rx="4" fill="#3FD98E"></rect>
+            <rect x="173.9" y="34" width="22" height="9.5" rx="3" fill="#FF6B6B"></rect>
+            <rect x="215" y="27" width="22" height="7" rx="3" fill="#3FD98E"></rect>
+            <rect x="256.1" y="32.5" width="22" height="2" rx="1" fill="#585E70"></rect>
+          </svg>
+          <div style="padding: 12px 14px; border-radius: 16px; background: #171922; display: flex; flex-direction: column; gap: 3px">
+            <span style="font-size: 11px; font-weight: 800; letter-spacing: .06em; color: #858B9E">BIGGEST MISTAKE</span>
+            <span style="font-size: 15px; font-weight: 800">Chasing after red trades</span>
+            <span style="font-size: 13px; font-weight: 700; color: #FF6B6B">3 times · -$512</span>
+          </div>
+          <div style="padding: 12px 14px; border-radius: 16px; background: {{accent}}; color: #15140E; display: flex; flex-direction: column; gap: 3px">
+            <span style="font-size: 11px; font-weight: 800; letter-spacing: .06em; opacity: .75">ONE CHANGE FOR NEXT WEEK</span>
+            <span style="font-size: 15px; font-weight: 800">No new entries after 1 PM</span>
+          </div>
+          <div style="display: flex; justify-content: space-between; font-size: 11px; font-weight: 700; color: #858B9E">
+            <span>journal written by M8</span><span>trenchm8</span>
+          </div>
+        </div></div></div></div><span>Your week: <b>up $816 on 31 trades</b>, best week this month. One change for next week: no new entries after 1 PM.</span><div style="font-size: 11px; color: #8A98A8; text-align: right; margin-top: 2px">4:31 PM</div></div><div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 4px; margin-top: 4px"><button class="tm-press" style="height: 38px; padding: 0 8px; border: none; border-radius: 10px; background: rgba(255,255,255,0.09); color: #E9EEF3; font-family: inherit; font-size: 14px; font-weight: 600; display: flex; align-items: center; justify-content: center; gap: 6px; cursor: pointer; white-space: nowrap">Share card</button><button class="tm-press" style="height: 38px; padding: 0 8px; border: none; border-radius: 10px; background: rgba(255,255,255,0.09); color: #E9EEF3; font-family: inherit; font-size: 14px; font-weight: 600; display: flex; align-items: center; justify-content: center; gap: 6px; cursor: pointer; white-space: nowrap">Full recap <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 17L17 7"></path><path d="M8 7h9v9"></path></svg></button></div></div></sc-if>
+<sc-if value="{{a.tilt}}" hint-placeholder-val="{{ false }}"><div class="lp-bub" style="align-self: flex-start; max-width: 270px; margin-top: 6px; padding: 7px 11px 5px 11px; background: #1C2733; border-radius: 16px 16px 16px 4px"><b>Heads up from today.</b> $PEPU2, 4 min after closing $WIFHAT red, at 2x your normal size: <b>-$154</b>.<br><br>Same move as Sep 18: $PEPU, 2 min after a loss, 2.5x size, -$188.<div style="font-size: 11px; color: #8A98A8; text-align: right; margin-top: 2px">4:31 PM</div></div><div class="lp-bub" style="align-self: flex-start; width: 270px; margin-top: 4px; display: flex; flex-direction: column"><div style="padding: 7px 11px 5px 11px; background: #1C2733; border-radius: 16px 16px 16px 4px">Want a 20 min cooldown after red trades? I&#39;ll ping you if you break it.<div style="font-size: 11px; color: #8A98A8; text-align: right; margin-top: 2px">4:31 PM</div></div><div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 4px; margin-top: 4px"><button class="tm-press" style="height: 38px; padding: 0 8px; border: none; border-radius: 10px; background: rgba(255,255,255,0.09); color: #E9EEF3; font-family: inherit; font-size: 14px; font-weight: 600; display: flex; align-items: center; justify-content: center; gap: 6px; cursor: pointer; white-space: nowrap">Set cooldown</button><button class="tm-press" style="height: 38px; padding: 0 8px; border: none; border-radius: 10px; background: rgba(255,255,255,0.09); color: #E9EEF3; font-family: inherit; font-size: 14px; font-weight: 600; display: flex; align-items: center; justify-content: center; gap: 6px; cursor: pointer; white-space: nowrap">Not now</button></div></div></sc-if>
+<sc-if value="{{a.calls}}" hint-placeholder-val="{{ false }}"><div class="lp-bub" style="align-self: flex-start; max-width: 270px; margin-top: 6px; padding: 7px 11px 5px 11px; background: #1C2733; border-radius: 16px 16px 16px 4px"><b>No calls, ever.</b> Ask about a coin and you get facts, not a verdict.<br><br>Not a call, just facts: $FROGZ is 41 min old, $86k liquidity, top 10 wallets hold 38%. Your best setup is coins under 1h old at normal size. Your call.<div style="font-size: 11px; color: #8A98A8; text-align: right; margin-top: 2px">4:31 PM</div></div></sc-if>
+<sc-if value="{{a.degen}}" hint-placeholder-val="{{ false }}"><div class="lp-bub" style="align-self: flex-start; max-width: 270px; margin-top: 6px; padding: 7px 11px 5px 11px; background: #1C2733; border-radius: 16px 16px 16px 4px"><span style="font-size: 13px; color: #8A98A8">Blunt degen voice · <span style="color: #7FC1FF">/voice</span> to switch</span><br>8 trades, +$234. morning was clean, then you gave back $375 on two coins after lunch. what happened, be honest<div style="font-size: 11px; color: #8A98A8; text-align: right; margin-top: 2px">4:31 PM</div></div></sc-if>
+<sc-if value="{{a.cta}}" hint-placeholder-val="{{ false }}"><div class="lp-bub" style="align-self: flex-start; width: 270px; margin-top: 4px; display: flex; flex-direction: column"><div style="padding: 7px 11px 5px 11px; background: #1C2733; border-radius: 16px 16px 16px 4px">Want me to text you after your next session? Pick where:<div style="font-size: 11px; color: #8A98A8; text-align: right; margin-top: 2px">4:32 PM</div></div><div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 4px; margin-top: 4px"><button class="tm-press" onClick="{{startTg}}" style="height: 38px; padding: 0 8px; border: none; border-radius: 10px; background: rgba(255,255,255,0.09); color: #E9EEF3; font-family: inherit; font-size: 14px; font-weight: 600; display: flex; align-items: center; justify-content: center; gap: 6px; cursor: pointer; white-space: nowrap"><svg width="18" height="18" viewBox="0 0 24 24" aria-hidden="true" style="flex-shrink: 0"><circle cx="12" cy="12" r="12" fill="#2AABEE"></circle><path d="M5.6 11.7l10.9-4.2c.5-.2 1 .1.8.9l-1.9 8.8c-.1.6-.5.8-1 .5l-2.8-2.1-1.4 1.3c-.2.2-.3.3-.6.3l.2-2.9 5.3-4.8c.2-.2 0-.3-.3-.1l-6.6 4.1-2.8-.9c-.6-.2-.6-.6.2-.9z" fill="#FFFFFF"></path></svg>Telegram</button><button class="tm-press" onClick="{{startDc}}" style="height: 38px; padding: 0 8px; border: none; border-radius: 10px; background: rgba(255,255,255,0.09); color: #E9EEF3; font-family: inherit; font-size: 14px; font-weight: 600; display: flex; align-items: center; justify-content: center; gap: 6px; cursor: pointer; white-space: nowrap"><svg width="18" height="18" viewBox="0 0 24 24" aria-hidden="true" style="flex-shrink: 0"><circle cx="12" cy="12" r="12" fill="#5865F2"></circle><path d="M16.9 8.1a9.6 9.6 0 0 0-2.4-.8l-.3.6a8.9 8.9 0 0 0-2.4-.1 8.9 8.9 0 0 0-1.4.1l-.3-.6a9.6 9.6 0 0 0-2.4.8C6.2 10.4 5.8 12.6 6 14.8a9.7 9.7 0 0 0 2.9 1.5l.6-1c-.3-.1-.7-.3-1-.5l.2-.2a6.9 6.9 0 0 0 6.6 0l.2.2c-.3.2-.7.4-1 .5l.6 1a9.6 9.6 0 0 0 2.9-1.5c.2-2.5-.4-4.7-2.1-6.7zM10 13.6c-.6 0-1-.5-1-1.1s.4-1.1 1-1.1 1 .5 1 1.1-.4 1.1-1 1.1zm4 0c-.6 0-1-.5-1-1.1s.4-1.1 1-1.1 1 .5 1 1.1-.4 1.1-1 1.1z" fill="#FFFFFF"></path></svg>Discord</button></div></div></sc-if>
+            </sc-for>
+            <sc-if value="{{typingM8}}" hint-placeholder-val="{{ false }}"><div class="lp-bub" style="align-self: flex-start; margin-top: 6px; height: 34px; padding: 0 14px; display: flex; align-items: center; gap: 4px; color: #8A98A8; background: #1C2733; border-radius: 16px 16px 16px 4px" aria-label="M8 is typing"><span class="lp-dot"></span><span class="lp-dot" style="animation-delay: .15s"></span><span class="lp-dot" style="animation-delay: .3s"></span></div></sc-if>
+            <sc-if value="{{showChips}}" hint-placeholder-val="{{ true }}">
+              
+              <div style="display: flex; flex-wrap: wrap; justify-content: flex-end; gap: 6px; margin-top: 14px; padding: 0 0 0 24px">
+                <sc-for list="{{chips}}" as="ch" hint-placeholder-count="4"><button class="lp-chip" onClick="{{ch.pick}}" style="--tm-d: {{ch.d}}; height: 34px; padding: 0 13px; border: none; border-radius: 17px; background: #2A4A6B; color: #E9EEF3; font-family: inherit; font-size: 14px; font-weight: 500; box-shadow: 0 1px 0 rgba(0,0,0,0.35), inset 0 1px 0 rgba(255,255,255,0.08); white-space: nowrap">{{ch.label}}</button></sc-for>
+              </div>
+            </sc-if>
+          </div>
+        </div>
+        <div style="display: flex; align-items: center; gap: 8px; padding: 7px 8px 6px 8px; flex-shrink: 0; background: #17202B">
+          <span style="height: 34px; padding: 0 12px; border-radius: 17px; background: #2A4A6B; color: #E9EEF3; display: flex; align-items: center; font-size: 14px; font-weight: 600">Menu</span>
+          <sc-if value="{{typingYou}}" hint-placeholder-val="{{ false }}"><span style="flex-grow: 1; height: 38px; border-radius: 19px; padding: 0 14px; background: #10161F; color: #E9EEF3; display: flex; align-items: center; gap: 8px; font-size: 15px"><span class="lp-rec" style="width: 8px; height: 8px; border-radius: 50%; background: #FF5C5C"></span>0:05<span style="margin-left: auto; color: #8A98A8; font-size: 14px">‹ Slide to cancel</span></span></sc-if>
+          <sc-if value="{{notTypingYou}}" hint-placeholder-val="{{ true }}"><span style="flex-grow: 1; height: 38px; border-radius: 19px; padding: 0 14px; background: #10161F; color: #6E7C8B; display: flex; align-items: center; font-size: 15px">Message</span></sc-if>
+          <span style="width: 38px; height: 38px; flex-shrink: 0; border-radius: 19px; display: flex; align-items: center; justify-content: center; background: {{tgMic.bg}}; color: {{tgMic.fg}}"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="9" y="3" width="6" height="11" rx="3"></rect><path d="M5 11a7 7 0 0 0 14 0"></path><path d="M12 18v3"></path></svg></span>
+        </div>
+        <div style="height: 26px; flex-shrink: 0; display: flex; align-items: flex-end; justify-content: center; padding-bottom: 8px; box-sizing: border-box; background: #17202B"><span style="width: 128px; height: 5px; border-radius: 3px; background: #FFFFFF; opacity: 0.85"></span></div>
+      </div></sc-if>
+      <sc-if value="{{isDc}}" hint-placeholder-val="{{ false }}"><div style="height: 100%; display: flex; flex-direction: column; background: #313338; color: #DBDEE1; font-family: 'gg sans', 'Noto Sans', Whitney, 'Helvetica Neue', system-ui, sans-serif; font-size: 15px; line-height: 1.375">
+        <div style="position: relative; height: 50px; flex-shrink: 0; display: flex; align-items: center; justify-content: space-between; padding: 6px 26px 0 34px; box-sizing: border-box; background: #313338; color: #FFFFFF">
+          <span style="font-family: -apple-system, 'SF Pro Text', system-ui, sans-serif; font-size: 16px; font-weight: 600; letter-spacing: -0.01em">9:41</span>
+          <span aria-hidden="true" style="position: absolute; left: 50%; top: 11px; width: 112px; height: 32px; margin-left: -56px; border-radius: 20px; background: #000000"></span>
+          <span style="display: flex; align-items: center; gap: 6px"><svg width="18" height="12" viewBox="0 0 18 12" aria-hidden="true"><rect x="0" y="8" width="3" height="4" rx="1" fill="currentColor"></rect><rect x="5" y="5.5" width="3" height="6.5" rx="1" fill="currentColor"></rect><rect x="10" y="3" width="3" height="9" rx="1" fill="currentColor"></rect><rect x="15" y="0" width="3" height="12" rx="1" fill="currentColor"></rect></svg><svg width="16" height="12" viewBox="0 0 16 12" aria-hidden="true"><path d="M8 2.2c2.3 0 4.4.9 6 2.4l1.2-1.3A10.4 10.4 0 0 0 8 .4C5.2.4 2.7 1.5.8 3.3L2 4.6a8.6 8.6 0 0 1 6-2.4zm0 3.6c1.3 0 2.5.5 3.4 1.3l1.2-1.3A6.7 6.7 0 0 0 8 4c-1.8 0-3.4.7-4.6 1.8l1.2 1.3c.9-.8 2.1-1.3 3.4-1.3zm0 3.5c-.5 0-1 .2-1.3.5L8 11.2l1.3-1.4A1.9 1.9 0 0 0 8 9.3z" fill="currentColor"></path></svg><svg width="27" height="13" viewBox="0 0 27 13" aria-hidden="true"><rect x="0.5" y="0.5" width="23" height="12" rx="3.8" fill="none" stroke="currentColor" stroke-opacity="0.4"></rect><rect x="2" y="2" width="18" height="9" rx="2.5" fill="currentColor"></rect><path d="M25 4.5v4c.8-.3 1.3-1.1 1.3-2s-.5-1.7-1.3-2z" fill="currentColor" fill-opacity="0.4"></path></svg></span>
+        </div>
+        <div style="display: flex; align-items: center; gap: 8px; height: 52px; padding: 0 8px 0 4px; box-sizing: border-box; flex-shrink: 0; background: #313338; border-bottom: 1px solid #1F2023">
+          <span style="width: 38px; height: 38px; display: flex; align-items: center; justify-content: center; color: #B5BAC1"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M19 12H5"></path><path d="M12 19l-7-7 7-7"></path></svg></span>
+          <div style="position: relative; width: 30px; height: 30px; flex-shrink: 0"><svg width="30" height="30" viewBox="0 0 36 36" aria-hidden="true" style="flex-shrink: 0; display: block"><rect x="0" y="0" width="36" height="36" rx="15" fill="{{accent}}"></rect><rect x="11" y="12" width="4.5" height="9" rx="2.25" fill="#15140E"></rect><rect x="20.5" y="12" width="4.5" height="9" rx="2.25" fill="#15140E"></rect></svg><span style="position: absolute; right: -3px; bottom: -3px; width: 9px; height: 9px; border-radius: 50%; background: #23A55A; border: 3px solid #313338"></span></div>
+          <div style="display: flex; align-items: center; gap: 6px; flex-grow: 1; min-width: 0; padding-left: 4px"><span style="font-size: 17px; font-weight: 700; color: #F2F3F5">M8</span><span style="display: inline-flex; align-items: center; height: 15px; padding: 0 4px; border-radius: 4px; background: #5865F2; color: #FFFFFF; font-size: 10px; font-weight: 600; line-height: 15px; letter-spacing: 0.02em; flex-shrink: 0">APP</span></div>
+          <span style="width: 38px; height: 38px; display: flex; align-items: center; justify-content: center; color: #B5BAC1"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="11" cy="11" r="7"></circle><path d="M21 21l-4.35-4.35"></path></svg></span>
+        </div>
+        <div ref="{{setScroll}}" class="lp-scroll" style="flex-grow: 1; min-height: 0; overflow-y: auto; -webkit-mask-image: linear-gradient(180deg, transparent 0, #000 36px); mask-image: linear-gradient(180deg, transparent 0, #000 36px); display: flex; flex-direction: column-reverse">
+          <div style="display: flex; flex-direction: column; padding: 10px 0 12px 0">
+            <div style="display: flex; align-items: center; gap: 8px; margin: 4px 16px 0 16px">
+              <div style="flex-grow: 1; height: 1px; background: #3F4147"></div><span style="font-size: 12px; font-weight: 600; color: #949BA4">October 7, 2026</span><div style="flex-grow: 1; height: 1px; background: #3F4147"></div>
+            </div><span style="align-self: center; margin-top: 8px; padding: 0 24px; font-size: 12px; font-style: italic; color: #949BA4; text-align: center">Last trade closed 2:20 PM. No activity for 2h, so M8 checks in.</span>
+            <sc-if value="{{s1}}" hint-placeholder-val="{{ true }}"><div class="lp-bub" style="display: flex; gap: 12px; margin-top: 10px; padding: 2px 16px">
+              <svg width="40" height="40" viewBox="0 0 36 36" aria-hidden="true" style="flex-shrink: 0; display: block"><rect x="0" y="0" width="36" height="36" rx="20" fill="{{accent}}"></rect><rect x="11" y="12" width="4.5" height="9" rx="2.25" fill="#15140E"></rect><rect x="20.5" y="12" width="4.5" height="9" rx="2.25" fill="#15140E"></rect></svg>
+              <div style="display: flex; flex-direction: column; min-width: 0; flex-grow: 1">
+                <div style="display: flex; align-items: center; gap: 6px; height: 22px"><span style="font-size: 16px; font-weight: 600; color: #F2F3F5">M8</span><span style="display: inline-flex; align-items: center; height: 15px; padding: 0 4px; border-radius: 4px; background: #5865F2; color: #FFFFFF; font-size: 10px; font-weight: 600; line-height: 15px; letter-spacing: 0.02em; flex-shrink: 0">APP</span><span style="font-size: 12px; color: #949BA4; margin-left: 2px">Today at 4:22 PM</span></div>
+                <div style="font-size: 15px; line-height: 1.375; color: #DBDEE1; overflow-wrap: anywhere">8 trades today, up $234. Your morning was great, but you lost $375 on two coins after lunch. What happened there?</div>
+              </div>
+            </div></sc-if>
+            <sc-if value="{{s3}}" hint-placeholder-val="{{ true }}"><div class="lp-bub" style="display: flex; gap: 12px; margin-top: 14px; padding: 2px 16px">
+              <svg width="40" height="40" viewBox="0 0 40 40" aria-hidden="true" style="flex-shrink: 0; display: block"><circle cx="20" cy="20" r="20" fill="#F0B232"></circle><text x="20" y="26" text-anchor="middle" font-family="gg sans, Noto Sans, sans-serif" font-size="17" font-weight="700" fill="#15140E">Y</text></svg>
+              <div style="display: flex; flex-direction: column; min-width: 0; flex-grow: 1">
+                <div style="display: flex; align-items: center; gap: 6px; height: 22px"><span style="font-size: 16px; font-weight: 600; color: #F2F3F5">you</span><span style="font-size: 12px; color: #949BA4; margin-left: 2px">Today at 4:28 PM</span></div>
+                <div style="font-size: 15px; line-height: 1.375; color: #DBDEE1; overflow-wrap: anywhere"><div style="display: flex; align-items: center; gap: 9px; width: 240px; max-width: 100%; box-sizing: border-box; margin-top: 4px; padding: 7px 11px 7px 7px; border-radius: 22px; background: #2B2D31; border: 1px solid #26272B">
+                  <span style="width: 30px; height: 30px; flex-shrink: 0; border-radius: 15px; background: #5865F2; display: flex; align-items: center; justify-content: center"><svg width="11" height="13" viewBox="0 0 12 14" aria-hidden="true"><path d="M1 1.5v11a1 1 0 0 0 1.5.86l9-5.5a1 1 0 0 0 0-1.72l-9-5.5A1 1 0 0 0 1 1.5z" fill="#FFFFFF"></path></svg></span>
+                  <div aria-hidden="true" style="display: flex; align-items: center; gap: 2px; height: 26px; flex-grow: 1; min-width: 0; overflow: hidden"><sc-for list="{{wave}}" as="b" hint-placeholder-count="30"><span style="width: 3px; flex-shrink: 0; border-radius: 2px; height: {{b.h}}; background: {{b.dc}}"></span></sc-for></div>
+                  <span style="flex-shrink: 0; font-size: 12px; font-weight: 500; color: #DBDEE1">0:07</span>
+                </div></div>
+              </div>
+            </div></sc-if>
+            <sc-if value="{{s5}}" hint-placeholder-val="{{ true }}"><div class="lp-bub" style="display: flex; gap: 12px; margin-top: 14px; padding: 2px 16px">
+              <svg width="40" height="40" viewBox="0 0 36 36" aria-hidden="true" style="flex-shrink: 0; display: block"><rect x="0" y="0" width="36" height="36" rx="20" fill="{{accent}}"></rect><rect x="11" y="12" width="4.5" height="9" rx="2.25" fill="#15140E"></rect><rect x="20.5" y="12" width="4.5" height="9" rx="2.25" fill="#15140E"></rect></svg>
+              <div style="display: flex; flex-direction: column; min-width: 0; flex-grow: 1">
+                <div style="display: flex; align-items: center; gap: 6px; height: 22px"><span style="font-size: 16px; font-weight: 600; color: #F2F3F5">M8</span><span style="display: inline-flex; align-items: center; height: 15px; padding: 0 4px; border-radius: 4px; background: #5865F2; color: #FFFFFF; font-size: 10px; font-weight: 600; line-height: 15px; letter-spacing: 0.02em; flex-shrink: 0">APP</span><span style="font-size: 12px; color: #949BA4; margin-left: 2px">Today at 4:28 PM</span></div>
+                <div style="font-size: 15px; line-height: 1.375; color: #DBDEE1; overflow-wrap: anywhere">Logged it. Here&#39;s your Wednesday:<div style="display: flex; margin-top: 6px; border-radius: 4px; overflow: hidden; background: #2B2D31; border: 1px solid #26272B"><div style="width: 4px; flex-shrink: 0; background: {{accent}}"></div><div style="display: flex; flex-direction: column; gap: 6px; padding: 9px 12px 12px 11px; min-width: 0; flex-grow: 1"><span style="font-size: 15px; font-weight: 700; line-height: 1.3; color: #F2F3F5">Today&#39;s journal</span><div style="font-size: 13.5px; line-height: 1.375; color: #DBDEE1"><b>Morning +$609.</b> 6 trades, sized small, took profit into strength.</div><div style="font-size: 13.5px; line-height: 1.375; color: #DBDEE1"><b>$WIFHAT -$221.</b> FOMO: bought after a +180% candle.</div><div style="font-size: 13.5px; line-height: 1.375; color: #DBDEE1"><b>$PEPU2 -$154.</b> Revenge: 4 min after closing $WIFHAT red, at 2x your normal size.</div><div style="font-size: 13.5px; line-height: 1.375; color: #DBDEE1"><i>"they were pumping and I didn&#39;t want to miss out."</i></div><div style="display: flex; align-items: center; gap: 6px; margin-top: 2px; font-size: 12px; font-weight: 500; color: #949BA4"><svg width="18" height="18" viewBox="0 0 36 36" aria-hidden="true" style="flex-shrink: 0; display: block"><rect x="0" y="0" width="36" height="36" rx="9" fill="{{accent}}"></rect><rect x="11" y="12" width="4.5" height="9" rx="2.25" fill="#15140E"></rect><rect x="20.5" y="12" width="4.5" height="9" rx="2.25" fill="#15140E"></rect></svg><span>TrenchM8 · journaled by M8</span></div></div></div><div style="display: flex; flex-wrap: wrap; gap: 8px; margin-top: 8px"><button class="tm-press" style="height: 34px; padding: 0 12px; border: none; border-radius: 8px; background: #4E5058; color: #FFFFFF; font-family: inherit; font-size: 14px; font-weight: 600; display: inline-flex; align-items: center; gap: 6px; white-space: nowrap; cursor: pointer">Open today&#39;s journal<span style="display: flex; opacity: 0.85"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 17L17 7"></path><path d="M8 7h9v9"></path></svg></span></button></div></div>
+              </div>
+            </div></sc-if>
+            <sc-for list="{{answers}}" as="a" hint-placeholder-count="0">
+              <sc-if value="{{a.you}}" hint-placeholder-val="{{ false }}"><div class="lp-bub" style="display: flex; gap: 12px; margin-top: 14px; padding: 2px 16px">
+              <svg width="40" height="40" viewBox="0 0 40 40" aria-hidden="true" style="flex-shrink: 0; display: block"><circle cx="20" cy="20" r="20" fill="#F0B232"></circle><text x="20" y="26" text-anchor="middle" font-family="gg sans, Noto Sans, sans-serif" font-size="17" font-weight="700" fill="#15140E">Y</text></svg>
+              <div style="display: flex; flex-direction: column; min-width: 0; flex-grow: 1">
+                <div style="display: flex; align-items: center; gap: 6px; height: 22px"><span style="font-size: 16px; font-weight: 600; color: #F2F3F5">you</span><span style="font-size: 12px; color: #949BA4; margin-left: 2px">Today at 4:31 PM</span></div>
+                <div style="font-size: 15px; line-height: 1.375; color: #DBDEE1; overflow-wrap: anywhere">{{a.label}}</div>
+              </div>
+            </div></sc-if>
+              <sc-if value="{{a.week}}" hint-placeholder-val="{{ false }}"><div class="lp-bub" style="display: flex; gap: 12px; margin-top: 14px; padding: 2px 16px">
+              <svg width="40" height="40" viewBox="0 0 36 36" aria-hidden="true" style="flex-shrink: 0; display: block"><rect x="0" y="0" width="36" height="36" rx="20" fill="{{accent}}"></rect><rect x="11" y="12" width="4.5" height="9" rx="2.25" fill="#15140E"></rect><rect x="20.5" y="12" width="4.5" height="9" rx="2.25" fill="#15140E"></rect></svg>
+              <div style="display: flex; flex-direction: column; min-width: 0; flex-grow: 1">
+                <div style="display: flex; align-items: center; gap: 6px; height: 22px"><span style="font-size: 16px; font-weight: 600; color: #F2F3F5">M8</span><span style="display: inline-flex; align-items: center; height: 15px; padding: 0 4px; border-radius: 4px; background: #5865F2; color: #FFFFFF; font-size: 10px; font-weight: 600; line-height: 15px; letter-spacing: 0.02em; flex-shrink: 0">APP</span><span style="font-size: 12px; color: #949BA4; margin-left: 2px">Today at 4:31 PM</span></div>
+                <div style="font-size: 15px; line-height: 1.375; color: #DBDEE1; overflow-wrap: anywhere">Your week: <b>up $816 on 31 trades</b>, best week this month.<div style="width: 262px; margin-top: 6px; border-radius: 8px; overflow: hidden"><div style="width: 262px; overflow: hidden"><div style="width: 330px; zoom: 0.7939"><div role="img" aria-label="Recap card, week 41, Oct 5 to 11: up $816 on 31 trades, 52% win rate. Biggest mistake: chasing after red trades, 3 times, minus $512. One change: no entries after 1 PM." style="background: #0D0E13; padding: 20px 18px 16px 18px; display: flex; flex-direction: column; gap: 14px; font-family: Manrope, system-ui, sans-serif; font-variant-numeric: tabular-nums; color: #F3F4F7">
+          <div style="display: flex; align-items: center; gap: 8px">
+            <svg width="26" height="26" viewBox="0 0 36 36" aria-hidden="true"><rect x="0" y="0" width="36" height="36" rx="12" fill="{{accent}}"></rect><rect x="11" y="12" width="4.5" height="9" rx="2.25" fill="#15140E"></rect><rect x="20.5" y="12" width="4.5" height="9" rx="2.25" fill="#15140E"></rect></svg>
+            <span style="font-size: 13px; font-weight: 800; flex-grow: 1">Week 41 recap</span>
+            <span style="font-size: 12px; font-weight: 700; color: #858B9E">Oct 5 - 11</span>
+          </div>
+          <div style="display: flex; flex-direction: column; gap: 2px">
+            <span style="font-size: 44px; line-height: 1; font-weight: 800; letter-spacing: -0.03em; color: #3FD98E">+$816</span>
+            <span style="font-size: 13px; font-weight: 700; color: #A9AEBE">31 trades · 52% win · best week this month</span>
+          </div>
+          <svg width="294" height="44" viewBox="0 0 288 44" aria-hidden="true" style="display: block; width: 100%; height: 44px">
+            <line x1="0" y1="34" x2="288" y2="34" stroke="#2C303D" stroke-width="1"></line>
+            <rect x="9.5" y="4" width="22" height="30" rx="4" fill="#3FD98E"></rect>
+            <rect x="50.6" y="34" width="22" height="6.4" rx="3" fill="#FF6B6B"></rect>
+            <rect x="91.7" y="17" width="22" height="17" rx="4" fill="#3FD98E"></rect>
+            <rect x="132.8" y="10.8" width="22" height="23.2" rx="4" fill="#3FD98E"></rect>
+            <rect x="173.9" y="34" width="22" height="9.5" rx="3" fill="#FF6B6B"></rect>
+            <rect x="215" y="27" width="22" height="7" rx="3" fill="#3FD98E"></rect>
+            <rect x="256.1" y="32.5" width="22" height="2" rx="1" fill="#585E70"></rect>
+          </svg>
+          <div style="padding: 12px 14px; border-radius: 16px; background: #171922; display: flex; flex-direction: column; gap: 3px">
+            <span style="font-size: 11px; font-weight: 800; letter-spacing: .06em; color: #858B9E">BIGGEST MISTAKE</span>
+            <span style="font-size: 15px; font-weight: 800">Chasing after red trades</span>
+            <span style="font-size: 13px; font-weight: 700; color: #FF6B6B">3 times · -$512</span>
+          </div>
+          <div style="padding: 12px 14px; border-radius: 16px; background: {{accent}}; color: #15140E; display: flex; flex-direction: column; gap: 3px">
+            <span style="font-size: 11px; font-weight: 800; letter-spacing: .06em; opacity: .75">ONE CHANGE FOR NEXT WEEK</span>
+            <span style="font-size: 15px; font-weight: 800">No new entries after 1 PM</span>
+          </div>
+          <div style="display: flex; justify-content: space-between; font-size: 11px; font-weight: 700; color: #858B9E">
+            <span>journal written by M8</span><span>trenchm8</span>
+          </div>
+        </div></div></div></div><div style="display: flex; flex-wrap: wrap; gap: 8px; margin-top: 8px"><button class="tm-press" style="height: 34px; padding: 0 12px; border: none; border-radius: 8px; background: #4E5058; color: #FFFFFF; font-family: inherit; font-size: 14px; font-weight: 600; display: inline-flex; align-items: center; gap: 6px; white-space: nowrap; cursor: pointer">Share card</button><button class="tm-press" style="height: 34px; padding: 0 12px; border: none; border-radius: 8px; background: #4E5058; color: #FFFFFF; font-family: inherit; font-size: 14px; font-weight: 600; display: inline-flex; align-items: center; gap: 6px; white-space: nowrap; cursor: pointer">Full recap<span style="display: flex; opacity: 0.85"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 17L17 7"></path><path d="M8 7h9v9"></path></svg></span></button></div></div>
+              </div>
+            </div></sc-if>
+<sc-if value="{{a.tilt}}" hint-placeholder-val="{{ false }}"><div class="lp-bub" style="display: flex; gap: 12px; margin-top: 14px; padding: 2px 16px">
+              <svg width="40" height="40" viewBox="0 0 36 36" aria-hidden="true" style="flex-shrink: 0; display: block"><rect x="0" y="0" width="36" height="36" rx="20" fill="{{accent}}"></rect><rect x="11" y="12" width="4.5" height="9" rx="2.25" fill="#15140E"></rect><rect x="20.5" y="12" width="4.5" height="9" rx="2.25" fill="#15140E"></rect></svg>
+              <div style="display: flex; flex-direction: column; min-width: 0; flex-grow: 1">
+                <div style="display: flex; align-items: center; gap: 6px; height: 22px"><span style="font-size: 16px; font-weight: 600; color: #F2F3F5">M8</span><span style="display: inline-flex; align-items: center; height: 15px; padding: 0 4px; border-radius: 4px; background: #5865F2; color: #FFFFFF; font-size: 10px; font-weight: 600; line-height: 15px; letter-spacing: 0.02em; flex-shrink: 0">APP</span><span style="font-size: 12px; color: #949BA4; margin-left: 2px">Today at 4:31 PM</span></div>
+                <div style="font-size: 15px; line-height: 1.375; color: #DBDEE1; overflow-wrap: anywhere">Heads up from today:<div style="display: flex; margin-top: 6px; border-radius: 4px; overflow: hidden; background: #2B2D31; border: 1px solid #26272B"><div style="width: 4px; flex-shrink: 0; background: #F23F43"></div><div style="display: flex; flex-direction: column; gap: 6px; padding: 9px 12px 12px 11px; min-width: 0; flex-grow: 1"><span style="font-size: 15px; font-weight: 700; line-height: 1.3; color: #F2F3F5">Same move as Sep 18</span><div style="display: grid; grid-template-columns: repeat(1, minmax(0, 1fr)); gap: 6px 10px"><div style="display: flex; flex-direction: column; gap: 1px; min-width: 0"><span style="font-size: 13px; font-weight: 700; color: #F2F3F5">Today</span><span style="font-size: 13.5px; line-height: 1.375; color: #DBDEE1">$PEPU2, 4 min after closing $WIFHAT red, 2x your normal size: <span style="color: #FF6B6B">-$154</span></span></div><div style="display: flex; flex-direction: column; gap: 1px; min-width: 0"><span style="font-size: 13px; font-weight: 700; color: #F2F3F5">Sep 18</span><span style="font-size: 13.5px; line-height: 1.375; color: #DBDEE1">$PEPU, 2 min after a loss, 2.5x size: <span style="color: #FF6B6B">-$188</span></span></div></div><div style="display: flex; align-items: center; gap: 6px; margin-top: 2px; font-size: 12px; font-weight: 500; color: #949BA4"><svg width="18" height="18" viewBox="0 0 36 36" aria-hidden="true" style="flex-shrink: 0; display: block"><rect x="0" y="0" width="36" height="36" rx="9" fill="{{accent}}"></rect><rect x="11" y="12" width="4.5" height="9" rx="2.25" fill="#15140E"></rect><rect x="20.5" y="12" width="4.5" height="9" rx="2.25" fill="#15140E"></rect></svg><span>TrenchM8 · journaled by M8</span></div></div></div></div>
+              </div>
+            </div><div class="lp-bub" style="margin-top: 6px; padding: 2px 16px 2px 68px; font-size: 15px; line-height: 1.375; color: #DBDEE1; overflow-wrap: anywhere">Want a 20 min cooldown after red trades? I&#39;ll ping you if you break it.<div style="display: flex; flex-wrap: wrap; gap: 8px; margin-top: 8px"><button class="tm-press" style="height: 34px; padding: 0 12px; border: none; border-radius: 8px; background: #5865F2; color: #FFFFFF; font-family: inherit; font-size: 14px; font-weight: 600; display: inline-flex; align-items: center; gap: 6px; white-space: nowrap; cursor: pointer">Set 20 min cooldown</button><button class="tm-press" style="height: 34px; padding: 0 12px; border: none; border-radius: 8px; background: #4E5058; color: #FFFFFF; font-family: inherit; font-size: 14px; font-weight: 600; display: inline-flex; align-items: center; gap: 6px; white-space: nowrap; cursor: pointer">Not now</button></div></div></sc-if>
+<sc-if value="{{a.calls}}" hint-placeholder-val="{{ false }}"><div class="lp-bub" style="display: flex; gap: 12px; margin-top: 14px; padding: 2px 16px">
+              <svg width="40" height="40" viewBox="0 0 36 36" aria-hidden="true" style="flex-shrink: 0; display: block"><rect x="0" y="0" width="36" height="36" rx="20" fill="{{accent}}"></rect><rect x="11" y="12" width="4.5" height="9" rx="2.25" fill="#15140E"></rect><rect x="20.5" y="12" width="4.5" height="9" rx="2.25" fill="#15140E"></rect></svg>
+              <div style="display: flex; flex-direction: column; min-width: 0; flex-grow: 1">
+                <div style="display: flex; align-items: center; gap: 6px; height: 22px"><span style="font-size: 16px; font-weight: 600; color: #F2F3F5">M8</span><span style="display: inline-flex; align-items: center; height: 15px; padding: 0 4px; border-radius: 4px; background: #5865F2; color: #FFFFFF; font-size: 10px; font-weight: 600; line-height: 15px; letter-spacing: 0.02em; flex-shrink: 0">APP</span><span style="font-size: 12px; color: #949BA4; margin-left: 2px">Today at 4:31 PM</span></div>
+                <div style="font-size: 15px; line-height: 1.375; color: #DBDEE1; overflow-wrap: anywhere"><b>No calls, ever.</b> Ask about a coin and you get facts, not a verdict:<div style="display: flex; margin-top: 6px; border-radius: 4px; overflow: hidden; background: #2B2D31; border: 1px solid #26272B"><div style="width: 4px; flex-shrink: 0; background: {{accent}}"></div><div style="display: flex; flex-direction: column; gap: 6px; padding: 9px 12px 12px 11px; min-width: 0; flex-grow: 1"><span style="font-size: 15px; font-weight: 700; line-height: 1.3; color: #F2F3F5">$FROGZ · not a call</span><div style="display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 6px 10px"><div style="display: flex; flex-direction: column; gap: 1px; min-width: 0"><span style="font-size: 13px; font-weight: 700; color: #F2F3F5">Age</span><span style="font-size: 13.5px; line-height: 1.375; color: #DBDEE1">41 min</span></div><div style="display: flex; flex-direction: column; gap: 1px; min-width: 0"><span style="font-size: 13px; font-weight: 700; color: #F2F3F5">Liquidity</span><span style="font-size: 13.5px; line-height: 1.375; color: #DBDEE1">$86k</span></div><div style="display: flex; flex-direction: column; gap: 1px; min-width: 0"><span style="font-size: 13px; font-weight: 700; color: #F2F3F5">Top 10 hold</span><span style="font-size: 13.5px; line-height: 1.375; color: #DBDEE1">38%</span></div></div><div style="font-size: 13.5px; line-height: 1.375; color: #DBDEE1">Your best setup is coins under 1h old at normal size. Your call.</div><div style="display: flex; align-items: center; gap: 6px; margin-top: 2px; font-size: 12px; font-weight: 500; color: #949BA4"><svg width="18" height="18" viewBox="0 0 36 36" aria-hidden="true" style="flex-shrink: 0; display: block"><rect x="0" y="0" width="36" height="36" rx="9" fill="{{accent}}"></rect><rect x="11" y="12" width="4.5" height="9" rx="2.25" fill="#15140E"></rect><rect x="20.5" y="12" width="4.5" height="9" rx="2.25" fill="#15140E"></rect></svg><span>TrenchM8 · journaled by M8</span></div></div></div></div>
+              </div>
+            </div></sc-if>
+<sc-if value="{{a.degen}}" hint-placeholder-val="{{ false }}"><div class="lp-bub" style="display: flex; gap: 12px; margin-top: 14px; padding: 2px 16px">
+              <svg width="40" height="40" viewBox="0 0 36 36" aria-hidden="true" style="flex-shrink: 0; display: block"><rect x="0" y="0" width="36" height="36" rx="20" fill="{{accent}}"></rect><rect x="11" y="12" width="4.5" height="9" rx="2.25" fill="#15140E"></rect><rect x="20.5" y="12" width="4.5" height="9" rx="2.25" fill="#15140E"></rect></svg>
+              <div style="display: flex; flex-direction: column; min-width: 0; flex-grow: 1">
+                <div style="display: flex; align-items: center; gap: 6px; height: 22px"><span style="font-size: 16px; font-weight: 600; color: #F2F3F5">M8</span><span style="display: inline-flex; align-items: center; height: 15px; padding: 0 4px; border-radius: 4px; background: #5865F2; color: #FFFFFF; font-size: 10px; font-weight: 600; line-height: 15px; letter-spacing: 0.02em; flex-shrink: 0">APP</span><span style="font-size: 12px; color: #949BA4; margin-left: 2px">Today at 4:31 PM</span></div>
+                <div style="font-size: 15px; line-height: 1.375; color: #DBDEE1; overflow-wrap: anywhere"><div style="font-size: 12.5px; color: #949BA4; margin-bottom: 2px">Blunt degen voice · switch with <span style="padding: 0 2px; border-radius: 3px; background: rgba(88,101,242,0.3); color: #C9CDFB; font-weight: 500">/voice</span></div>8 trades, +$234. morning was clean, then you gave back $375 on two coins after lunch. what happened, be honest</div>
+              </div>
+            </div></sc-if>
+<sc-if value="{{a.cta}}" hint-placeholder-val="{{ false }}"><div class="lp-bub" style="margin-top: 6px; padding: 2px 16px 2px 68px; font-size: 15px; line-height: 1.375; color: #DBDEE1; overflow-wrap: anywhere">Want me to text you after your next session? Pick where:<div style="display: flex; flex-wrap: wrap; gap: 8px; margin-top: 8px"><button class="tm-press" onClick="{{startDc}}" style="height: 34px; padding: 0 12px; border: none; border-radius: 8px; background: #5865F2; color: #FFFFFF; font-family: inherit; font-size: 14px; font-weight: 600; display: inline-flex; align-items: center; gap: 6px; white-space: nowrap; cursor: pointer"><svg width="16" height="16" viewBox="0 0 24 24" aria-hidden="true" style="flex-shrink: 0"><circle cx="12" cy="12" r="12" fill="#5865F2"></circle><path d="M16.9 8.1a9.6 9.6 0 0 0-2.4-.8l-.3.6a8.9 8.9 0 0 0-2.4-.1 8.9 8.9 0 0 0-1.4.1l-.3-.6a9.6 9.6 0 0 0-2.4.8C6.2 10.4 5.8 12.6 6 14.8a9.7 9.7 0 0 0 2.9 1.5l.6-1c-.3-.1-.7-.3-1-.5l.2-.2a6.9 6.9 0 0 0 6.6 0l.2.2c-.3.2-.7.4-1 .5l.6 1a9.6 9.6 0 0 0 2.9-1.5c.2-2.5-.4-4.7-2.1-6.7zM10 13.6c-.6 0-1-.5-1-1.1s.4-1.1 1-1.1 1 .5 1 1.1-.4 1.1-1 1.1zm4 0c-.6 0-1-.5-1-1.1s.4-1.1 1-1.1 1 .5 1 1.1-.4 1.1-1 1.1z" fill="#FFFFFF"></path></svg>Discord</button><button class="tm-press" onClick="{{startTg}}" style="height: 34px; padding: 0 12px; border: none; border-radius: 8px; background: #4E5058; color: #FFFFFF; font-family: inherit; font-size: 14px; font-weight: 600; display: inline-flex; align-items: center; gap: 6px; white-space: nowrap; cursor: pointer"><svg width="16" height="16" viewBox="0 0 24 24" aria-hidden="true" style="flex-shrink: 0"><circle cx="12" cy="12" r="12" fill="#2AABEE"></circle><path d="M5.6 11.7l10.9-4.2c.5-.2 1 .1.8.9l-1.9 8.8c-.1.6-.5.8-1 .5l-2.8-2.1-1.4 1.3c-.2.2-.3.3-.6.3l.2-2.9 5.3-4.8c.2-.2 0-.3-.3-.1l-6.6 4.1-2.8-.9c-.6-.2-.6-.6.2-.9z" fill="#FFFFFF"></path></svg>Telegram</button></div></div></sc-if>
+            </sc-for>
+            <sc-if value="{{typingM8}}" hint-placeholder-val="{{ false }}"></sc-if>
+            <sc-if value="{{showChips}}" hint-placeholder-val="{{ true }}">
+              
+              <div style="display: flex; flex-wrap: wrap; justify-content: flex-end; gap: 6px; margin-top: 14px; padding: 0 16px 0 24px">
+                <sc-for list="{{chips}}" as="ch" hint-placeholder-count="4"><button class="lp-chip" onClick="{{ch.pick}}" style="--tm-d: {{ch.d}}; height: 34px; padding: 0 13px; border: none; border-radius: 8px; background: #4E5058; color: #FFFFFF; font-family: inherit; font-size: 14px; font-weight: 600; box-shadow: 0 2px 0 rgba(0,0,0,0.28), inset 0 1px 0 rgba(255,255,255,0.06); white-space: nowrap">{{ch.label}}</button></sc-for>
+              </div>
+            </sc-if>
+          </div>
+        </div>
+        <div style="display: flex; flex-direction: column; flex-shrink: 0; background: #313338">
+          <sc-if value="{{typingM8}}" hint-placeholder-val="{{ false }}"><div style="display: flex; align-items: center; gap: 8px; padding: 0 16px 4px 16px; font-size: 13px; color: #DBDEE1"><span style="display: flex; gap: 3px; color: #DBDEE1; zoom: 0.85"><span class="lp-dot"></span><span class="lp-dot" style="animation-delay: .15s"></span><span class="lp-dot" style="animation-delay: .3s"></span></span><span><b style="color: #F2F3F5">M8</b> is typing…</span></div></sc-if>
+          <div style="display: flex; align-items: center; gap: 8px; padding: 6px 12px 6px 12px">
+            <span style="width: 38px; height: 38px; flex-shrink: 0; border-radius: 19px; background: #383A40; color: #B5BAC1; display: flex; align-items: center; justify-content: center"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 5v14"></path><path d="M5 12h14"></path></svg></span>
+            <sc-if value="{{typingYou}}" hint-placeholder-val="{{ false }}">
+              <div style="flex-grow: 1; min-width: 0; height: 38px; box-sizing: border-box; padding: 0 14px; border-radius: 19px; background: #383A40; display: flex; align-items: center; gap: 8px; font-size: 15px; color: #DBDEE1"><span class="lp-rec" style="width: 8px; height: 8px; border-radius: 50%; background: #F23F43"></span>Recording… <span style="margin-left: auto; color: #949BA4">0:05</span></div>
+            </sc-if>
+            <sc-if value="{{notTypingYou}}" hint-placeholder-val="{{ true }}">
+              <div style="flex-grow: 1; min-width: 0; height: 38px; box-sizing: border-box; padding: 0 14px; border-radius: 19px; background: #383A40; display: flex; align-items: center; font-size: 15px; color: #949BA4">Message @M8</div>
+            </sc-if>
+            <span style="width: 38px; height: 38px; flex-shrink: 0; border-radius: 19px; background: {{dcMic}}; color: #B5BAC1; display: flex; align-items: center; justify-content: center"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="9" y="3" width="6" height="11" rx="3"></rect><path d="M5 11a7 7 0 0 0 14 0"></path><path d="M12 18v3"></path></svg></span>
+          </div>
+        </div>
+        <div style="height: 26px; flex-shrink: 0; display: flex; align-items: flex-end; justify-content: center; padding-bottom: 8px; box-sizing: border-box; background: #313338"><span style="width: 128px; height: 5px; border-radius: 3px; background: #FFFFFF; opacity: 0.85"></span></div>
+      </div></sc-if>
+    </div>
+      </div>
+    </div>
+  </section>
+  <section id="how" style="width: 1200px; max-width: 100%; box-sizing: border-box; padding: {{sec.pad}}; display: flex; flex-direction: column; align-items: center">
+    <sc-if value="{{desktop}}" hint-placeholder-val="{{ true }}">
+    <div style="width: 1200px; display: flex; align-items: center; justify-content: space-between; gap: 40px; padding: 96px 0; border-top: 1px solid {{c.line}}"><div style="display: flex; flex-direction: column; gap: 18px; width: 400px">
+        <span style="font-size: 15px; font-weight: 700; color: {{c.text3}}; font-variant-numeric: tabular-nums">(1)</span>
+        <h2 style="margin: 0; font-size: {{row.h2}}; line-height: 1.04; font-weight: 800; letter-spacing: -0.035em">It texts you after you trade.</h2>
+        <p style="margin: 0; font-size: {{row.p}}; line-height: 1.55; font-weight: 500; color: {{c.text2}}">Paste a wallet once. M8 tracks every trade on Solana, Base, BNB and Robinhood Chain. About 2 hours after your last trade, it texts you on Telegram or Discord. Reply however you like, a few words or a voice note.</p>
+        <div style="display: flex; flex-wrap: wrap; gap: 8px"><span style="padding: 6px 11px; border-radius: 999px; background: {{c.surface}}; box-shadow: inset 0 0 0 1px {{c.line}}; font-size: 13px; font-weight: 700; color: {{c.text2}}">Read-only, nothing to sign</span><span style="padding: 6px 11px; border-radius: 999px; background: {{c.surface}}; box-shadow: inset 0 0 0 1px {{c.line}}; font-size: 13px; font-weight: 700; color: {{c.text2}}">Up to 5 wallets</span><span style="padding: 6px 11px; border-radius: 999px; background: {{c.surface}}; box-shadow: inset 0 0 0 1px {{c.line}}; font-size: 13px; font-weight: 700; color: {{c.text2}}">Text or voice</span></div>
+      </div><div style="display: flex; gap: 20px; align-items: flex-start"><div style="display: flex; flex-direction: column; gap: 10px"><div class="lp-clip lp-shot" style="width: 370px; height: 253px; flex-shrink: 0; overflow: hidden; border-radius: 24px; background: #0D0E13"><div style="zoom: 0.95; width: 390px; height: 266px; overflow: hidden"><div style="margin-left: -0px; margin-top: -57px; width: 390px"><dc-import name="TgNudge" accent="{{accent}}" hint-size="390px,1640px"></dc-import></div></div></div><span style="font-size: 13px; font-weight: 700; color: {{c.text3}}">Telegram</span></div><div style="display: flex; flex-direction: column; gap: 10px"><div class="lp-clip lp-shot" style="width: 370px; height: 253px; flex-shrink: 0; overflow: hidden; border-radius: 24px; background: #313338"><div style="zoom: 0.95; width: 390px; height: 266px; overflow: hidden"><div style="margin-left: -0px; margin-top: -44px; width: 390px"><dc-import name="DcNudge" accent="{{accent}}" hint-size="390px,1072px"></dc-import></div></div></div><span style="font-size: 13px; font-weight: 700; color: {{c.text3}}">Discord</span></div></div></div>
+    <div style="width: 1200px; display: flex; flex-direction: column; gap: 48px; padding: 96px 0; border-top: 1px solid {{c.line}}">
+      <div style="display: flex; align-items: flex-end; justify-content: space-between; gap: 40px">
+        <div style="display: flex; flex-direction: column; gap: 18px; width: 560px"><span style="font-size: 15px; font-weight: 700; color: {{c.text3}}; font-variant-numeric: tabular-nums">(2)</span><h2 style="margin: 0; font-size: {{row.h2}}; line-height: 1.04; font-weight: 800; letter-spacing: -0.035em">Your journal writes itself.</h2></div>
+        <div style="display: flex; flex-direction: column; gap: 18px; width: 520px"><p style="margin: 0; font-size: {{row.p}}; line-height: 1.55; font-weight: 500; color: {{c.text2}}">Your reply becomes the day&#39;s entry, in your own words. M8 adds its take, tags every trade and keeps the receipts. Change anything by hand, or just tell M8.</p><div style="display: flex; flex-wrap: wrap; gap: 8px"><span style="padding: 6px 11px; border-radius: 999px; background: {{c.surface}}; box-shadow: inset 0 0 0 1px {{c.line}}; font-size: 13px; font-weight: 700; color: {{c.text2}}">In your words</span><span style="padding: 6px 11px; border-radius: 999px; background: {{c.surface}}; box-shadow: inset 0 0 0 1px {{c.line}}; font-size: 13px; font-weight: 700; color: {{c.text2}}">M8&#39;s take, separate</span><span style="padding: 6px 11px; border-radius: 999px; background: {{c.surface}}; box-shadow: inset 0 0 0 1px {{c.line}}; font-size: 13px; font-weight: 700; color: {{c.text2}}">Edit with Undo</span></div></div>
+      </div>
+      <div class="lp-clip lp-shot" style="width: 1200px; height: 691px; flex-shrink: 0; overflow: hidden; border-radius: 24px; background: #0D0E13"><div style="zoom: 0.838; width: 1432px; height: 824px; overflow: hidden"><div style="margin-left: -4px; margin-top: -76px; width: 1440px"><dc-import name="Desktop" theme="{{theme}}" accent="{{accent}}" hint-size="1440px,1840px"></dc-import></div></div></div>
+    </div>
+    <div style="width: 1200px; display: flex; align-items: center; justify-content: space-between; gap: 40px; padding: 96px 0; border-top: 1px solid {{c.line}}"><div style="display: flex; gap: 20px; align-items: flex-start"><div style="display: flex; flex-direction: column; gap: 10px"><div class="lp-clip lp-shot" style="width: 370px; height: 302px; flex-shrink: 0; overflow: hidden; border-radius: 24px; background: #0D0E13"><div style="zoom: 0.95; width: 390px; height: 318px; overflow: hidden"><div style="margin-left: -0px; margin-top: -100px; width: 390px"><dc-import name="TgRepeat" accent="{{accent}}" hint-size="390px,1180px"></dc-import></div></div></div><span style="font-size: 13px; font-weight: 700; color: {{c.text3}}">Live, mid-session</span></div><div style="display: flex; flex-direction: column; gap: 10px"><div class="lp-clip lp-shot" style="width: 367px; height: 265px; flex-shrink: 0; overflow: hidden; border-radius: 24px; background: {{c.bg}}"><div style="zoom: 0.81; width: 453px; height: 327px; overflow: hidden"><div style="margin-left: -24px; margin-top: -1071px; width: 1440px"><dc-import name="Stats" theme="{{theme}}" layout="desktop" accent="{{accent}}" hint-size="1440px,3100px"></dc-import></div></div></div><span style="font-size: 13px; font-weight: 700; color: {{c.text3}}">Over weeks, on the web</span></div></div><div style="display: flex; flex-direction: column; gap: 18px; width: 400px">
+        <span style="font-size: 15px; font-weight: 700; color: {{c.text3}}; font-variant-numeric: tabular-nums">(3)</span>
+        <h2 style="margin: 0; font-size: {{row.h2}}; line-height: 1.04; font-weight: 800; letter-spacing: -0.035em">It catches your patterns.</h2>
+        <p style="margin: 0; font-size: {{row.p}}; line-height: 1.55; font-weight: 500; color: {{c.text2}}">Once, while you&#39;re still in it: same move as Sep 18, 2 min after a loss. And over weeks, where your edge is and where it leaks: +$2,910 on coins under 1 hour old, -$1,626 on everything older.</p>
+        <div style="display: flex; flex-wrap: wrap; gap: 8px"><span style="padding: 6px 11px; border-radius: 999px; background: {{c.surface}}; box-shadow: inset 0 0 0 1px {{c.line}}; font-size: 13px; font-weight: 700; color: {{c.text2}}">One live check-in per session</span><span style="padding: 6px 11px; border-radius: 999px; background: {{c.surface}}; box-shadow: inset 0 0 0 1px {{c.line}}; font-size: 13px; font-weight: 700; color: {{c.text2}}">Always with receipts</span><span style="padding: 6px 11px; border-radius: 999px; background: {{c.surface}}; box-shadow: inset 0 0 0 1px {{c.line}}; font-size: 13px; font-weight: 700; color: {{c.text2}}">Never a call</span></div>
+      </div></div>
+    <div style="width: 1200px; display: flex; align-items: center; justify-content: space-between; gap: 40px; padding: 96px 0; border-top: 1px solid {{c.line}}"><div style="display: flex; flex-direction: column; gap: 18px; width: 400px">
+        <span style="font-size: 15px; font-weight: 700; color: {{c.text3}}; font-variant-numeric: tabular-nums">(4)</span>
+        <h2 style="margin: 0; font-size: {{row.h2}}; line-height: 1.04; font-weight: 800; letter-spacing: -0.035em">Mornings and Sundays.</h2>
+        <p style="margin: 0; font-size: {{row.p}}; line-height: 1.55; font-weight: 500; color: {{c.text2}}">A morning brief with what moved overnight on your chains and the one thing to remember from yesterday. On Sunday, your week on a card worth sharing.</p>
+        <div style="display: flex; flex-wrap: wrap; gap: 8px"><span style="padding: 6px 11px; border-radius: 999px; background: {{c.surface}}; box-shadow: inset 0 0 0 1px {{c.line}}; font-size: 13px; font-weight: 700; color: {{c.text2}}">8 AM your time</span><span style="padding: 6px 11px; border-radius: 999px; background: {{c.surface}}; box-shadow: inset 0 0 0 1px {{c.line}}; font-size: 13px; font-weight: 700; color: {{c.text2}}">Mute anytime</span><span style="padding: 6px 11px; border-radius: 999px; background: {{c.surface}}; box-shadow: inset 0 0 0 1px {{c.line}}; font-size: 13px; font-weight: 700; color: {{c.text2}}">Shareable recap card</span></div>
+      </div><div style="display: flex; gap: 20px; align-items: flex-start"><div style="display: flex; flex-direction: column; gap: 10px"><div class="lp-clip lp-shot" style="width: 351px; height: 594px; flex-shrink: 0; overflow: hidden; border-radius: 24px; background: #0D0E13"><div style="zoom: 0.9; width: 390px; height: 660px; overflow: hidden"><div style="margin-left: -0px; margin-top: -64px; width: 390px"><dc-import name="TgMorning" accent="{{accent}}" hint-size="390px,900px"></dc-import></div></div></div><span style="font-size: 13px; font-weight: 700; color: {{c.text3}}">8:00 AM</span></div><div style="display: flex; flex-direction: column; gap: 10px"><div class="lp-shot" style="border-radius: 20px; overflow: hidden"><div style="width: 370px; overflow: hidden"><div style="width: 330px; zoom: 1.1212"><div role="img" aria-label="Recap card, week 41, Oct 5 to 11: up $816 on 31 trades, 52% win rate. Biggest mistake: chasing after red trades, 3 times, minus $512. One change: no entries after 1 PM." style="background: #0D0E13; padding: 20px 18px 16px 18px; display: flex; flex-direction: column; gap: 14px; font-family: Manrope, system-ui, sans-serif; font-variant-numeric: tabular-nums; color: #F3F4F7">
+          <div style="display: flex; align-items: center; gap: 8px">
+            <svg width="26" height="26" viewBox="0 0 36 36" aria-hidden="true"><rect x="0" y="0" width="36" height="36" rx="12" fill="{{accent}}"></rect><rect x="11" y="12" width="4.5" height="9" rx="2.25" fill="#15140E"></rect><rect x="20.5" y="12" width="4.5" height="9" rx="2.25" fill="#15140E"></rect></svg>
+            <span style="font-size: 13px; font-weight: 800; flex-grow: 1">Week 41 recap</span>
+            <span style="font-size: 12px; font-weight: 700; color: #858B9E">Oct 5 - 11</span>
+          </div>
+          <div style="display: flex; flex-direction: column; gap: 2px">
+            <span style="font-size: 44px; line-height: 1; font-weight: 800; letter-spacing: -0.03em; color: #3FD98E">+$816</span>
+            <span style="font-size: 13px; font-weight: 700; color: #A9AEBE">31 trades · 52% win · best week this month</span>
+          </div>
+          <svg width="294" height="44" viewBox="0 0 288 44" aria-hidden="true" style="display: block; width: 100%; height: 44px">
+            <line x1="0" y1="34" x2="288" y2="34" stroke="#2C303D" stroke-width="1"></line>
+            <rect x="9.5" y="4" width="22" height="30" rx="4" fill="#3FD98E"></rect>
+            <rect x="50.6" y="34" width="22" height="6.4" rx="3" fill="#FF6B6B"></rect>
+            <rect x="91.7" y="17" width="22" height="17" rx="4" fill="#3FD98E"></rect>
+            <rect x="132.8" y="10.8" width="22" height="23.2" rx="4" fill="#3FD98E"></rect>
+            <rect x="173.9" y="34" width="22" height="9.5" rx="3" fill="#FF6B6B"></rect>
+            <rect x="215" y="27" width="22" height="7" rx="3" fill="#3FD98E"></rect>
+            <rect x="256.1" y="32.5" width="22" height="2" rx="1" fill="#585E70"></rect>
+          </svg>
+          <div style="padding: 12px 14px; border-radius: 16px; background: #171922; display: flex; flex-direction: column; gap: 3px">
+            <span style="font-size: 11px; font-weight: 800; letter-spacing: .06em; color: #858B9E">BIGGEST MISTAKE</span>
+            <span style="font-size: 15px; font-weight: 800">Chasing after red trades</span>
+            <span style="font-size: 13px; font-weight: 700; color: #FF6B6B">3 times · -$512</span>
+          </div>
+          <div style="padding: 12px 14px; border-radius: 16px; background: {{accent}}; color: #15140E; display: flex; flex-direction: column; gap: 3px">
+            <span style="font-size: 11px; font-weight: 800; letter-spacing: .06em; opacity: .75">ONE CHANGE FOR NEXT WEEK</span>
+            <span style="font-size: 15px; font-weight: 800">No new entries after 1 PM</span>
+          </div>
+          <div style="display: flex; justify-content: space-between; font-size: 11px; font-weight: 700; color: #858B9E">
+            <span>journal written by M8</span><span>trenchm8</span>
+          </div>
+        </div></div></div></div><span style="font-size: 13px; font-weight: 700; color: {{c.text3}}">Sunday, 6:00 PM</span></div></div></div>
+    </sc-if>
+    <sc-if value="{{mobile}}" hint-placeholder-val="{{ false }}">
+    <div style="width: 100%; display: flex; flex-direction: column; gap: 28px; padding: 64px 0; border-top: 1px solid {{c.line}}"><div style="display: flex; flex-direction: column; gap: 18px; width: 100%">
+        <span style="font-size: 15px; font-weight: 700; color: {{c.text3}}; font-variant-numeric: tabular-nums">(1)</span>
+        <h2 style="margin: 0; font-size: {{row.h2}}; line-height: 1.04; font-weight: 800; letter-spacing: -0.035em">It texts you after you trade.</h2>
+        <p style="margin: 0; font-size: {{row.p}}; line-height: 1.55; font-weight: 500; color: {{c.text2}}">Paste a wallet once. M8 tracks every trade on Solana, Base, BNB and Robinhood Chain. About 2 hours after your last trade, it texts you on Telegram or Discord. Reply however you like, a few words or a voice note.</p>
+        <div style="display: flex; flex-wrap: wrap; gap: 8px"><span style="padding: 6px 11px; border-radius: 999px; background: {{c.surface}}; box-shadow: inset 0 0 0 1px {{c.line}}; font-size: 13px; font-weight: 700; color: {{c.text2}}">Read-only, nothing to sign</span><span style="padding: 6px 11px; border-radius: 999px; background: {{c.surface}}; box-shadow: inset 0 0 0 1px {{c.line}}; font-size: 13px; font-weight: 700; color: {{c.text2}}">Up to 5 wallets</span><span style="padding: 6px 11px; border-radius: 999px; background: {{c.surface}}; box-shadow: inset 0 0 0 1px {{c.line}}; font-size: 13px; font-weight: 700; color: {{c.text2}}">Text or voice</span></div>
+      </div><div style="display: flex; flex-direction: column; gap: 20px"><div style="display: flex; flex-direction: column; gap: 10px"><div class="lp-clip lp-shot" style="width: 358px; height: 244px; flex-shrink: 0; overflow: hidden; border-radius: 24px; background: #0D0E13"><div style="zoom: 0.918; width: 390px; height: 266px; overflow: hidden"><div style="margin-left: -0px; margin-top: -57px; width: 390px"><dc-import name="TgNudge" accent="{{accent}}" hint-size="390px,1640px"></dc-import></div></div></div><span style="font-size: 13px; font-weight: 700; color: {{c.text3}}">Telegram</span></div><div style="display: flex; flex-direction: column; gap: 10px"><div class="lp-clip lp-shot" style="width: 358px; height: 244px; flex-shrink: 0; overflow: hidden; border-radius: 24px; background: #313338"><div style="zoom: 0.918; width: 390px; height: 266px; overflow: hidden"><div style="margin-left: -0px; margin-top: -44px; width: 390px"><dc-import name="DcNudge" accent="{{accent}}" hint-size="390px,1072px"></dc-import></div></div></div><span style="font-size: 13px; font-weight: 700; color: {{c.text3}}">Discord</span></div></div></div>
+    <div style="width: 100%; display: flex; flex-direction: column; gap: 28px; padding: 64px 0; border-top: 1px solid {{c.line}}"><div style="display: flex; flex-direction: column; gap: 18px; width: 100%">
+        <span style="font-size: 15px; font-weight: 700; color: {{c.text3}}; font-variant-numeric: tabular-nums">(2)</span>
+        <h2 style="margin: 0; font-size: {{row.h2}}; line-height: 1.04; font-weight: 800; letter-spacing: -0.035em">Your journal writes itself.</h2>
+        <p style="margin: 0; font-size: {{row.p}}; line-height: 1.55; font-weight: 500; color: {{c.text2}}">Your reply becomes the day&#39;s entry, in your own words. M8 adds its take, tags every trade and keeps the receipts. Change anything by hand, or just tell M8.</p>
+        <div style="display: flex; flex-wrap: wrap; gap: 8px"><span style="padding: 6px 11px; border-radius: 999px; background: {{c.surface}}; box-shadow: inset 0 0 0 1px {{c.line}}; font-size: 13px; font-weight: 700; color: {{c.text2}}">In your words</span><span style="padding: 6px 11px; border-radius: 999px; background: {{c.surface}}; box-shadow: inset 0 0 0 1px {{c.line}}; font-size: 13px; font-weight: 700; color: {{c.text2}}">M8&#39;s take, separate</span><span style="padding: 6px 11px; border-radius: 999px; background: {{c.surface}}; box-shadow: inset 0 0 0 1px {{c.line}}; font-size: 13px; font-weight: 700; color: {{c.text2}}">Edit with Undo</span></div>
+      </div><div class="lp-clip lp-shot" style="width: 358px; height: 841px; flex-shrink: 0; overflow: hidden; border-radius: 24px; background: #0D0E13"><div style="zoom: 0.918; width: 390px; height: 916px; overflow: hidden"><div style="margin-left: -0px; margin-top: -0px; width: 390px"><dc-import name="Main" theme="{{theme}}" accent="{{accent}}" hint-size="390px,3020px"></dc-import></div></div></div></div>
+    <div style="width: 100%; display: flex; flex-direction: column; gap: 28px; padding: 64px 0; border-top: 1px solid {{c.line}}"><div style="display: flex; flex-direction: column; gap: 18px; width: 100%">
+        <span style="font-size: 15px; font-weight: 700; color: {{c.text3}}; font-variant-numeric: tabular-nums">(3)</span>
+        <h2 style="margin: 0; font-size: {{row.h2}}; line-height: 1.04; font-weight: 800; letter-spacing: -0.035em">It catches your patterns.</h2>
+        <p style="margin: 0; font-size: {{row.p}}; line-height: 1.55; font-weight: 500; color: {{c.text2}}">Once, while you&#39;re still in it: same move as Sep 18, 2 min after a loss. And over weeks, where your edge is and where it leaks: +$2,910 on coins under 1 hour old, -$1,626 on everything older.</p>
+        <div style="display: flex; flex-wrap: wrap; gap: 8px"><span style="padding: 6px 11px; border-radius: 999px; background: {{c.surface}}; box-shadow: inset 0 0 0 1px {{c.line}}; font-size: 13px; font-weight: 700; color: {{c.text2}}">One live check-in per session</span><span style="padding: 6px 11px; border-radius: 999px; background: {{c.surface}}; box-shadow: inset 0 0 0 1px {{c.line}}; font-size: 13px; font-weight: 700; color: {{c.text2}}">Always with receipts</span><span style="padding: 6px 11px; border-radius: 999px; background: {{c.surface}}; box-shadow: inset 0 0 0 1px {{c.line}}; font-size: 13px; font-weight: 700; color: {{c.text2}}">Never a call</span></div>
+      </div><div style="display: flex; flex-direction: column; gap: 20px"><div style="display: flex; flex-direction: column; gap: 10px"><div class="lp-clip lp-shot" style="width: 358px; height: 292px; flex-shrink: 0; overflow: hidden; border-radius: 24px; background: #0D0E13"><div style="zoom: 0.918; width: 390px; height: 318px; overflow: hidden"><div style="margin-left: -0px; margin-top: -100px; width: 390px"><dc-import name="TgRepeat" accent="{{accent}}" hint-size="390px,1180px"></dc-import></div></div></div><span style="font-size: 13px; font-weight: 700; color: {{c.text3}}">Live, mid-session</span></div><div style="display: flex; flex-direction: column; gap: 10px"><div class="lp-clip lp-shot" style="width: 358px; height: 258px; flex-shrink: 0; overflow: hidden; border-radius: 24px; background: {{c.bg}}"><div style="zoom: 0.79; width: 453px; height: 327px; overflow: hidden"><div style="margin-left: -24px; margin-top: -1071px; width: 1440px"><dc-import name="Stats" theme="{{theme}}" layout="desktop" accent="{{accent}}" hint-size="1440px,3100px"></dc-import></div></div></div><span style="font-size: 13px; font-weight: 700; color: {{c.text3}}">Over weeks, on the web</span></div></div></div>
+    <div style="width: 100%; display: flex; flex-direction: column; gap: 28px; padding: 64px 0; border-top: 1px solid {{c.line}}"><div style="display: flex; flex-direction: column; gap: 18px; width: 100%">
+        <span style="font-size: 15px; font-weight: 700; color: {{c.text3}}; font-variant-numeric: tabular-nums">(4)</span>
+        <h2 style="margin: 0; font-size: {{row.h2}}; line-height: 1.04; font-weight: 800; letter-spacing: -0.035em">Mornings and Sundays.</h2>
+        <p style="margin: 0; font-size: {{row.p}}; line-height: 1.55; font-weight: 500; color: {{c.text2}}">A morning brief with what moved overnight on your chains and the one thing to remember from yesterday. On Sunday, your week on a card worth sharing.</p>
+        <div style="display: flex; flex-wrap: wrap; gap: 8px"><span style="padding: 6px 11px; border-radius: 999px; background: {{c.surface}}; box-shadow: inset 0 0 0 1px {{c.line}}; font-size: 13px; font-weight: 700; color: {{c.text2}}">8 AM your time</span><span style="padding: 6px 11px; border-radius: 999px; background: {{c.surface}}; box-shadow: inset 0 0 0 1px {{c.line}}; font-size: 13px; font-weight: 700; color: {{c.text2}}">Mute anytime</span><span style="padding: 6px 11px; border-radius: 999px; background: {{c.surface}}; box-shadow: inset 0 0 0 1px {{c.line}}; font-size: 13px; font-weight: 700; color: {{c.text2}}">Shareable recap card</span></div>
+      </div><div style="display: flex; flex-direction: column; gap: 20px"><div style="display: flex; flex-direction: column; gap: 10px"><div class="lp-clip lp-shot" style="width: 358px; height: 606px; flex-shrink: 0; overflow: hidden; border-radius: 24px; background: #0D0E13"><div style="zoom: 0.918; width: 390px; height: 660px; overflow: hidden"><div style="margin-left: -0px; margin-top: -64px; width: 390px"><dc-import name="TgMorning" accent="{{accent}}" hint-size="390px,900px"></dc-import></div></div></div><span style="font-size: 13px; font-weight: 700; color: {{c.text3}}">8:00 AM</span></div><div style="display: flex; flex-direction: column; gap: 10px"><div class="lp-shot" style="border-radius: 20px; overflow: hidden"><div style="width: 358px; overflow: hidden"><div style="width: 330px; zoom: 1.0848"><div role="img" aria-label="Recap card, week 41, Oct 5 to 11: up $816 on 31 trades, 52% win rate. Biggest mistake: chasing after red trades, 3 times, minus $512. One change: no entries after 1 PM." style="background: #0D0E13; padding: 20px 18px 16px 18px; display: flex; flex-direction: column; gap: 14px; font-family: Manrope, system-ui, sans-serif; font-variant-numeric: tabular-nums; color: #F3F4F7">
+          <div style="display: flex; align-items: center; gap: 8px">
+            <svg width="26" height="26" viewBox="0 0 36 36" aria-hidden="true"><rect x="0" y="0" width="36" height="36" rx="12" fill="{{accent}}"></rect><rect x="11" y="12" width="4.5" height="9" rx="2.25" fill="#15140E"></rect><rect x="20.5" y="12" width="4.5" height="9" rx="2.25" fill="#15140E"></rect></svg>
+            <span style="font-size: 13px; font-weight: 800; flex-grow: 1">Week 41 recap</span>
+            <span style="font-size: 12px; font-weight: 700; color: #858B9E">Oct 5 - 11</span>
+          </div>
+          <div style="display: flex; flex-direction: column; gap: 2px">
+            <span style="font-size: 44px; line-height: 1; font-weight: 800; letter-spacing: -0.03em; color: #3FD98E">+$816</span>
+            <span style="font-size: 13px; font-weight: 700; color: #A9AEBE">31 trades · 52% win · best week this month</span>
+          </div>
+          <svg width="294" height="44" viewBox="0 0 288 44" aria-hidden="true" style="display: block; width: 100%; height: 44px">
+            <line x1="0" y1="34" x2="288" y2="34" stroke="#2C303D" stroke-width="1"></line>
+            <rect x="9.5" y="4" width="22" height="30" rx="4" fill="#3FD98E"></rect>
+            <rect x="50.6" y="34" width="22" height="6.4" rx="3" fill="#FF6B6B"></rect>
+            <rect x="91.7" y="17" width="22" height="17" rx="4" fill="#3FD98E"></rect>
+            <rect x="132.8" y="10.8" width="22" height="23.2" rx="4" fill="#3FD98E"></rect>
+            <rect x="173.9" y="34" width="22" height="9.5" rx="3" fill="#FF6B6B"></rect>
+            <rect x="215" y="27" width="22" height="7" rx="3" fill="#3FD98E"></rect>
+            <rect x="256.1" y="32.5" width="22" height="2" rx="1" fill="#585E70"></rect>
+          </svg>
+          <div style="padding: 12px 14px; border-radius: 16px; background: #171922; display: flex; flex-direction: column; gap: 3px">
+            <span style="font-size: 11px; font-weight: 800; letter-spacing: .06em; color: #858B9E">BIGGEST MISTAKE</span>
+            <span style="font-size: 15px; font-weight: 800">Chasing after red trades</span>
+            <span style="font-size: 13px; font-weight: 700; color: #FF6B6B">3 times · -$512</span>
+          </div>
+          <div style="padding: 12px 14px; border-radius: 16px; background: {{accent}}; color: #15140E; display: flex; flex-direction: column; gap: 3px">
+            <span style="font-size: 11px; font-weight: 800; letter-spacing: .06em; opacity: .75">ONE CHANGE FOR NEXT WEEK</span>
+            <span style="font-size: 15px; font-weight: 800">No new entries after 1 PM</span>
+          </div>
+          <div style="display: flex; justify-content: space-between; font-size: 11px; font-weight: 700; color: #858B9E">
+            <span>journal written by M8</span><span>trenchm8</span>
+          </div>
+        </div></div></div></div><span style="font-size: 13px; font-weight: 700; color: {{c.text3}}">Sunday, 6:00 PM</span></div></div></div>
+    </sc-if>
+  </section>
+  <section style="width: 1200px; max-width: 100%; box-sizing: border-box; padding: {{founder.pad}}; display: flex; justify-content: center">
+    <figure style="margin: 0; width: 760px; max-width: 100%; box-sizing: border-box; padding: {{founder.inPad}}; border-radius: 28px; background: {{c.surface}}; box-shadow: inset 0 0 0 1px {{c.line}}; display: flex; flex-direction: column; gap: 22px">
+      <div style="display: flex; align-items: center; justify-content: space-between; gap: 12px">
+        <span style="font-size: 13px; font-weight: 800; color: {{c.text3}}">A note from the founder</span>
+        <span style="padding: 4px 10px; border-radius: 999px; border: 1px dashed {{c.text3}}; font-size: 12px; font-weight: 700; color: {{c.text3}}">Draft: Josh to rewrite</span>
+      </div>
+      <blockquote style="margin: 0; display: flex; flex-direction: column; gap: 16px; font-size: {{founder.size}}; line-height: 1.55; font-weight: 500; color: {{c.text}}">
+        <p style="margin: 0">Every trader knows a journal would help. Almost nobody keeps one, because writing it up after a long session is the last thing anyone feels like doing.</p>
+        <p style="margin: 0">So M8 does the writing. It watches the wallets, texts once the session is over, and turns a quick reply into the journal you meant to keep. It won&#39;t tell you what to buy. It just makes sure you remember what you did, and why.</p>
+      </blockquote>
+      <figcaption style="display: flex; align-items: center; gap: 12px"><svg width="36" height="36" viewBox="0 0 36 36" aria-hidden="true" style="flex-shrink: 0; display: block"><rect x="0" y="0" width="36" height="36" rx="18" fill="{{accent}}"></rect><rect x="11" y="12" width="4.5" height="9" rx="2.25" fill="#15140E"></rect><rect x="20.5" y="12" width="4.5" height="9" rx="2.25" fill="#15140E"></rect></svg><span style="display: flex; flex-direction: column"><span style="font-size: 15px; font-weight: 800">Josh, founder</span><span style="font-size: 13px; font-weight: 600; color: {{c.text3}}">TrenchM8</span></span></figcaption>
+    </figure>
+  </section>
+  <section id="pricing" style="width: 1200px; max-width: 100%; box-sizing: border-box; padding: {{price.pad}}; display: flex; justify-content: center">
+    <div style="width: 760px; max-width: 100%; display: flex; flex-direction: column; gap: 24px">
+      <div style="display: flex; flex-direction: column; gap: 12px">
+        <h2 style="margin: 0; font-size: {{row.h2}}; line-height: 1.04; font-weight: 800; letter-spacing: -0.035em">One price. All in.</h2>
+        <p style="margin: 0; font-size: {{row.p}}; line-height: 1.55; font-weight: 500; color: {{c.text2}}">7 days free, no card. Then pay in USDC on Solana. No auto-renew: M8 reminds you 3 days before it runs out.</p>
+      </div>
+      <div style="padding: 8px; border-radius: 30px; background: {{c.surface}}; box-shadow: inset 0 0 0 1px {{c.line}}; display: flex; flex-direction: {{price.dir}}; gap: 8px">
+        <div style="flex: 1 1 0; min-width: 0; padding: 22px 22px 20px 22px; border-radius: 22px; background: {{c.bg}}; box-shadow: inset 0 0 0 1px {{c.line}}; display: flex; flex-direction: column; gap: 6px">
+          <span style="font-size: 34px; font-weight: 800; letter-spacing: -0.03em">$0<span style="font-size: 16px; font-weight: 700; color: {{c.text3}}; letter-spacing: 0"> / 7 days</span></span>
+          <span style="font-size: 14px; font-weight: 600; color: {{c.text2}}">The full trial. Starts when you add a wallet.</span>
+        </div>
+        <div style="flex: 1 1 0; min-width: 0; padding: 22px 22px 20px 22px; border-radius: 22px; background: {{c.bg}}; box-shadow: inset 0 0 0 2px {{accent}}; display: flex; flex-direction: column; gap: 6px">
+          <span style="font-size: 34px; font-weight: 800; letter-spacing: -0.03em">$20<span style="font-size: 16px; font-weight: 700; color: {{c.text3}}; letter-spacing: 0"> / 30 days</span></span>
+          <span style="font-size: 14px; font-weight: 600; color: {{c.text2}}">Everything, for a month.</span>
+        </div>
+        <div style="flex: 1 1 0; min-width: 0; padding: 22px 22px 20px 22px; border-radius: 22px; background: {{c.bg}}; box-shadow: inset 0 0 0 1px {{c.line}}; display: flex; flex-direction: column; gap: 6px">
+          <span style="font-size: 34px; font-weight: 800; letter-spacing: -0.03em">$50<span style="font-size: 16px; font-weight: 700; color: {{c.text3}}; letter-spacing: 0"> / 90 days</span></span>
+          <span style="font-size: 14px; font-weight: 600; color: {{c.text2}}">Everything, for three months. Saves $10.</span>
+        </div>
+      </div>
+    </div>
+  </section>
+  <section style="width: 1200px; max-width: 100%; box-sizing: border-box; padding: {{close.pad}}; display: flex; flex-direction: column; align-items: {{close.align}}; gap: 28px; text-align: {{close.textAlign}}">
+    <h2 style="margin: 0; font-size: {{close.h2}}; line-height: 1.0; font-weight: 800; letter-spacing: -0.045em">Your journal<span style="display: {{close.brM}}"><br></span> starts<span style="display: {{close.br}}"><br></span> with<span style="display: {{close.brM}}"><br></span> one text.</h2>
+    <div style="display: flex; flex-direction: column; align-items: {{cta.calign}}; gap: 14px; width: {{cta.wrapW}}">
+        <div style="display: flex; flex-direction: {{cta.dir}}; gap: 10px; width: {{cta.wrapW}}">
+          <a class="tm-press" href="https://t.me/" onClick="{{startTg}}" data-tip="Opens M8 in Telegram" data-tip-pos="bottom" style="height: 56px; padding: 0 24px 0 16px; box-sizing: border-box; border-radius: 999px; display: flex; align-items: center; justify-content: center; gap: 10px; font-size: 16px; font-weight: 800; text-decoration: none; white-space: nowrap; width: {{cta.w}}; background: {{accent}}; color: #15140E"><svg width="24" height="24" viewBox="0 0 24 24" aria-hidden="true" style="flex-shrink: 0"><circle cx="12" cy="12" r="12" fill="#2AABEE"></circle><path d="M5.6 11.7l10.9-4.2c.5-.2 1 .1.8.9l-1.9 8.8c-.1.6-.5.8-1 .5l-2.8-2.1-1.4 1.3c-.2.2-.3.3-.6.3l.2-2.9 5.3-4.8c.2-.2 0-.3-.3-.1l-6.6 4.1-2.8-.9c-.6-.2-.6-.6.2-.9z" fill="#FFFFFF"></path></svg>Start on Telegram</a>
+          <a class="tm-press" href="https://discord.com/" onClick="{{startDc}}" data-tip="Adds the M8 app on Discord" data-tip-pos="bottom" style="height: 56px; padding: 0 24px 0 16px; box-sizing: border-box; border-radius: 999px; display: flex; align-items: center; justify-content: center; gap: 10px; font-size: 16px; font-weight: 800; text-decoration: none; white-space: nowrap; width: {{cta.w}}; background: {{c.surface}}; color: {{c.text}}; box-shadow: inset 0 0 0 1px {{c.line}}"><svg width="24" height="24" viewBox="0 0 24 24" aria-hidden="true" style="flex-shrink: 0"><circle cx="12" cy="12" r="12" fill="#5865F2"></circle><path d="M16.9 8.1a9.6 9.6 0 0 0-2.4-.8l-.3.6a8.9 8.9 0 0 0-2.4-.1 8.9 8.9 0 0 0-1.4.1l-.3-.6a9.6 9.6 0 0 0-2.4.8C6.2 10.4 5.8 12.6 6 14.8a9.7 9.7 0 0 0 2.9 1.5l.6-1c-.3-.1-.7-.3-1-.5l.2-.2a6.9 6.9 0 0 0 6.6 0l.2.2c-.3.2-.7.4-1 .5l.6 1a9.6 9.6 0 0 0 2.9-1.5c.2-2.5-.4-4.7-2.1-6.7zM10 13.6c-.6 0-1-.5-1-1.1s.4-1.1 1-1.1 1 .5 1 1.1-.4 1.1-1 1.1zm4 0c-.6 0-1-.5-1-1.1s.4-1.1 1-1.1 1 .5 1 1.1-.4 1.1-1 1.1z" fill="#FFFFFF"></path></svg>Start on Discord</a>
+        </div>
+        <span style="font-size: 14px; font-weight: 600; color: {{c.text3}}">Free for 7 days. Then $20 / 30 days in USDC.</span>
+      </div>
+  </section>
+  <footer style="width: 1200px; max-width: 100%; box-sizing: border-box; padding: {{foot.pad}}; display: flex; flex-direction: {{foot.dir}}; align-items: {{foot.align}}; justify-content: space-between; gap: 16px; font-size: 13px; font-weight: 600; color: {{c.text3}}; border-top: 1px solid {{c.line}}">
+    <span>Not financial advice. M8 never makes calls.</span>
+    <div style="display: flex; gap: 20px"><a class="tm-hover" href="#terms" style="color: {{c.text3}}; text-decoration: none">Terms</a><a class="tm-hover" href="#privacy" style="color: {{c.text3}}; text-decoration: none">Privacy</a></div>
+  </footer>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"layout":{"editor":"enum","options":["desktop","mobile"],"default":"desktop","section":"Look"},"theme":{"editor":"enum","options":["dark","light"],"default":"dark","section":"Look"},"accent":{"editor":"color","default":"#7CD4FF","options":["#7CD4FF","#FFD23F","#6495ED","#B4A5FF","#FF85C8","#FF9152","#FFB547"],"section":"Look"},"$preview":{"width":1440,"height":5900}}'>
+class Component extends DCLogic {
+  componentDidMount() {
+    this._timers = [];
+    const reduce = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    if (!(this.state && this.state.step != null)) {
+      if (reduce) this.setState({ step: 6 });
+      else {
+        // The opening conversation, about 6s: nudge, your voice note, M8 logs it, then reply chips.
+        this.later(350, () => this.setState({ step: 1 }));
+        this.later(1450, () => this.setState({ typingYou: true }));
+        this.later(2650, () => this.setState({ step: 3, typingYou: false }));
+        this.later(3250, () => this.setState({ typingM8: true }));
+        this.later(4550, () => this.setState({ step: 5, typingM8: false }));
+        this.later(5350, () => this.setState({ step: 6 }));
+      }
+    }
+    this._onScroll = () => { const g = (window.scrollY || 0) > 24; if (g !== !!(this.state || {}).navGlass) this.setState({ navGlass: g }); };
+    window.addEventListener('scroll', this._onScroll, { passive: true });
+  }
+  componentWillUnmount() {
+    (this._timers || []).forEach(clearTimeout);
+    if (this._onScroll) window.removeEventListener('scroll', this._onScroll);
+    if (this._io) this._io.disconnect();
+  }
+  componentDidUpdate(prev, prevState) {
+    // Keep the newest message in view (the thread is column-reverse, so the bottom is scrollTop 0).
+    const a = prevState || {}, b = this.state || {};
+    if (this._scroll && (a.step !== b.step || (a.log || []).length !== (b.log || []).length || a.typingM8 !== b.typingM8 || a.typingYou !== b.typingYou || a.chan !== b.chan)) {
+      this._scroll.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+  }
+  later(ms, fn) { this._timers = this._timers || []; this._timers.push(setTimeout(fn, ms)); }
+  renderVals() {
+    const st = this.state || {};
+    const theme = this.props.theme ?? 'dark';
+    const layout = this.props.layout ?? 'desktop';
+    const desktop = layout !== 'mobile';
+    const accent = this.props.accent ?? '#7CD4FF';
+    const themes = {
+      dark: { bg: '#0D0E13', surface: '#171922', surface2: '#21242F', line: '#2C303D', text: '#F3F4F7', text2: '#A9AEBE', text3: '#858B9E', tipBg: '#F3F4F7', tipFg: '#12131A', shadow: 'rgba(0,0,0,0.5)', edge: 'rgba(255,255,255,0.06)', glass: 'rgba(33,36,47,0.8)', glassLine: 'rgba(255,255,255,0.08)' },
+      light: { bg: '#F4F4F7', surface: '#FFFFFF', surface2: '#EEEFF3', line: '#E3E5EB', text: '#12131A', text2: '#4F5566', text3: '#666C7E', tipBg: '#12131A', tipFg: '#F3F4F7', shadow: 'rgba(18,19,26,0.18)', edge: 'rgba(18,19,26,0.08)', glass: 'rgba(238,239,243,0.8)', glassLine: 'rgba(18,19,26,0.08)' }
+    };
+    const c = themes[theme] || themes.dark;
+    const dark = theme !== 'light';
+    const rgba = (hex, a) => { const h = hex.replace('#', ''); const n = parseInt(h.length === 3 ? h.split('').map((x) => x + x).join('') : h, 16); return 'rgba(' + ((n >> 16) & 255) + ',' + ((n >> 8) & 255) + ',' + (n & 255) + ',' + a + ')'; };
+    const stop = (e) => { if (e && e.preventDefault) e.preventDefault(); };
+
+    // Channel toggle: same conversation, Telegram or Discord chrome.
+    const chanKey = st.chan || 'tg';
+    const seg = (on) => (on ? { bg: accent, fg: '#15140E' } : { bg: 'transparent', fg: c.text2 });
+    const chan = {
+      tgOn: String(chanKey === 'tg'), dcOn: String(chanKey === 'dc'),
+      tgBg: seg(chanKey === 'tg').bg, tgFg: seg(chanKey === 'tg').fg, dcBg: seg(chanKey === 'dc').bg, dcFg: seg(chanKey === 'dc').fg,
+      tg: () => this.setState({ chan: 'tg' }), dc: () => this.setState({ chan: 'dc' })
+    };
+
+    // Conversation state. step: 0 empty, 1 nudge, 3 voice note, 5 logged + journal, 6 chips.
+    const step = st.step || 0;
+    const log = st.log || [];
+    const LABELS = { week: 'show me my week', tilt: 'did i tilt today?', calls: 'is this a call group?', degen: 'talk like a degen' };
+    const asked = log.filter((x) => x.indexOf('you:') === 0).map((x) => x.slice(4));
+    const answered = log.filter((x) => LABELS[x]).length;
+    const pick = (id) => () => {
+      const s = this.state || {};
+      if (s.pending || (s.log || []).indexOf('you:' + id) >= 0) return;
+      this.setState({ log: (s.log || []).concat(['you:' + id]), pending: id });
+      this.later(500, () => this.setState({ typingM8: true }));
+      this.later(1600, () => {
+        const s2 = this.state || {};
+        const next = (s2.log || []).concat([id]);
+        const done = next.filter((x) => LABELS[x]).length;
+        const offer = done >= 2 && next.indexOf('cta') < 0;
+        this.setState({ log: next, typingM8: offer, pending: offer ? id : null });
+        if (offer) this.later(1300, () => this.setState({ log: (this.state.log || []).concat(['cta']), typingM8: false, pending: null }));
+      });
+    };
+    const answers = log.map((x) => {
+      const you = x.indexOf('you:') === 0;
+      return { you, label: you ? LABELS[x.slice(4)] : '', week: x === 'week', tilt: x === 'tilt', calls: x === 'calls', degen: x === 'degen', cta: x === 'cta' };
+    });
+    const chips = Object.keys(LABELS).filter((k) => asked.indexOf(k) < 0).map((k, i) => ({ id: k, label: LABELS[k], pick: pick(k), d: (0.05 + i * 0.1).toFixed(2) + 's' }));
+    const typingM8 = !!st.typingM8;
+    const typingYou = !!st.typingYou;
+    const heights = [6, 10, 16, 22, 14, 20, 26, 18, 10, 16, 24, 28, 20, 12, 18, 24, 14, 8, 12, 20, 16, 10, 14, 8, 10, 6, 8, 5, 6, 4];
+    const wave = heights.map((h, i) => ({ h: h + 'px', tg: i < 11 ? '#E9EEF3' : 'rgba(233,238,243,0.38)', dc: i < 11 ? '#F2F3F5' : 'rgba(242,243,245,0.32)' }));
+
+    const glass = !!st.navGlass;
+    return {
+      theme, accent, c, desktop, mobile: !desktop, chan, isTg: chanKey === 'tg', isDc: chanKey === 'dc', chanName: chanKey === 'tg' ? 'Telegram' : 'Discord',
+      s1: step >= 1, s3: step >= 3, s5: step >= 5, answers, chips, showChips: step >= 6 && !st.pending && chips.length > 0,
+      typingM8, typingYou, notTypingYou: !typingYou, wave,
+      tgSub: typingM8 ? { t: 'typing…', c: '#7FC1FF' } : { t: 'bot', c: '#8A98A8' },
+      dcMic: typingYou ? '#F23F43' : '#383A40',
+      tgMic: typingYou ? { bg: '#3A8EE6', fg: '#FFFFFF' } : { bg: 'transparent', fg: '#8A98A8' },
+      startTg: stop, startDc: stop, startTop: stop,
+      eyebrow: desktop ? 'For memecoin traders on Solana, Base, BNB and Robinhood Chain' : 'Solana · Base · BNB · Robinhood Chain',
+      setScroll: (el) => { this._scroll = el; },
+      setSentinel: (el) => {
+        if (this._io) { this._io.disconnect(); this._io = null; }
+        if (el && window.IntersectionObserver) {
+          this._io = new IntersectionObserver((es) => { const g = !es[0].isIntersecting; if (g !== !!(this.state || {}).navGlass) this.setState({ navGlass: g }); });
+          this._io.observe(el);
+        }
+      },
+      nav: glass
+        ? { pad: desktop ? '12px 20px 0 20px' : '8px 12px 0 12px', w: desktop ? '1240px' : '100%', h: desktop ? '64px' : '56px', inPad: desktop ? '12px 0 20px' : '8px 0 14px', r: '20px', bg: c.glass, shadow: '0 16px 40px ' + (dark ? 'rgba(0,0,0,0.35)' : 'rgba(18,19,26,0.16)') + ', inset 0 0 0 1px ' + c.glassLine, blur: 'blur(18px) saturate(140%)' }
+        : { pad: desktop ? '12px 20px 0 20px' : '8px 12px 0 12px', w: desktop ? '1240px' : '100%', h: desktop ? '64px' : '56px', inPad: desktop ? '20px' : '4px', r: '20px', bg: 'transparent', shadow: 'none', blur: 'none' },
+      hero: desktop
+        ? { pad: '56px 0 96px 0', dir: 'row', gap: '48px', textW: '600px', h1: '84px', sub: '20px' }
+        : { pad: '28px 16px 64px 16px', dir: 'column', gap: '40px', textW: '100%', h1: '52px', sub: '17px' },
+      ph: { zoom: desktop ? 1 : 0.88, s1: dark ? 'rgba(0,0,0,0.42)' : 'rgba(18,19,26,0.18)', s2: dark ? 'rgba(0,0,0,0.5)' : 'rgba(18,19,26,0.16)' },
+      atm: {
+        haze: rgba(accent, dark ? 0.26 : 0.30), hazeEdge: rgba(accent, 0),
+        hazeX: desktop ? '760px' : '-90px', hazeY: desktop ? '20px' : '520px', hazeW: desktop ? '680px' : '560px',
+        lineX: desktop ? '0px' : '-520px', lineOp: dark ? '0.9' : '0.7',
+        mask: desktop ? 'linear-gradient(90deg, transparent 38%, #000 62%)' : 'linear-gradient(180deg, transparent 30%, #000 60%)',
+        grain: dark ? '0.07' : '0.05', blend: dark ? 'overlay' : 'multiply', clear: rgba(dark ? '#0D0E13' : '#F4F4F7', 0)
+      },
+      cta: desktop ? { dir: 'row', w: 'auto', wrapW: 'auto', align: 'flex-start', calign: 'center' } : { dir: 'column', w: '100%', wrapW: '100%', align: 'stretch', calign: 'stretch' },
+      row: { h2: desktop ? '48px' : '34px', p: desktop ? '18px' : '16px' },
+      sec: { pad: desktop ? '0' : '0 16px' },
+      founder: { pad: desktop ? '96px 0' : '64px 16px', inPad: desktop ? '40px 44px' : '24px 22px', size: desktop ? '20px' : '17px' },
+      price: { pad: desktop ? '96px 0' : '48px 16px', dir: desktop ? 'row' : 'column' },
+      close: desktop ? { pad: '120px 0 128px 0', align: 'center', textAlign: 'center', h2: '84px', br: 'inline', brM: 'none' } : { pad: '72px 16px 80px 16px', align: 'stretch', textAlign: 'left', h2: '48px', br: 'none', brM: 'inline' },
+      foot: desktop ? { pad: '32px 0 48px 0', dir: 'row', align: 'center' } : { pad: '28px 16px 40px 16px', dir: 'column', align: 'flex-start' }
+    };
+  }
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,100 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>M8 on Telegram - live rule alert</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<style>
+body{margin:0}
+a{color:#7FC1FF}a:hover{color:#A9D6FF}
+button{font-family:inherit;cursor:pointer}
+</style>
+</helmet>
+<div style="width: 390px; min-height: 1060px; box-sizing: border-box; display: flex; flex-direction: column; background: #10161F; color: #E9EEF3; font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Text', Roboto, 'Helvetica Neue', sans-serif; font-size: 15px; line-height: 1.4">
+
+  <div style="display: flex; align-items: center; gap: 10px; padding: 10px 12px; background: #17202B">
+    <button aria-label="Back to chats" style="width: 44px; height: 44px; border: none; background: transparent; color: #7FC1FF; display: flex; align-items: center; justify-content: center">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"></path></svg>
+    </button>
+    <svg width="40" height="40" viewBox="0 0 36 36" aria-hidden="true"><rect x="0" y="0" width="36" height="36" rx="18" fill="{{accent}}"></rect><rect x="11" y="12" width="4.5" height="9" rx="2.25" fill="#15140E"></rect><rect x="20.5" y="12" width="4.5" height="9" rx="2.25" fill="#15140E"></rect></svg>
+    <div style="display: flex; flex-direction: column; flex-grow: 1">
+      <span style="font-size: 16px; font-weight: 600">M8</span>
+      <span style="font-size: 13px; color: #8A98A8">bot</span>
+    </div>
+  </div>
+
+  <div style="display: flex; flex-direction: column; gap: 8px; padding: 14px 10px 16px 10px">
+    <span style="align-self: center; font-size: 12px; font-weight: 600; padding: 3px 10px; border-radius: 999px; background: rgba(255,255,255,0.08); color: #C9D3DD">Friday, October 9</span>
+    <span style="align-self: center; font-size: 12px; color: #8A98A8; text-align: center; padding: 0 24px">Mid-session. M8 saw the buy on its next wallet poll, about a minute later.</span>
+
+    <div style="align-self: flex-start; display: flex; flex-direction: column; gap: 4px; max-width: 320px">
+      <div style="padding: 8px 12px 6px 12px; border-radius: 16px 16px 16px 4px; background: #1C2733">
+        <b>Cooldown check.</b> You bought <b>$FROGZ</b> 3 min after closing <b>$SNEK</b> red (-$64). Your rule is 20 min after a red trade.<br><br>Not telling you what to do with it. Just making sure this one's on purpose.
+        <div style="font-size: 11px; color: #8A98A8; text-align: right">1:12 PM</div>
+      </div>
+      <div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 4px">
+        <button style="height: 40px; border: none; border-radius: 10px; background: rgba(255,255,255,0.09); color: #E9EEF3; font-size: 14px; font-weight: 600">It's planned</button>
+        <button style="height: 40px; border: none; border-radius: 10px; background: rgba(255,255,255,0.09); color: #E9EEF3; font-size: 14px; font-weight: 600">My bad, pausing</button>
+      </div>
+    </div>
+
+    <span style="align-self: center; font-size: 12px; color: #8A98A8">You tapped "It's planned"</span>
+
+    <div style="align-self: flex-start; max-width: 310px; padding: 8px 12px 6px 12px; border-radius: 16px 16px 16px 4px; background: #1C2733">
+      Cool. What's the setup?
+      <div style="font-size: 11px; color: #8A98A8; text-align: right">1:12 PM</div>
+    </div>
+
+    <div style="align-self: flex-end; max-width: 280px; padding: 7px 12px; border-radius: 16px 16px 4px 16px; background: #2A4A6B">fresh launch, dev burned LP, half my normal size <span style="font-size: 11px; color: #A9C3DD; margin-left: 4px">1:13 PM</span></div>
+
+    <div style="align-self: flex-start; max-width: 310px; padding: 8px 12px 6px 12px; border-radius: 16px 16px 16px 4px; background: #1C2733">
+      Logged as planned, with your reasons. We'll see how it played out tonight.
+      <div style="font-size: 11px; color: #8A98A8; text-align: right">1:13 PM</div>
+    </div>
+
+    <span style="align-self: center; font-size: 12px; color: #8A98A8; margin-top: 8px">Later that afternoon</span>
+
+    <div style="align-self: flex-start; display: flex; flex-direction: column; gap: 4px; max-width: 320px">
+      <div style="padding: 8px 12px 6px 12px; border-radius: 16px 16px 16px 4px; background: #1C2733">
+        <b>Daily loss limit hit.</b> You're down <b>$156</b> today. The stop you set is $150.<br><br>That's the day. Everything after this is just a donation to the trenches.
+        <div style="font-size: 11px; color: #8A98A8; text-align: right">2:41 PM</div>
+      </div>
+      <div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 4px">
+        <button style="height: 40px; border: none; border-radius: 10px; background: rgba(255,255,255,0.09); color: #E9EEF3; font-size: 14px; font-weight: 600">Done for today</button>
+        <button style="height: 40px; border: none; border-radius: 10px; background: rgba(255,255,255,0.09); color: #E9EEF3; font-size: 14px; font-weight: 600">Show me today</button>
+      </div>
+    </div>
+
+    <span style="align-self: center; font-size: 12px; color: #8A98A8">You tapped "Done for today"</span>
+
+    <div style="align-self: flex-start; max-width: 310px; padding: 8px 12px 6px 12px; border-radius: 16px 16px 16px 4px; background: #1C2733">
+      Respect. That's a rule kept, and it'll show up in your week. I'll check in tonight.
+      <div style="font-size: 11px; color: #8A98A8; text-align: right">2:42 PM</div>
+    </div>
+  </div>
+
+  <div style="margin-top: auto; display: flex; align-items: center; gap: 8px; padding: 8px 10px 20px 10px; background: #17202B">
+    <button aria-label="Menu" style="height: 36px; padding: 0 12px; border: none; border-radius: 18px; background: #2A4A6B; color: #E9EEF3; font-size: 14px; font-weight: 600">Menu</button>
+    <label style="flex-grow: 1; display: flex">
+      <span style="position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0)">Message M8</span>
+      <input placeholder="Message" style="width: 100%; height: 40px; box-sizing: border-box; border: none; border-radius: 20px; padding: 0 14px; background: #10161F; color: #E9EEF3; font-size: 15px; font-family: inherit">
+    </label>
+    <button aria-label="Record voice note" style="width: 44px; height: 44px; border: none; border-radius: 22px; background: transparent; color: #8A98A8; display: flex; align-items: center; justify-content: center">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="3" width="6" height="11" rx="3"></rect><path d="M5 11a7 7 0 0 0 14 0"></path><path d="M12 18v3"></path></svg>
+    </button>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"accent":{"editor":"color","default":"#7CD4FF","options":["#7CD4FF","#FFD23F","#6495ED","#B4A5FF","#FF85C8","#FF9152","#FFB547"]},"$preview":{"width":390,"height":1060}}'>
+class Component extends DCLogic {
+  renderVals() {
+    return { accent: this.props.accent ?? '#7CD4FF' };
+  }
+}
+</script>
+</body>
+</html>

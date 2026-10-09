@@ -1,0 +1,298 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>TrenchM8 - Share a journal day</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="anonymous">
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0}
+/* TrenchM8 motion: 120-150ms press/hover, 250-350ms UI, 600-900ms load-in. Ease-out. Fades only when reduced motion is on. */
+@keyframes tm-in{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+@keyframes tm-fade{from{opacity:0}to{opacity:1}}
+@keyframes tm-draw{to{stroke-dashoffset:0}}
+@keyframes tm-shimmer{0%{background-position:-400px 0}100%{background-position:400px 0}}
+@keyframes tm-dot{0%,80%,100%{opacity:.3;transform:translateY(0)}40%{opacity:1;transform:translateY(-3px)}}
+@keyframes tm-toast{from{opacity:0;transform:translateY(12px) scale(.98)}to{opacity:1;transform:none}}
+@keyframes tm-pop{0%{opacity:0;transform:scale(.6)}60%{opacity:1;transform:scale(1.08)}100%{transform:scale(1)}}
+@keyframes tm-spin{to{transform:rotate(360deg)}}
+@keyframes tm-pulse{0%{box-shadow:0 0 0 0 var(--tm-pulse,rgba(63,217,142,.45))}100%{box-shadow:0 0 0 10px rgba(0,0,0,0)}}
+@keyframes tm-fill{from{width:0}to{width:100%}}
+@keyframes tm-out{from{opacity:1}to{opacity:0}}
+@keyframes tm-flash{0%{background-color:var(--tm-flash,rgba(124,212,255,.22))}100%{background-color:transparent}}
+.tm-press{transition:transform .12s ease,filter .15s ease,background-color .15s ease,opacity .15s ease}
+.tm-press:hover{filter:brightness(1.12)}
+.tm-press:active{transform:scale(.97)}
+.tm-press:focus-visible,.tm-hover:focus-visible{outline:2px solid var(--tm-focus,#7CD4FF);outline-offset:2px}
+.tm-hover{transition:filter .15s ease,transform .15s ease}
+.tm-hover:hover{filter:brightness(1.18)}
+.tm-in{animation:tm-in .35s cubic-bezier(.2,.8,.2,1) both}
+.tm-fade{animation:tm-fade .6s ease both;animation-delay:var(--tm-d,0s)}
+.tm-draw{stroke-dasharray:1;stroke-dashoffset:1;animation:tm-draw .9s cubic-bezier(.2,.8,.2,1) calc(var(--tm-d,0s) + .15s) forwards}
+.tm-skel{background:linear-gradient(90deg,var(--sk1) 0%,var(--sk2) 50%,var(--sk1) 100%);background-size:800px 100%;animation:tm-shimmer 1.2s linear infinite}
+.tm-dot{display:inline-block;width:6px;height:6px;border-radius:3px;background:currentColor;animation:tm-dot 1.2s ease-in-out infinite}
+.tm-toast{animation:tm-toast .25s cubic-bezier(.2,.8,.2,1) both}
+.tm-pop{animation:tm-pop .45s cubic-bezier(.2,.8,.2,1) both}
+.tm-spin{animation:tm-spin .8s linear infinite}
+.tm-pulse{animation:tm-pulse 1.6s ease-out infinite}
+.tm-flash{animation:tm-flash 1.6s ease-out both}
+.tm-out{animation:tm-out .22s ease both;pointer-events:none}
+@media (prefers-reduced-motion:reduce){.tm-in,.tm-toast,.tm-pop{animation:tm-fade .2s ease both}.tm-draw{animation:none;stroke-dasharray:none;stroke-dashoffset:0}.tm-skel,.tm-dot,.tm-pulse,.tm-spin{animation:none}.tm-press:active{transform:none}}
+/* Tooltips: data-tip="text" (+ data-tip-pos="bottom|left|right", data-tip-wrap for long text). Desktop hover/keyboard only. */
+[data-tip]{position:relative}
+[data-tip]::after{content:attr(data-tip);position:absolute;left:50%;bottom:calc(100% + 8px);transform:translate(-50%,4px);padding:6px 10px;border-radius:10px;background:var(--tm-tip-bg,#F3F4F7);color:var(--tm-tip-fg,#12131A);font:600 12px/1.35 Manrope,system-ui,sans-serif;letter-spacing:0;text-transform:none;text-align:left;white-space:nowrap;pointer-events:none;opacity:0;visibility:hidden;transition:opacity .12s ease,transform .12s ease,visibility 0s linear .12s;z-index:80;box-shadow:0 8px 24px rgba(0,0,0,.28)}
+[data-tip]:hover::after,[data-tip]:focus-visible::after{opacity:1;visibility:visible;transform:translate(-50%,0);transition:opacity .12s ease .35s,transform .12s ease .35s,visibility 0s linear .35s}
+[data-tip-pos=bottom]::after{bottom:auto;top:calc(100% + 8px);transform:translate(-50%,-4px)}
+[data-tip-pos=left]::after{left:auto;right:calc(100% + 8px);bottom:50%;transform:translate(4px,50%)}
+[data-tip-pos=left]:hover::after,[data-tip-pos=left]:focus-visible::after{transform:translate(0,50%)}
+[data-tip-pos=right]::after{left:calc(100% + 8px);bottom:50%;transform:translate(-4px,50%)}
+[data-tip-pos=right]:hover::after,[data-tip-pos=right]:focus-visible::after{transform:translate(0,50%)}
+[data-tip-wrap]::after{white-space:normal;width:max-content;max-width:240px}
+@media (hover:none){[data-tip]::after{display:none}}
+[data-tip=""]::after{display:none}
+/* Clickable rows (no inline background on the row itself) and clickable cards */
+.tm-row{transition:background-color .15s ease;cursor:pointer}
+.tm-row:hover{background-color:var(--tm-row-hover,rgba(255,255,255,.045))}
+.tm-row:active{background-color:var(--tm-row-press,rgba(255,255,255,.08))}
+.tm-lift{transition:filter .15s ease,box-shadow .15s ease;cursor:pointer}
+.tm-lift:hover{filter:brightness(1.07)}
+.tm-press[aria-disabled=true],.tm-press:disabled{opacity:.45;cursor:not-allowed;filter:none}
+.tm-press[aria-disabled=true]:active,.tm-press:disabled:active{transform:none}
+@keyframes tm-shake{0%,100%{transform:none}20%,60%{transform:translateX(-4px)}40%,80%{transform:translateX(4px)}}
+.tm-shake{animation:tm-shake .3s ease}
+@keyframes tm-sheet{from{transform:translateY(24px);opacity:0}to{transform:none;opacity:1}}
+@keyframes tm-dialog{from{transform:translateY(8px) scale(.98);opacity:0}to{transform:none;opacity:1}}
+@keyframes tm-drawer{from{transform:translateX(32px);opacity:0}to{transform:none;opacity:1}}
+.tm-sheet{animation:tm-sheet .3s cubic-bezier(.2,.8,.2,1) both}
+.tm-dialog{animation:tm-dialog .22s cubic-bezier(.2,.8,.2,1) both}
+.tm-drawer{animation:tm-drawer .28s cubic-bezier(.2,.8,.2,1) both}
+@keyframes tm-wave{0%,100%{transform:scaleY(.35)}50%{transform:scaleY(1)}}
+.tm-wave{animation:tm-wave .9s ease-in-out infinite;transform-origin:center}
+@media (prefers-reduced-motion:reduce){.tm-sheet,.tm-dialog,.tm-drawer{animation:tm-fade .2s ease both}.tm-shake,.tm-wave{animation:none}}
+</style>
+</helmet>
+<div style="--tm-focus: {{tkn.ink}}; --tm-flash: {{tkn.flash}}; --tm-tip-bg: {{tip.bg}}; --tm-tip-fg: {{tip.fg}}; --tm-row-hover: {{tip.row}}; --tm-row-press: {{tip.press}}; position: relative; width: {{rootW}}; height: {{rootH}}; overflow: hidden; background: {{rootBg}}; font-family: Manrope, system-ui, sans-serif; font-variant-numeric: tabular-nums; -webkit-font-smoothing: antialiased; color: {{c.text}}">
+  <sc-if value="{{demo}}" hint-placeholder-val="{{ true }}">
+    <dc-import name="Main" accent="{{accent}}" hint-size="390px,2620px"></dc-import>
+    <div aria-hidden="true" style="position: absolute; inset: 0; background: rgba(5,6,9,0.6)"></div>
+  </sc-if>
+
+  <!-- Bottom sheet -->
+  <section role="dialog" aria-label="{{shareTitle}}" style="position: {{secPos}}; left: 0; right: 0; bottom: 0; max-height: {{secMaxH}}; box-sizing: border-box; padding: {{secPad}}; border-radius: {{secR}}; background: {{c.surface}}; color: {{c.text}}; display: flex; flex-direction: column; gap: 14px">
+    <sc-if value="{{grabber}}" hint-placeholder-val="{{ true }}"><span aria-hidden="true" style="align-self: center; width: 40px; height: 5px; border-radius: 3px; background: {{c.line}}"></span></sc-if>
+    <div style="display: flex; align-items: center; gap: 8px">
+      <span style="flex-grow: 1; font-size: 18px; font-weight: 800">{{shareTitle}}</span>
+      <button class="tm-press" aria-label="Close" data-tip="Close (Esc)" data-tip-pos="left" onClick="{{close}}" style="width: 44px; height: 44px; border: none; border-radius: 22px; background: {{c.surface2}}; color: {{c.text}}; display: flex; align-items: center; justify-content: center; cursor: pointer">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M18 6L6 18"></path><path d="M6 6l12 12"></path></svg>
+      </button>
+    </div>
+
+    <div style="flex: 1 1 auto; min-height: 0; overflow-y: auto; margin: 0 -4px; padding: 0 4px; display: grid; grid-template-columns: {{g.cols}}; grid-template-rows: {{g.rows}}; min-height: {{g.minH}}; column-gap: 24px; row-gap: 14px">
+    <!-- Image or text -->
+    <div role="tablist" aria-label="Share as" style="grid-column: {{g.side}}; grid-row: {{g.tabsRow}}; align-self: start; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 2px; padding: 4px; border-radius: 999px; background: {{c.surface2}}">
+      <button class="tm-press" role="tab" aria-selected="{{isImage}}" onClick="{{toImage}}" style="height: 40px; border: none; border-radius: 999px; background: {{tabImgBg}}; color: {{tabImgFg}}; font-family: inherit; font-size: 14px; font-weight: 800; cursor: pointer">Image</button>
+      <button class="tm-press" role="tab" aria-selected="{{isText}}" onClick="{{toText}}" style="height: 40px; border: none; border-radius: 999px; background: {{tabTxtBg}}; color: {{tabTxtFg}}; font-family: inherit; font-size: 14px; font-weight: 800; cursor: pointer">Text</button>
+    </div>
+
+    <div style="grid-column: {{g.main}}; grid-row: {{g.prevRow}}; min-width: 0; display: flex; flex-direction: column">
+    <!-- Image preview: the card M8 renders -->
+    <sc-if value="{{isImage}}" hint-placeholder-val="{{ true }}">
+      <div role="img" aria-label="{{cardAria}}" style="width: 326px; max-width: 100%; margin: 0 auto; box-sizing: border-box; padding: 18px 18px 14px 18px; border-radius: 22px; background: #0D0E13; border: 1px solid #2C303D; color: #F3F4F7; display: flex; flex-direction: column; gap: 12px">
+        <div style="display: flex; align-items: center; gap: 8px">
+          <svg width="24" height="24" viewBox="0 0 36 36" aria-hidden="true"><rect x="0" y="0" width="36" height="36" rx="12" fill="{{accent}}"></rect><rect x="11" y="12" width="4.5" height="9" rx="2.25" fill="#15140E"></rect><rect x="20.5" y="12" width="4.5" height="9" rx="2.25" fill="#15140E"></rect></svg>
+          <span style="flex-grow: 1; font-size: 13px; font-weight: 800">{{k.title}}</span>
+          <span style="font-size: 12px; font-weight: 700; color: #858B9E">{{k.meta}}</span>
+        </div>
+        <span style="font-size: 40px; line-height: 1; font-weight: 800; letter-spacing: -0.03em; color: {{k.heroColor}}">{{m.hero}}</span>
+        <svg width="290" height="54" viewBox="0 0 342 100" preserveAspectRatio="none" aria-hidden="true" style="display: block; width: 100%; height: 54px">
+          <polyline points="{{k.gainLine}}" fill="none" stroke="#3FD98E" stroke-width="3" stroke-linejoin="round" stroke-linecap="round" vector-effect="non-scaling-stroke"></polyline>
+          <polyline points="{{k.lossLine}}" fill="none" stroke="#FF6B6B" stroke-width="3" stroke-linejoin="round" stroke-linecap="round" vector-effect="non-scaling-stroke"></polyline>
+        </svg>
+        <p style="margin: 0; font-size: 14px; line-height: 1.5; font-weight: 600">"{{m.short}}"</p>
+        <sc-if value="{{notes}}" hint-placeholder-val="{{ false }}">
+          <div style="display: flex; flex-direction: column; gap: 4px; font-size: 12px; line-height: 1.4; font-weight: 600; color: #A9AEBE">
+            <sc-for list="{{k.notes}}" as="n" hint-placeholder-count="2">
+              <span><b style="color: #F3F4F7">{{n.coin}}</b> <b style="color: {{n.color}}">{{n.val}}</b> {{n.note}}</span>
+            </sc-for>
+          </div>
+        </sc-if>
+        <sc-if value="{{lesson}}" hint-placeholder-val="{{ true }}">
+          <div style="padding: 10px 12px; border-radius: 14px; background: {{accent}}; color: #15140E; display: flex; flex-direction: column; gap: 2px">
+            <span style="font-size: 10px; font-weight: 800; letter-spacing: .06em; opacity: .75">LESSON</span>
+            <span style="font-size: 14px; font-weight: 800">{{k.lesson}}</span>
+          </div>
+        </sc-if>
+        <div style="display: flex; justify-content: space-between; font-size: 11px; font-weight: 700; color: #858B9E">
+          <span>journaled by M8</span><span>trenchm8</span>
+        </div>
+      </div>
+    </sc-if>
+
+    <!-- Text preview: exactly what gets copied -->
+    <sc-if value="{{isText}}" hint-placeholder-val="{{ false }}">
+      <div style="display: flex; flex-direction: column; gap: 6px">
+        <div style="padding: 14px 16px; border-radius: 18px; background: {{c.surface2}}; font-size: 14px; line-height: 1.5; font-weight: 500; white-space: pre-wrap">{{m.text}}</div>
+        <span style="align-self: flex-end; font-size: 12px; font-weight: 700; color: {{fitColor}}">{{fit}}</span>
+      </div>
+    </sc-if>
+
+    </div>
+    <!-- Options -->
+    <div style="grid-column: {{g.side}}; grid-row: {{g.optsRow}}; align-self: start; display: flex; flex-direction: column; border-radius: 18px; border: 1px solid {{c.line}}">
+      <div style="display: flex; align-items: center; gap: 12px; min-height: 52px; padding: 0 8px 0 14px">
+        <span style="flex-grow: 1; font-size: 14px; font-weight: 700">Show money as</span>
+        <div role="group" aria-label="Show money as" style="display: flex; gap: 2px; padding: 3px; border-radius: 999px; background: {{c.surface2}}">
+          <button class="tm-press" aria-pressed="{{isPct}}" onClick="{{toPct}}" style="height: 34px; padding: 0 12px; border: none; border-radius: 999px; background: {{pctBg}}; color: {{pctFg}}; font-family: inherit; font-size: 13px; font-weight: 800; cursor: pointer">% only</button>
+          <button class="tm-press" aria-pressed="{{isUsd}}" onClick="{{toUsd}}" style="height: 34px; padding: 0 12px; border: none; border-radius: 999px; background: {{usdBg}}; color: {{usdFg}}; font-family: inherit; font-size: 13px; font-weight: 800; cursor: pointer">$ amounts</button>
+        </div>
+      </div>
+      <sc-for list="{{toggles}}" as="t" hint-placeholder-count="2">
+        <div style="display: flex; align-items: center; gap: 12px; min-height: 52px; padding: 0 14px; border-top: 1px solid {{c.line}}">
+          <span style="flex-grow: 1; font-size: 14px; font-weight: 700">{{t.label}}</span>
+          <button class="tm-press" role="switch" aria-checked="{{t.on}}" aria-label="{{t.label}}" onClick="{{t.flip}}" style="width: 52px; height: 32px; flex-shrink: 0; box-sizing: border-box; padding: 4px; border: none; border-radius: 16px; background: {{t.track}}; display: flex; justify-content: {{t.justify}}; cursor: pointer">
+            <span style="width: 24px; height: 24px; border-radius: 12px; background: {{t.knob}}"></span>
+          </button>
+        </div>
+      </sc-for>
+    </div>
+    <span style="grid-column: {{g.side}}; grid-row: {{g.noteRow}}; align-self: start; font-size: 12px; font-weight: 600; color: {{c.text3}}; padding: 0 4px">Wallet addresses are never included.</span>
+
+    </div>
+
+    <!-- Actions -->
+    <div style="display: flex; gap: 8px">
+      <button class="tm-press" onClick="{{copy}}" style="flex-grow: 1; height: 52px; border: none; border-radius: 999px; background: {{accent}}; color: #15140E; display: flex; align-items: center; justify-content: center; gap: 8px; font-family: inherit; font-size: 15px; font-weight: 800; cursor: pointer">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="9" y="9" width="11" height="11" rx="2"></rect><path d="M5 15V6a2 2 0 0 1 2-2h9"></path></svg>
+        {{primary}}
+      </button>
+      <sc-if value="{{isImage}}" hint-placeholder-val="{{ true }}">
+        <button class="tm-press" onClick="{{save}}" style="height: 52px; padding: 0 20px; border: none; border-radius: 999px; background: {{c.surface2}}; color: {{c.text}}; font-family: inherit; font-size: 15px; font-weight: 800; cursor: pointer">Save</button>
+      </sc-if>
+      <sc-if value="{{isText}}" hint-placeholder-val="{{ false }}">
+        <button class="tm-press" onClick="{{post}}" style="height: 52px; padding: 0 20px; border: none; border-radius: 999px; background: {{c.surface2}}; color: {{c.text}}; font-family: inherit; font-size: 15px; font-weight: 800; cursor: pointer">Post on X</button>
+      </sc-if>
+    </div>
+  </section>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"onToast":{"editor":null},"maxH":{"editor":null},"day":{"editor":null},"onNav":{"editor":null},"variant":{"editor":null},"theme":{"editor":null},"accent":{"editor":"color","default":"#7CD4FF","options":["#7CD4FF","#FFD23F","#6495ED","#B4A5FF","#FF85C8","#FF9152","#FFB547"],"section":"Look"},"mode":{"editor":"enum","options":["image","text"],"default":"image","section":"Share"},"money":{"editor":"enum","options":["pct","usd"],"default":"pct","section":"Share"},"notes":{"editor":"boolean","default":false,"section":"Share"},"$preview":{"width":390,"height":1000}}'>
+class Component extends DCLogic {
+  renderVals() {
+    const accent = this.props.accent ?? '#7CD4FF';
+    const st = this.state || {};
+    const mode = st.mode ?? this.props.mode ?? 'image';
+    const money = st.money ?? this.props.money ?? 'pct';
+    const notes = st.notes ?? this.props.notes ?? false;
+    const lesson = st.lesson ?? true;
+    const variant = this.props.variant ?? 'demo';
+    const themes = {
+      dark: { bg: '#0D0E13', surface: '#171922', surface2: '#21242F', line: '#2C303D', text: '#F3F4F7', text2: '#A9AEBE', text3: '#858B9E' },
+      light: { bg: '#F4F4F7', surface: '#FFFFFF', surface2: '#EEEFF3', line: '#E3E5EB', text: '#12131A', text2: '#4F5566', text3: '#666C7E' }
+    };
+    const c = themes[this.props.theme ?? 'dark'] || themes.dark;
+    // Theme-aware helpers from design/tokens.json: accent ink for foreground use on light, warn and danger.
+    const tkLight = (this.props.theme ?? 'dark') === 'light';
+    const tkn = {
+      ink: tkLight ? ({ '#7CD4FF': '#0072AA', '#FFD23F': '#866700', '#6495ED': '#1B63E5', '#B4A5FF': '#6849FF', '#FF85C8': '#D10073', '#FF9152': '#BD4500', '#FFB547': '#9E5E00' }[String(accent).toUpperCase()] || accent) : accent,
+      flash: accent + '38',
+      warn: tkLight ? '#A86400' : '#FFE07A', warnSoft: tkLight ? 'rgba(168,100,0,0.10)' : 'rgba(255,224,122,0.14)',
+      danger: tkLight ? '#D23434' : '#FF6B6B'
+    };
+    const pct = money === 'pct';
+
+    // Day: Oct 7 is hand-written (+$234.12 on $2,250 deployed = +10.4%). Other days come from the journal as a payload.
+    const day = this.props.day && this.props.day.iso !== '2026-10-07' ? this.props.day : null;
+    const sgn = (v) => (v > 0 ? '+' : v < 0 ? '-' : '');
+    const usd = (v) => sgn(v) + '$' + Math.abs(Math.round(v)).toLocaleString('en-US');
+    const pc = (v) => sgn(v) + Math.abs(v) + '%';
+    let m, k;
+    if (!day) {
+      m = pct
+        ? { hero: '+10.4%', head: '+10.4%', gob: '+96%', moon: '+66%', back: 'gave a chunk back', wif: '-44%', pep: '-38%' }
+        : { hero: '+$234', head: '+$234', gob: '+$288', moon: '+$197', back: 'gave back $375', wif: '-$221', pep: '-$154' };
+      m.short = 'Clean morning, took profit into strength. After lunch I aped two pumps and ' + m.back + '.';
+      k = {
+        title: 'Wed, Oct 7', meta: '8 trades · 4W 4L', heroColor: '#3FD98E',
+        gainLine: '0,90 37.3,54.6 61.1,36.6 76.7,41.3 147.1,17 158.6,10.4 174.1,15 284,15', lossLine: '284,15 310.9,42.2 331.6,61.2 342,61.2',
+        lesson: 'No new entries for 20 min after a red trade',
+        notes: [{ coin: '$WIFHAT', val: m.wif, color: '#FF6B6B', note: 'bought after a +180% candle. Pure FOMO.' }, { coin: '$PEPU2', val: m.pep, color: '#FF6B6B', note: 'jumped back in 4 min after a red trade.' }]
+      };
+      const lines = [
+        'Wed, Oct 7 · ' + m.head + ' · 8 trades, 4W 4L',
+        '',
+        'Clean morning, took profit into strength on $GOBLN (' + m.gob + ') and $MOONCAT (' + m.moon + '). After lunch I aped two pumps and ' + m.back + '. Still green.'
+      ];
+      if (notes) lines.push('', '$WIFHAT ' + m.wif + ': bought after a +180% candle. Pure FOMO.', '$PEPU2 ' + m.pep + ': jumped back in 4 min after a red trade.');
+      if (lesson) lines.push('', 'Lesson: no new entries for 20 min after a red trade.');
+      lines.push('', 'journaled by M8 · trenchm8');
+      m.text = lines.join('\n');
+    } else {
+      const hero = pct ? pc(day.pct) : usd(day.pnl);
+      m = { hero, head: hero, short: day.entry };
+      const losses = day.n - day.wins;
+      k = {
+        title: day.title, meta: day.n + (day.n === 1 ? ' trade' : ' trades') + ' · ' + day.wins + 'W ' + losses + 'L',
+        heroColor: day.pnl >= 0 ? '#3FD98E' : '#FF6B6B',
+        gainLine: day.gainLine || '', lossLine: day.lossLine || '',
+        lesson: day.lesson,
+        notes: day.notes.map((n) => ({ coin: n.coin, val: pct ? pc(n.pct) : usd(n.pnl), color: n.pnl >= 0 ? '#3FD98E' : '#FF6B6B', note: n.note + '.' }))
+      };
+      const lines = [day.title + ' · ' + hero + ' · ' + day.n + ' trades, ' + day.wins + 'W ' + losses + 'L', '', day.entry];
+      if (notes && k.notes.length) { lines.push(''); k.notes.forEach((n) => lines.push(n.coin + ' ' + n.val + ': ' + n.note)); }
+      if (lesson && day.lesson) lines.push('', 'Lesson: ' + day.lesson.charAt(0).toLowerCase() + day.lesson.slice(1) + '.');
+      lines.push('', 'journaled by M8 · trenchm8');
+      m.text = lines.join('\n');
+    }
+    k.hasNotes = k.notes.length > 0;
+    const len = m.text.length;
+
+    const isImage = mode === 'image';
+    const sel = (on) => on ? { bg: accent, fg: '#15140E' } : { bg: 'transparent', fg: c.text2 };
+    const tImg = sel(isImage), tTxt = sel(!isImage), mP = sel(pct), mU = sel(!pct);
+    const toggle = (label, on, flip) => ({
+      label, on: on ? 'true' : 'false', flip,
+      track: on ? accent : ((this.props.theme ?? 'dark') === 'light' ? '#C9CCD6' : '#3A3E4C'), knob: on ? '#15140E' : '#FFFFFF', justify: on ? 'flex-end' : 'flex-start'
+    });
+    return { tkn,
+      tip: (this.props.theme ?? 'dark') === 'light' ? { bg: '#12131A', fg: '#F3F4F7', row: 'rgba(18,19,26,0.045)', press: 'rgba(18,19,26,0.08)' } : { bg: '#F3F4F7', fg: '#12131A', row: 'rgba(255,255,255,0.045)', press: 'rgba(255,255,255,0.08)' },
+      c, accent, m, k,
+      isImage, isText: !isImage,
+      tabImgBg: tImg.bg, tabImgFg: tImg.fg, tabTxtBg: tTxt.bg, tabTxtFg: tTxt.fg,
+      isPct: pct ? 'true' : 'false', isUsd: pct ? 'false' : 'true',
+      pctBg: mP.bg, pctFg: mP.fg, usdBg: mU.bg, usdFg: mU.fg,
+      toggles: [toggle('Trade notes', notes, () => this.setState({ notes: !notes, copied: false })), toggle("M8's lesson", lesson, () => this.setState({ lesson: !lesson, copied: false }))],
+      notes, lesson,
+      toImage: () => this.setState({ mode: 'image', copied: false }), toText: () => this.setState({ mode: 'text', copied: false }),
+      toPct: () => this.setState({ money: 'pct', copied: false }), toUsd: () => this.setState({ money: 'usd', copied: false }),
+      copy: () => { this.setState({ copied: true }); if (this.props.onToast) this.props.onToast({ text: isImage ? 'Image copied' : 'Text copied', kind: 'success' }); },
+      save: () => { if (this.props.onToast) this.props.onToast({ text: 'Image saved to your device', kind: 'success' }); },
+      post: () => { if (this.props.onToast) this.props.onToast({ text: 'Opening X with your post…', kind: 'info' }); },
+      close: () => { if (this.props.onNav) this.props.onNav('close'); },
+      demo: variant === 'demo', grabber: variant !== 'dialog',
+      shareTitle: 'Share ' + k.title,
+      secMaxH: variant === 'demo' ? 'none' : (variant === 'dialog' ? '88vh' : (this.props.maxH || '812px')),
+      // Dialog: card on the left, controls on the right. Sheet: one column.
+      g: variant === 'dialog'
+        ? { cols: '326px minmax(0, 1fr)', rows: 'auto auto 1fr', main: '1', side: '2', tabsRow: '1', prevRow: '1 / 4', optsRow: '2', noteRow: '3', minH: '446px' }
+        : { cols: 'minmax(0, 1fr)', rows: 'auto', main: '1', side: '1', tabsRow: '1', prevRow: '2', optsRow: '3', noteRow: '4', minH: '0' },
+      rootW: variant === 'demo' ? '390px' : '100%', rootH: variant === 'demo' ? '1000px' : 'auto',
+      rootBg: variant === 'demo' ? c.bg : 'transparent',
+      secPos: variant === 'demo' ? 'absolute' : 'relative',
+      secR: variant === 'dialog' ? '28px' : '28px 28px 0 0',
+      secPad: variant === 'dialog' ? '20px 20px 24px 20px' : '10px 16px 24px 16px',
+      primary: st.copied ? 'Copied' : (isImage ? 'Copy image' : 'Copy text'),
+      fit: len + ' / 280 · ' + (len <= 280 ? 'fits in one post' : 'posts as a thread'),
+      fitColor: len <= 280 ? c.text3 : c.text2,
+      cardAria: 'Share card: ' + k.title + ', ' + m.hero + ', ' + k.meta + '. Lesson: ' + k.lesson + '.'
+    };
+  }
+}
+</script>
+</body>
+</html>
